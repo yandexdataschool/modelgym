@@ -8,7 +8,7 @@ from pymongo.errors import ConnectionFailure
 class ProgressTracker(object):
     '''base class for storing model training state'''
 
-    def __init__(self, model_name, config_key):
+    def __init__(self, model_name=None, config_key=None):
         self.model_name = model_name
         self.config_key = config_key
         self.schema = ('default_cv', 'default_test', 'tuned_cv', 'tuned_test', 'trials', '_model_name', '_config_key')
@@ -57,8 +57,8 @@ class ProgressTracker(object):
 class ProgressTrackerFile(ProgressTracker):
     ''' store model training state to file'''
 
-    def __init__(self, model_name, config_key, results_dir):
-        super(ProgressTrackerFile, self).__init__(model_name, config_key)
+    def __init__(self, results_dir, config_key=None, model_name=None):
+        super(ProgressTrackerFile, self).__init__(model_name=model_name, config_key=config_key)
         self.results_dir = results_dir
 
 
@@ -93,16 +93,16 @@ class ProgressTrackerFile(ProgressTracker):
 
 class ProgressTrackerMongo(ProgressTracker):
 
-    def __init__(self, model_name, config_key, host, port, db):
-        super(ProgressTrackerMongo, self).__init__(model_name, config_key)
-        self.state['trials'] = MongoTrials('mongo://%s:%d/%s/jobs' % (host, port, db), 
-                                           exp_key=self.model_name)
+    def __init__(self, host, port, db, config_key=None, model_name=None):
+        super(ProgressTrackerMongo, self).__init__(model_name=model_name, config_key=config_key)
         self.client = MongoClient(host, port)
         try:
             self.client.admin.command('ismaster')
         except ConnectionFailure:
             print("Server not available")
             raise ConnectionFailure
+        self.state['trials'] = MongoTrials('mongo://%s:%d/%s/jobs' % (host, port, db), 
+                                           exp_key=self.model_name)
         db = self.client[db]
         self.mongo_collection = db.results
 

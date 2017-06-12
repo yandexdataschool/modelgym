@@ -27,7 +27,7 @@ def elementwise_loss(y, p, learning_task=TASK_CLASSIFICATION):
     return (y - p) ** 2
 
 
-def split_and_preprocess(X_train, y_train, X_test, y_test, cat_cols, n_splits=5, random_state=0, holdout_size=0, learning_task=TASK_CLASSIFICATION):
+def split_and_preprocess(X_train, y_train, X_test, y_test, cat_cols=[], n_splits=5, random_state=0, holdout_size=0, learning_task=TASK_CLASSIFICATION):
     if holdout_size > 0:
         print('Holdout is used for counters.')
         X_train, X_hout, y_train, y_hout = train_test_split(X_train, y_train, 
