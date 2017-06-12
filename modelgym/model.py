@@ -12,9 +12,6 @@ class Model(object):
         self.compute_counters = compute_counters
         self.holdout_size = holdout_size
         self.counters_sort_col = counters_sort_col
-        # self.best_loss = np.inf
-        # self.hyperopt_evals, self.hyperopt_eval_num = hyperopt_evals, 0
-        # self.dataset_path, self.output_folder_path = dataset_path, output_folder_path
         self.default_params, self.best_params = None, None
         if self.learning_task == TASK_CLASSIFICATION:
             self.metric = 'logloss'
