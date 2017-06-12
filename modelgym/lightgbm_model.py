@@ -6,10 +6,9 @@ import numpy as np
 
 class LGBModel(Model):
 
-    def __init__(self, learning_task, n_estimators=5000, max_hyperopt_evals=50, 
-                 counters_sort_col=None, holdout_size=0, dataset_path='./', output_path='./'):
-        Model.__init__(self, learning_task, 'LightGBM', n_estimators, max_hyperopt_evals, 
-                            True, counters_sort_col, holdout_size, dataset_path, output_path)
+    def __init__(self, learning_task, compute_counters=False, counters_sort_col=None, holdout_size=0):
+        Model.__init__(self, learning_task, 'LightGBM',
+                       compute_counters, counters_sort_col, holdout_size)
 
         self.space = {
             'learning_rate': hp.loguniform('learning_rate', -7, 0),

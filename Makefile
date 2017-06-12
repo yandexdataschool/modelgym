@@ -49,7 +49,13 @@ build-base-image:
 	docker build -t ${IMAGE} -f ${DOCKERFILE} environment
 
 jupyter:
-	docker run -d --name jupyter -p ${JUPYTER_PORT}:8888 -v ${CURDIR}:/notebooks ${IMAGE}
+	if docker ps |grep -q mongo$$ ; then LINK_MONGO='--link mongo:mongo' ; else LINK_MONGO='' ; fi ; \
+	echo $$LINK_MONGO ; \
+	docker run -d --name jupyter \
+	  -p ${JUPYTER_PORT}:8888 \
+	  $$LINK_MONGO \
+	  -v ${CURDIR}:/notebooks \
+	  ${IMAGE}
 	@echo "http://$(shell hostname -f):${JUPYTER_PORT}"
 	sleep 3
 	docker logs jupyter | tail -2
@@ -62,7 +68,11 @@ jupyter-stop:
 ##
 
 mongo:
-	docker run -d --name mongo -p ${MONGO_PORT}:27017 mongo 
+	mkdir -p ${CURDIR}/db
+	docker run -d --name mongo \
+	  -v ${CURDIR}/db:/data/db \
+	  -p ${MONGO_PORT}:27017 \
+	  mongo 
 
 mongo-stop:
 	docker stop mongo

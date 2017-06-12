@@ -5,11 +5,9 @@ from hyperopt import hp
 
 class XGBModel(Model):
 
-    def __init__(self, learning_task, n_estimators=5000, max_hyperopt_evals=50, 
-                 counters_sort_col=None, holdout_size=0, dataset_path='./', output_path='./'):
-        Model.__init__(self, learning_task, 'XGBoost', n_estimators, max_hyperopt_evals, 
-                            False, counters_sort_col, holdout_size, dataset_path, output_path)
-
+    def __init__(self, learning_task, compute_counters=False, counters_sort_col=None, holdout_size=0):
+        Model.__init__(self, learning_task, 'XGBoost', 
+                       compute_counters, counters_sort_col, holdout_size)
         self.space = {
             'eta': hp.loguniform('eta', -7, 0),
             'max_depth' : hp.quniform('max_depth', 2, 10, 1),

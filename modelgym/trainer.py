@@ -11,14 +11,8 @@ from bson.son import SON
 class Trainer(object):
 
     def __init__(self, n_estimators=5000, hyperopt_evals=50, state=None, load_previous=False):
-        # self.model = model
-        # self.learning_task, self.bst_name = learning_task, bst_name
-        # self.compute_counters = compute_counters
-        # self.holdout_size = holdout_size
-        # self.counters_sort_col = counters_sort_col
         self.n_estimators, self.best_loss = n_estimators, np.inf
         self.hyperopt_evals, self.hyperopt_eval_num = hyperopt_evals, 0
-        # self.dataset_path, self.output_folder_path = dataset_path, output_folder_path
         self.default_params, self.best_params = None, None
 
 
@@ -115,28 +109,6 @@ class Trainer(object):
     
         bst = trials.best_trial['result']
         return bst if not isinstance(bst, SON) else bst.to_dict()
-
-
-    # def dump(self, preds, losses, test_loss, file_name, trials=None):
-    #     results = {'trials': trials, 'best_params': self.best_params,
-    #                'best_n_estimators': None,
-    #                'preds': preds, 'losses': losses, 'test_loss': test_loss}
-    #     if hasattr(self, 'best_n_estimators'):
-    #         results.update({'best_n_estimators': self.best_n_estimators})
-    #     with open(file_name, 'wb') as f:
-    #         pickle.dump(results, f)
-
-
-    # def load(self, file_name):
-    #     with open(file_name, 'r') as f:
-    #         results = pickle.load(f)
-    #     trials = results['trials']
-    #     self.best_params = results['best_params']
-    #     self.best_n_estimators = results['best_n_estimators']
-    #     preds = results['preds']
-    #     losses = results['losses']
-    #     test_loss = results['test_loss']
-    #     return preds, losses, test_loss, trials
 
 
     def print_result(self, result, name='', extra_keys=None):
