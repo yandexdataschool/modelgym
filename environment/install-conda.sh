@@ -46,7 +46,7 @@ rm -rf xgboost
 git clone --recursive https://github.com/Microsoft/LightGBM
 cd LightGBM
 git checkout d12e5e4c74b2a0b23ddc49df41ce4deaf02612d2
-mkdir build && cd build && cmake ..
+mkdir build && cd build && cmake -DUSE_MPI=ON ..
 make -j
 cd ../python-package/ && python setup.py install
 cd ../../
