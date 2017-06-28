@@ -1,5 +1,5 @@
 IMAGE:=anaderi/modelgym:latest
-DOCKERFILE:=environment/Dockerfile.ubuntu
+DOCKERFILE:=environment/Dockerfile.binder
 CONFIG:=test
 NOTEBOOK:=model_search.ipynb
 JUPYTER_PORT:=8888

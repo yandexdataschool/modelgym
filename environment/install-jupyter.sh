@@ -5,9 +5,10 @@ apt-get install -y vim netcat iputils-ping
 
 conda install -y jupyter matplotlib seaborn runipy
 # install jupyterhub to be runnable from under jupyterhub
-source deactivate catboost
+ENV_NAME=$CONDA_DEFAULT_ENV
+source deactivate
 pip install jupyterhub==0.7.* notebook==5.0.*
-source activate catboost
+source activate $ENV_NAME
 conda clean -tipsy
 
 echo "Generating jupyter config"
