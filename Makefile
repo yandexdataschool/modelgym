@@ -1,10 +1,12 @@
 IMAGE:=anaderi/modelgym:latest
-DOCKERFILE:=environment/Dockerfile.binder
+#DOCKERFILE:=environment/Dockerfile.binder
+DOCKERFILE:=environment/Dockerfile.ubuntu
 CONFIG:=test
 NOTEBOOK:=model_search.ipynb
 JUPYTER_PORT:=8888
 SHELL=/bin/bash
 NB_RUNNER=./scripts/run_nb.sh
+VERSION=$(shell grep __version__ modelgym/__init__.py | cut -d \" -f 2)
 
 # DISTRIBUTED
 NUM_WORKERS:=5
@@ -44,6 +46,7 @@ run-container-base:
 
 build-base-image:
 	docker build -t ${IMAGE} -f ${DOCKERFILE} environment
+	docker tag ${IMAGE} ${IMAGE:latest=${VERSION}}
 
 jupyter:
 	if docker ps |grep -q mongo$$ ; then LINK_MONGO='--link mongo:mongo' ; else LINK_MONGO='' ; fi ; \

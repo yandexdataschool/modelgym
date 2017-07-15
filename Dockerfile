@@ -1,4 +1,4 @@
 # For running at everware
-FROM anaderi/modelgym:v0.1.1_binder
+FROM anaderi/modelgym:v0.1.2
 MAINTAINER anaderi@yandex-team.ru
 

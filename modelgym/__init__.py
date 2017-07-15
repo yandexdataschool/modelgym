@@ -4,4 +4,4 @@ from xgboost_model import XGBModel
 from tracker import ProgressTracker, ProgressTrackerFile, ProgressTrackerMongo
 from trainer import Trainer
 
-__version__ = "0.0.1"
+__version__ = "0.1.2"
