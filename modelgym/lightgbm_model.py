@@ -1,6 +1,6 @@
 import lightgbm as lgb
 from hyperopt import hp
-from model import Model
+from modelgym.model import Model
 import numpy as np
 
 

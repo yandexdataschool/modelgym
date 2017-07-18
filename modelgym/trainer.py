@@ -33,7 +33,7 @@ class Trainer(object):
             if type(custom_metric) is not dict:
                 raise TypeError("custom_metric argument should be dict")
             prediction = model.predict(bst, _dtest, dtest.X) # TODO: why 2 args?
-            for metric_name, metric_func in custom_metric.iteritems():
+            for metric_name, metric_func in custom_metric.items():
                 score = metric_func(_dtest.get_label(), prediction, sample_weight=None) # TODO weights
                 result[metric_name] = score
 
@@ -66,9 +66,9 @@ class Trainer(object):
         cv_result.update({'hyperopt_eval_num': self.hyperopt_eval_num, 'best_loss': self.best_loss})
             
         if verbose:
-            print '[{0}/{1}]\teval_time={2:.2f} sec\tcurrent_{3}={4:.6f}\tmin_{3}={5:.6f}'.format(
+            print('[{0}/{1}]\teval_time={2:.2f} sec\tcurrent_{3}={4:.6f}\tmin_{3}={5:.6f}'.format(
                         self.hyperopt_eval_num, self.hyperopt_evals, eval_time,
-                        model.metric, cv_result['loss'], self.best_loss)
+                        model.metric, cv_result['loss'], self.best_loss))
             
         return cv_result
 
@@ -112,17 +112,17 @@ class Trainer(object):
 
 
     def print_result(self, result, name='', extra_keys=None):
-        print '%s:\n' % name
-        print 'loss = %s' % (result['loss'])
+        print ('%s:\n' % name)
+        print ('loss = %s' % (result['loss']))
         if 'best_n_estimators' in result.keys():
-            print 'best_n_estimators = %s' % result['best_n_estimators']
+            print ('best_n_estimators = %s' % result['best_n_estimators'])
         elif 'n_estimators' in result.keys():
-            print 'n_estimators = %s' % result['n_estimators']
-        print 'params = %s' % result['params']
+            print ('n_estimators = %s' % result['n_estimators'])
+        print ('params = %s' % result['params'])
         if extra_keys is not None:
             for k in extra_keys:
                 if k in result:
-                    print "%s = %f" % (k, result[k])
+                    print ("%s = %f" % (k, result[k]))
 
 
 # class MongoTrainer(object):

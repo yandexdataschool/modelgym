@@ -1,5 +1,5 @@
 import xgboost as xgb
-from model import Model
+from modelgym.model import Model
 from hyperopt import hp
 
 

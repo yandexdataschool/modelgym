@@ -115,7 +115,7 @@ class ProgressTrackerMongo(ProgressTracker):
 
         self.mongo_collection.delete_many(dict(exp_key=self.model_name, config=self.config_key))
         self.mongo_collection.insert_one(state_enhanced)
-        print "saved results to mongo %s" % self.mongo_collection.full_name
+        print ("saved results to mongo %s" % self.mongo_collection.full_name)
 
     def load_state(self, as_list=False):
         r = self.mongo_collection.find_one({'config': self.config_key, 'exp_key': self.model_name })
