@@ -23,4 +23,5 @@ RUN cd /tmp && \
 COPY start_jupyter_or_everware.sh /usr/local/bin/
 CMD ["/bin/bash", "--login", "-c", "/usr/local/bin/start_jupyter_or_everware.sh"]
 
+RUN jupyter-kernelspec list
 RUN pip install git+https://github.com/yandexdataschool/modelgym.git
