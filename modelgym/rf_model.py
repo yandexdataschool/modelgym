@@ -1,6 +1,6 @@
 from sklearn.ensemble import RandomForestClassifier as rfc
 from modelgym.model import Model
-from hyperopt import hp, fmin, space_eval, tpe
+from hyperopt import hp, fmin, space_eval, tpe, STATUS_OK
 from modelgym.util import XYCDataset as xycd
 from hyperopt.mongoexp import MongoTrials
 from sklearn.preprocessing import scale, normalize
@@ -65,15 +65,15 @@ class RFModel(Model):
             'normalize': hp.choice('normalize', [0, 1])
         }
         
-        global best
-        best=0
+        #global best
         res=[]
         def f(params):
             acc = hyperopt_train_test(params)
-            #global best
+            global best
+            best=0
             if acc > best:
                 best = acc
-                print('new best:', best, params)
+                #print('new best:', best, params)
                 res.append(best)
             return {'loss': -acc, 'status': STATUS_OK}
 
@@ -83,16 +83,16 @@ class RFModel(Model):
         print(params)
         
         clf=rfc(**params)
-        clf.fit(dtrain.X,dtrain.y)
+        best=clf.fit(dtrain.X,dtrain.y)
         
         print(res) 
         # add
         
         #results = res['test']['rmse'] if self.learning_task == 'regression' \
         #         else res['test']['logloss']
-        return best, results
+        return best, res
 
 
     def predict(self, bst, dtest, X_test):
-        preds = bst.predict(dtest)
+        preds = bst.predict(dtest.X)
         return preds
