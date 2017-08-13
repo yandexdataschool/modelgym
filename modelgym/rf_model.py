@@ -37,7 +37,9 @@ class RFModel(Model):
     
    
     def convert_to_dataset(self, data, label, cat_cols=None):
-        return xycd(data, label, cat_cols)
+        ab=xycd(data, label, cat_cols)
+        print(ab)
+        return ab
 
     
     def fit(self, params, dtrain, dtest, n_estimators):
