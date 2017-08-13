@@ -67,7 +67,6 @@ class RFModel(Model):
             'normalize': hp.choice('normalize', [0, 1])
         }
         
-        #global best
         res=[]
         def f(params):
             acc = hyperopt_train_test(params)
@@ -80,18 +79,12 @@ class RFModel(Model):
             return {'loss': -acc, 'status': STATUS_OK}
 
         best = fmin(f, space4rf, algo=tpe.suggest, max_evals=300)
-        xxx=space_eval(space4rf, best)
-        print(xxx)
+        params_opt=space_eval(space4rf, best)
+        print(params_opt)
         print(params)
-        
         clf=rfc(**params)
         best=clf.fit(dtrain.X,dtrain.y)
-        
-        print(res) 
-        # add
-        
-        #results = res['test']['rmse'] if self.learning_task == 'regression' \
-        #         else res['test']['logloss']
+        #print(res) 
         return best, res
 
 
