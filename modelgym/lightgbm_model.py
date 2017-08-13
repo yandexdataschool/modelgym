@@ -45,6 +45,7 @@ class LGBModel(Model):
                          'min_sum_hessian_in_leaf': 1e-3,
                          'lambda_l1': 0,
                          'lambda_l2': 0,
+                         'n_estimators': 10,
                          'nthread': 4,
                          'num_threads': 4,
                          'num_leaves': 31,

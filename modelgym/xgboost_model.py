@@ -59,6 +59,8 @@ class XGBModel(Model):
         
         results = evals_result['test']['rmse'] if self.learning_task == 'regression' \
                   else evals_result['test']['logloss']
+        print('BST ',bst)
+        print('RES', results)
         return bst, results
 
 

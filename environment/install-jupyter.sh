@@ -4,13 +4,12 @@ set -e
 apt-get install -y vim netcat iputils-ping
 
 conda install -y jupyter matplotlib seaborn runipy
-conda clean -tipsy
-
-# install jupyterhub
+# install jupyterhub to be runnable from under jupyterhub
 ENV_NAME=$CONDA_DEFAULT_ENV
 source deactivate
 pip install jupyterhub==0.7.* notebook==5.0.*
 source activate $ENV_NAME
+conda clean -tipsy
 
 echo "Generating jupyter config"
 jupyter notebook -y --generate-config --allow-root
@@ -21,8 +20,8 @@ c.NotebookApp.allow_root = True
 EOL_CONFIG
 
 
-echo "Registering environment $ENV_NAME as kernel for jupyterhub and jupyter"
-python -m ipykernel.kernelspec --name $ENV_NAME --display-name $ENV_NAME
+echo "Registering this environment as kernel for jupyterhub and jupyter"
+python -m ipykernel.kernelspec
 
 # changing matplotlib configuration
 mkdir -p $HOME/.config/matplotlib && echo 'backend: agg' > $HOME/.config/matplotlib/matplotlibrc

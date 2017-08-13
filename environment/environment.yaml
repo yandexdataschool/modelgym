@@ -2,15 +2,13 @@ name: python3
 channels:
   - conda-forge
 dependencies:
-  - python=3
+  - python=2.7
   - numpy=1.12.*
   - pandas=0.19.*
   - scipy=0.19.*
   - scikit-learn=0.18.*
   - openmpi=2.1.1
   - networkx
-  - xgboost=0.6a2
-  - lightgbm=2.0.4
   - pip:
     - hyperopt==0.1
     - pymongo==3.4.0
