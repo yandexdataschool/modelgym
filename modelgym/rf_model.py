@@ -38,7 +38,7 @@ class RFModel(Model):
    
     def convert_to_dataset(self, data, label, cat_cols=None):
         ab=xycd(data, label, cat_cols)
-        print(ab)
+        #print(ab)
         return ab
 
     
