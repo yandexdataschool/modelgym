@@ -1,7 +1,7 @@
 from sklearn.ensemble import RandomForestClassifier as rfc
 from modelgym.model import Model
 from hyperopt import hp, fmin, space_eval, tpe, STATUS_OK
-from modelgym.util import XYCDataset as xycd
+from modelgym.XYCDataset import XYCDataset as xycd
 from hyperopt.mongoexp import MongoTrials
 from sklearn.preprocessing import scale, normalize
 from sklearn.model_selection import cross_val_score
