@@ -5,33 +5,22 @@ import pandas as pd
 import modelgym
 import pickle
 from sklearn.model_selection import train_test_split
-from modelgym.util import split_and_preprocess
-from unittest.mock import Mock
+import sklearn.datasets.data
 
 TEST_SIZE = 0.5
 N_CV_SPLITS = 2
-def_params = {'base_score': 0.5,
-              'colsample_bylevel': 1,
-              'colsample_bytree': 1,
-              'gamma': 0,
-              'learning_rate': 0.1,
-              'max_delta_step': 0,
-              'max_depth': 3,
-              'min_child_weight': 1,
-              'missing': None,
-              'n_estimators': 100,
-              'nthread': -1,
-              'reg_alpha': 0,
-              'reg_lambda': 1,
-              'scale_pos_weight': 1,
-              'seed': 0,
-              'subsample': 1}
+N_ROWS = 1000
+def_params = {}
+TEST_PARAMS = ["classification", "range", "regression"]
 
 
 def test_preprocess_params():
+    global def_params
     test_params = ["classification", "regression"]
     for par1 in test_params:
         model = modelgym.XGBModel(learning_task=par1)
+        if def_params == {}:
+            def_params = model.default_params
         k = len(model.default_params)
         if model.learning_task == "classification":
             model.default_params.update({'objective': 'binary:logistic', 'eval_metric': 'logloss', 'silent': 1})
@@ -43,54 +32,58 @@ def test_preprocess_params():
     return 0
 
 
-def test_convert_to_dataset(read_data):
-    X, y, weights = read_data
-    assert xgboost.DMatrix(X, y, None) == modelgym.XGBModel.convert_to_dataset(X, y, None)
+def test_convert_to_dataset(preprocess):
+    X_train, X_test, y_train, y_test = preprocess
+    # iris_data=preprocess
+    global TEST_PARAMS
+    dtrain = xgboost.DMatrix(X_train, y_train)
+    dtest = xgboost.DMatrix(X_test, y_test)
+    model = modelgym.XGBModel(learning_task=TEST_PARAMS[0])
+    dexample = model.convert_to_dataset(data=X_train, label=y_train)
+    # compare dtrain and dexample True
+    # compare dtest and dexample False
+    pass
 
 
-def test_fit(read_data):
-    X, y, weights = read_data
-    X_train, X_test, y_train, y_test, w_train, w_test = train_test_split(X, y, weights, test_size=TEST_SIZE)
-    cv_pairs, (dtrain, dtest) = split_and_preprocess(X_train.copy(), y_train,
-                                                     X_test.copy(), y_test,
-                                                     cat_cols=[], n_splits=N_CV_SPLITS)
+def test_fit(preprocess):
+    X_train, X_test, y_train, y_test = preprocess
+    dtrain = xgboost.DMatrix(X_train, y_train)
+    dtest = xgboost.DMatrix(X_test, y_test)
+    evals_result = {}
     params = def_params
-    #result = xgboost.train(dtrain=dtrain, params=params)
-    #assert result.score.call_count == 1
-    return 0
+    result = xgboost.train(dtrain=dtrain, params=params, evals=[(dtest, 'test')], evals_result=evals_result,
+                           num_boost_round=params['n_estimators'], verbose_eval=False)
+    assert result.score.call_count == 1
 
 
 def test_predict():
-    return 0
+    assert 0 == 0
 
 
 @pytest.fixture
 def read_data():
-    with open("../data/XY2d.pickle", 'rb') as fh:
-        X, y = pickle.load(fh, encoding='bytes')
-    index = np.arange(X.shape[0])
-    nrows = X.shape[0]
-    weights = np.ones(nrows)  # uh, well.j..
-    index_perm = np.random.permutation(index)
-    return X[index_perm[:nrows]], y[index_perm[:nrows]], weights
+    iris = sklearn.datasets.load_iris()
+    return iris  # data and target
 
 
 @pytest.fixture
 def preprocess(read_data):
-    X_train, X_test, y_train, y_test, w_train, w_test = train_test_split(read_data, test_size=TEST_SIZE)
-    cv_pairs, (dtrain, dtest) = split_and_preprocess(X_train.copy(), y_train,
-                                                     X_test.copy(), y_test,
-                                                     cat_cols=[], n_splits=N_CV_SPLITS)
-    yield dtrain
+    iris_data = read_data
+    X_train, X_test, y_train, y_test = train_test_split(iris_data.data, iris_data.target, test_size=TEST_SIZE)
+    return X_train, X_test, y_train, y_test
 
 
 def test_XGBModel():
-    model = modelgym.XGBModel(learning_task="classification")
-    param = def_params
-    if model.learning_task == "classification":
-        param.update({'objective': 'binary:logistic', 'eval_metric': 'logloss', 'silent': 1})
-    elif model.learning_task == "regression":
-        param.update({'objective': 'reg:linear', 'eval_metric': 'rmse', 'silent': 1})
-    param['max_depth'] = int(param['max_depth'])
-
-    assert model.default_params == param
+    global TEST_PARAMS
+    for par1 in TEST_PARAMS:
+        try:
+            model = modelgym.XGBModel(learning_task=par1)
+        except ValueError:
+            print(par1, "not expected")
+        param = def_params
+        if model.learning_task == "classification":
+            param.update({'objective': 'binary:logistic', 'eval_metric': 'logloss', 'silent': 1})
+        elif model.learning_task == "regression":
+            param.update({'objective': 'reg:linear', 'eval_metric': 'rmse', 'silent': 1})
+        param['max_depth'] = int(param['max_depth'])
+        assert model.default_params == param
