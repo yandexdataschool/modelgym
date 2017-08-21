@@ -3,6 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="de132ca9-d2c5-45cd-bda8-ee520014ea50" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/modelgym/tracker.py" afterPath="$PROJECT_DIR$/modelgym/tracker.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tests/test_XGBModel.py" afterPath="$PROJECT_DIR$/tests/test_XGBModel.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tests/test_progressTrackerFile.py" afterPath="$PROJECT_DIR$/tests/test_progressTrackerFile.py" />
     </list>
@@ -15,11 +16,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="test_progressTrackerFile.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="test_progressTrackerFile.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/tests/test_progressTrackerFile.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="270">
-              <caret line="18" column="23" lean-forward="false" selection-start-line="18" selection-start-column="23" selection-end-line="18" selection-end-column="23" />
+            <state relative-caret-position="375">
+              <caret line="25" column="22" lean-forward="true" selection-start-line="25" selection-start-column="22" selection-end-line="25" selection-end-column="22" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
               </folding>
@@ -27,14 +28,15 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="tracker.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="tracker.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/modelgym/tracker.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="306">
-              <caret line="67" column="90" lean-forward="true" selection-start-line="67" selection-start-column="16" selection-end-line="67" selection-end-column="90" />
+            <state relative-caret-position="600">
+              <caret line="80" column="51" lean-forward="false" selection-start-line="80" selection-start-column="51" selection-end-line="80" selection-end-column="51" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
                 <element signature="e#210#1703#0" expanded="false" />
+                <element signature="e#3119#4484#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -103,13 +105,13 @@
         <option value="$PROJECT_DIR$/modelgym/rf_model.py" />
         <option value="$PROJECT_DIR$/modelgym/XYCDataset.py" />
         <option value="$PROJECT_DIR$/modelgym/trainer.py" />
-        <option value="$PROJECT_DIR$/modelgym/tracker.py" />
         <option value="$PROJECT_DIR$/modelgym/lightgbm_model.py" />
         <option value="$PROJECT_DIR$/modelgym/cat_counter.py" />
         <option value="$PROJECT_DIR$/tests/test_trainer.py" />
         <option value="$PROJECT_DIR$/modelgym/xgboost_model.py" />
         <option value="$PROJECT_DIR$/tests/test_util.py" />
         <option value="$PROJECT_DIR$/tests/test_XGBModel.py" />
+        <option value="$PROJECT_DIR$/modelgym/tracker.py" />
         <option value="$PROJECT_DIR$/tests/test_progressTrackerFile.py" />
       </list>
     </option>
@@ -155,6 +157,18 @@
               <item name="modelgym" type="b2602c69:ProjectViewProjectNode" />
               <item name="modelgym" type="462c0819:PsiDirectoryNode" />
               <item name="tests" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="modelgym" type="b2602c69:ProjectViewProjectNode" />
+              <item name="modelgym" type="462c0819:PsiDirectoryNode" />
+              <item name="tests" type="462c0819:PsiDirectoryNode" />
+              <item name="data" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="modelgym" type="b2602c69:ProjectViewProjectNode" />
+              <item name="modelgym" type="462c0819:PsiDirectoryNode" />
+              <item name="tests" type="462c0819:PsiDirectoryNode" />
+              <item name="results" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -232,7 +246,14 @@
       <option name="project" value="LOCAL" />
       <updated>1503247203004</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="pytest5">
+      <created>1503319753895</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1503319753896</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -272,7 +293,8 @@
     <MESSAGE value="pytest2" />
     <MESSAGE value="pytest3" />
     <MESSAGE value="pytest4" />
-    <option name="LAST_COMMIT_MESSAGE" value="pytest4" />
+    <MESSAGE value="pytest5" />
+    <option name="LAST_COMMIT_MESSAGE" value="pytest5" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -296,9 +318,9 @@
         <state relative-caret-position="30">
           <caret line="2" column="14" lean-forward="true" selection-start-line="2" selection-start-column="14" selection-end-line="2" selection-end-column="14" />
           <folding>
-            <element signature="e#0#13#0" expanded="false" />
-            <element signature="e#2159#2229#0" expanded="false" />
-            <element signature="e#2279#2455#0" expanded="false" />
+            <element signature="e#0#13#0" expanded="true" />
+            <element signature="e#2261#2331#0" expanded="false" />
+            <element signature="e#2381#2557#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -390,9 +412,9 @@
         <state relative-caret-position="780">
           <caret line="60" column="19" lean-forward="false" selection-start-line="60" selection-start-column="19" selection-end-line="60" selection-end-column="19" />
           <folding>
-            <element signature="e#0#13#0" expanded="false" />
-            <element signature="e#2159#2229#0" expanded="false" />
-            <element signature="e#2279#2455#0" expanded="false" />
+            <element signature="e#0#13#0" expanded="true" />
+            <element signature="e#2261#2331#0" expanded="false" />
+            <element signature="e#2381#2557#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -445,9 +467,9 @@
         <state relative-caret-position="210">
           <caret line="18" column="37" lean-forward="true" selection-start-line="18" selection-start-column="37" selection-end-line="18" selection-end-column="37" />
           <folding>
-            <element signature="e#0#13#0" expanded="false" />
-            <element signature="e#2159#2229#0" expanded="false" />
-            <element signature="e#2279#2455#0" expanded="false" />
+            <element signature="e#0#13#0" expanded="true" />
+            <element signature="e#2261#2331#0" expanded="false" />
+            <element signature="e#2381#2557#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -582,14 +604,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/modelgym/xgboost_model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="765">
-          <caret line="53" column="20" lean-forward="false" selection-start-line="53" selection-start-column="20" selection-end-line="53" selection-end-column="20" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/modelgym/util.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="345">
@@ -608,18 +622,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/tests/test_XGBModel.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="515">
-          <caret line="60" column="34" lean-forward="true" selection-start-line="60" selection-start-column="34" selection-end-line="60" selection-end-column="34" />
-          <folding>
-            <element signature="e#0#13#0" expanded="false" />
-            <element signature="e#2159#2229#0" expanded="false" />
-            <element signature="e#2279#2455#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/modelgym/trainer.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="15">
@@ -630,23 +632,60 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/tests/test_progressTrackerFile.py">
+    <entry file="file://$PROJECT_DIR$/build/lib/modelgym/trainer.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="270">
-          <caret line="18" column="23" lean-forward="false" selection-start-line="18" selection-start-column="23" selection-end-line="18" selection-end-column="23" />
+        <state relative-caret-position="600">
+          <caret line="106" column="24" lean-forward="false" selection-start-line="106" selection-start-column="24" selection-end-line="106" selection-end-column="24" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/modelgym/xgboost_model.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="765">
+          <caret line="53" column="20" lean-forward="false" selection-start-line="53" selection-start-column="20" selection-end-line="53" selection-end-column="20" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tests/data/tracker_None_None.pickle">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tests/test_XGBModel.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="285">
+          <caret line="19" column="9" lean-forward="false" selection-start-line="19" selection-start-column="9" selection-end-line="19" selection-end-column="9" />
           <folding>
             <element signature="e#0#13#0" expanded="true" />
+            <element signature="e#2261#2331#0" expanded="false" />
+            <element signature="e#2381#2557#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/modelgym/tracker.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="306">
-          <caret line="67" column="90" lean-forward="true" selection-start-line="67" selection-start-column="16" selection-end-line="67" selection-end-column="90" />
+        <state relative-caret-position="600">
+          <caret line="80" column="51" lean-forward="false" selection-start-line="80" selection-start-column="51" selection-end-line="80" selection-end-column="51" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
             <element signature="e#210#1703#0" expanded="false" />
+            <element signature="e#3119#4484#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tests/test_progressTrackerFile.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="375">
+          <caret line="25" column="22" lean-forward="true" selection-start-line="25" selection-start-column="22" selection-end-line="25" selection-end-column="22" />
+          <folding>
+            <element signature="e#0#13#0" expanded="true" />
           </folding>
         </state>
       </provider>

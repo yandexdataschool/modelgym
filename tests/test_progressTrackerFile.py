@@ -1,27 +1,58 @@
 import pytest
 from modelgym.tracker import ProgressTrackerFile
+import os.path
+import pickle
+
+TEST_PARAMS = ["results", "data"]
 
 
 def test__get_results_dir():
-    test_params = ["results", "data"]
-    for param in test_params:
+    for param in TEST_PARAMS:
         tracker = ProgressTrackerFile(param)
         ans = tracker._get_results_dir()
         assert param == ans
 
 
-def test__get_tracker_file():
-    test_params = ["results", "data"]
-    for param in test_params:
+def test__get_tracker_file_success():
+    for param in TEST_PARAMS:
         tracker = ProgressTrackerFile(param)
         expected = "%s/tracker_%s_%s.pickle" % (tracker._get_results_dir(), tracker.config_key, tracker.model_name)
         ans = tracker._get_tracker_file()
         assert expected == ans
+        assert os.path.isfile(expected)
 
 
-def test_save_state():
-    return 0
+@pytest.fixture()
+def generate_trials():
+    import math
+    from hyperopt import fmin, tpe, hp, Trials
+    trials = Trials()
+    best = fmin(math.sin, hp.uniform('x', -2, 2), trials=trials, algo=tpe.suggest, max_evals=10)
+    yield trials
 
 
-def test_load_state():
-    return 0
+def test_save_state(generate_trials):
+    for param in TEST_PARAMS:
+        tracker = ProgressTrackerFile(param)
+        trials = generate_trials
+        tracker.save_state(trials=trials)
+        fname = tracker._get_tracker_file()
+        assert os.path.isfile(fname)
+
+
+def test_load_state_success():
+    for param in TEST_PARAMS:
+        tracker = ProgressTrackerFile(param)
+        assert os.path.exists(tracker._get_tracker_file())
+        with open(tracker._get_tracker_file(), "rb") as fh:
+            tracker.state = pickle.load(fh)
+            assert tracker.load_state(as_list=True) == tracker.get_state(as_list=True)
+
+
+def test_load_state_fail():
+    for param in TEST_PARAMS:
+        tracker = ProgressTrackerFile(param)
+        if os.path.exists(tracker._get_tracker_file()):
+            with open(tracker._get_tracker_file(), "rb") as fh:
+                tracker.state = pickle.load(fh)
+        assert tracker.load_state(as_list=False) == tracker.get_state(as_list=True)

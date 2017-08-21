@@ -78,7 +78,7 @@ class ProgressTrackerFile(ProgressTracker):
 
     def load_state(self, as_list=False):
         if os.path.exists(self._get_tracker_file()):
-            with open(self._get_tracker_file()) as fh:
+            with open(self._get_tracker_file(), "rb") as fh:
                 self.state = pickle.load(fh)
         return self.get_state(as_list)
 

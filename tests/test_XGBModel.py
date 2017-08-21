@@ -12,10 +12,12 @@ TEST_SIZE = 0.5
 N_CV_SPLITS = 2
 N_ROWS = 1000
 TEST_PARAMS = ["classification", "range", "regression"]
+APPROVED_PARAMS = ["classification", "regression"]
 
 
 def test_preprocess_params():
     for par1 in TEST_PARAMS:
+        #assert APPROVED_PARAMS.__contains__(par1)
         try:
             model = modelgym.XGBModel(learning_task=par1)
         except ValueError:
