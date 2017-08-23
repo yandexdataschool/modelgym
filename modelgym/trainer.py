@@ -1,6 +1,5 @@
 import numpy as np
 import time
-import pickle
 from hyperopt import fmin, Trials, STATUS_OK, STATUS_FAIL
 import hyperopt
 from hyperopt.mongoexp import MongoTrials
@@ -13,6 +12,7 @@ class Trainer(object):
         self.n_estimators, self.best_loss = n_estimators, np.inf
         self.hyperopt_evals, self.hyperopt_eval_num = hyperopt_evals, 0
         self.default_params, self.best_params = None, None
+        self.best_n_estimators = None
 
     def fit_eval(self, model, dtrain, dtest, params=None, n_estimators=None, custom_metric=None):
         params = params or self.best_params or self.default_params
