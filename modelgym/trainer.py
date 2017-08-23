@@ -17,8 +17,8 @@ class Trainer(object):
     def fit_eval(self, model, dtrain, dtest, params=None, n_estimators=None, custom_metric=None):
         params = params or self.best_params or self.default_params
         n_estimators = n_estimators or self.best_n_estimators or self.n_estimators
-        if params==None:
-            params=model.default_params
+        if params == None:
+            params = model.default_params
         params = model.preprocess_params(params)
         start_time = time.time()
         _dtrain = model.convert_to_dataset(dtrain.X, dtrain.y, dtrain.cat_cols)
