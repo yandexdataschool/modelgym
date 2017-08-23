@@ -37,14 +37,13 @@ def test_preprocess_params():
 
 def test_convert_to_dataset(preprocess):
     X_train, X_test, y_train, y_test = preprocess
-    # print ('xtrain',X_train)
-    # print('xtest',X_test)
-    # print('ytrain',y_train)
 
     dtrain = xgb.DMatrix(X_train, y_train)
     dtest = xgb.DMatrix(X_test, y_test)
     model = modelgym.XGBModel(learning_task=TEST_PARAMS[0])
     dexample = model.convert_to_dataset(data=X_train, label=y_train)
+
+    # TODO: implememnt
     # compare dtrain and dexample True
     # compare dtest and dexample False
     pass

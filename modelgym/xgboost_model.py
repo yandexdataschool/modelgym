@@ -51,7 +51,6 @@ class XGBModel(Model):
 
     def fit(self, params, dtrain, dtest, n_estimators):
         evals_result = {}
-        # fails here
         bst = xgb.train(params, dtrain, evals=[(dtest, 'test')], evals_result=evals_result,
                         num_boost_round=n_estimators, verbose_eval=False)
 
