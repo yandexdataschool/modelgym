@@ -1,23 +1,29 @@
 import pytest
 import numpy as np
-import xgboost
+import xgboost as xgb
 import pandas as pd
+from hyperopt import STATUS_OK
+from sklearn import cross_validation
+from sklearn.metrics import roc_auc_score
+
 import modelgym
 import pickle
-from sklearn.model_selection import train_test_split
+from sklearn.cross_validation import train_test_split
 import sklearn.datasets.data
 from modelgym.util import split_and_preprocess
 
-TEST_SIZE = 0.5
+TEST_SIZE = 0.2
 N_CV_SPLITS = 2
-N_ROWS = 1000
+NROWS = 1000
+N_PROBES = 2
+N_ESTIMATORS = 100
 TEST_PARAMS = ["classification", "range", "regression"]
 APPROVED_PARAMS = ["classification", "regression"]
 
 
 def test_preprocess_params():
     for par1 in TEST_PARAMS:
-        #assert APPROVED_PARAMS.__contains__(par1)
+        # assert APPROVED_PARAMS.__contains__(par1)
         try:
             model = modelgym.XGBModel(learning_task=par1)
         except ValueError:
@@ -35,8 +41,8 @@ def test_convert_to_dataset(preprocess):
     # print('xtest',X_test)
     # print('ytrain',y_train)
 
-    dtrain = xgboost.DMatrix(X_train, y_train)
-    dtest = xgboost.DMatrix(X_test, y_test)
+    dtrain = xgb.DMatrix(X_train, y_train)
+    dtest = xgb.DMatrix(X_test, y_test)
     model = modelgym.XGBModel(learning_task=TEST_PARAMS[0])
     dexample = model.convert_to_dataset(data=X_train, label=y_train)
     # compare dtrain and dexample True
@@ -46,25 +52,26 @@ def test_convert_to_dataset(preprocess):
 
 def test_fit(preprocess):
     X_train, X_test, y_train, y_test = preprocess
-    evals_results = []
+
+    assert 0 == 0
+
+
+def test_predict(read_cerndata):
+    X, y, w = read_cerndata
+    X_train, X_test, y_train, y_test, w_train, w_test = train_test_split(X, y, w, test_size=TEST_SIZE)
     cv_pairs, (dtrain, dtest) = split_and_preprocess(X_train.copy(), y_train,
                                                      X_test.copy(), y_test,
                                                      cat_cols=[], n_splits=N_CV_SPLITS)
-    model = modelgym.XGBModel(learning_task="classification")
-    params = model.preprocess_params(model.default_params)
-    for dtrain, dtest in cv_pairs:
-        _dtrain = model.convert_to_dataset(dtrain.X, dtrain.y, dtrain.cat_cols)
-        _dtest = model.convert_to_dataset(dtest.X, dtest.y, dtest.cat_cols)
+    from modelgym.trainer import Trainer
+    from modelgym.util import TASK_CLASSIFICATION
 
-        # fails here
+    model = modelgym.XGBModel(TASK_CLASSIFICATION)
 
-        # _, evals_result = model.fit(params, _dtrain, _dtest, params['n_estimators'])
-        # evals_results.append(evals_result)
-    assert len(evals_results) != 0
-
-
-def test_predict():
-    assert 0 == 0
+    trainer = Trainer(hyperopt_evals=N_PROBES, n_estimators=N_ESTIMATORS)
+    res = trainer.crossval_fit_eval(model, cv_pairs)
+    ans = trainer.fit_eval(model, dtrain, dtest, res['params'], res['best_n_estimators'],
+                           custom_metric={'roc_auc': roc_auc_score})
+    assert ans['roc_auc'] > 0.5
 
 
 @pytest.fixture
@@ -76,5 +83,18 @@ def read_data():
 @pytest.fixture
 def preprocess(read_data):
     iris_data = read_data
-    X_train, X_test, y_train, y_test = train_test_split(iris_data.data, iris_data.target, test_size=TEST_SIZE)
+    X_train, X_test, y_train, y_test = train_test_split(iris_data.data, iris_data.target, test_size=TEST_SIZE,
+                                                        random_state=42)
     return X_train, X_test, y_train, y_test
+
+
+@pytest.fixture
+def read_cerndata():
+    with open("data/XY2d.pickle", 'rb') as fh:
+        X, y = pickle.load(fh, encoding='bytes')
+    index = np.arange(X.shape[0])
+    nrows=NROWS
+    weights = np.ones(nrows)  # uh, well...
+    index_perm = np.random.permutation(index)
+    return X[index_perm[:nrows]], y[index_perm[:nrows]], weights
+
