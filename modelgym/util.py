@@ -1,9 +1,10 @@
 import numpy as np
-# from cat_counter import CatCounter
-from modelgym.model import TASK_CLASSIFICATION, TASK_REGRESSION
 from sklearn.model_selection import StratifiedKFold, KFold, train_test_split
+
 # from collections import namedtuple
 from modelgym.XYCDataset import XYCDataset
+# from cat_counter import CatCounter
+from modelgym.model import TASK_CLASSIFICATION, TASK_REGRESSION
 
 
 # XYCDataset = namedtuple('XYCDataset', ['X', 'y', 'cat_cols'])

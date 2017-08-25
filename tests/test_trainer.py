@@ -1,14 +1,11 @@
-import pickle
-
-import numpy as np
 import pandas as pd
 import pytest
+import sklearn.datasets.data
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
 
-from modelgym.trainer import Trainer
 import modelgym
-import sklearn.datasets.data
+from modelgym.trainer import Trainer
 from modelgym.util import TASK_CLASSIFICATION, split_and_preprocess
 
 TEST_SIZE = 0.2
@@ -150,7 +147,7 @@ def read_titanic():
         return df
 
     def format_name(df):
-        df['Lname'] = df.Name.apply(lambda x: ((x.split(' ')[0])).split(',')[0])
+        df['Lname'] = df.Name.apply(lambda x: (x.split(' ')[0]).split(',')[0])
         df['NamePrefix'] = df.Name.apply(lambda x: x.split(' ')[1])
         return df
 

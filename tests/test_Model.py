@@ -1,17 +1,11 @@
-import pytest
-import numpy as np
-import xgboost as xgb
 import pandas as pd
-from hyperopt import STATUS_OK
-from sklearn import cross_validation
+import pytest
+from sklearn.cross_validation import train_test_split
 from sklearn.metrics import roc_auc_score
-from modelgym.trainer import Trainer
-from modelgym.util import TASK_CLASSIFICATION
 
 import modelgym
-import pickle
-from sklearn.cross_validation import train_test_split
-import sklearn.datasets.data
+from modelgym.trainer import Trainer
+from modelgym.util import TASK_CLASSIFICATION
 from modelgym.util import split_and_preprocess
 
 TEST_SIZE = 0.2
@@ -21,6 +15,7 @@ N_PROBES = 2
 N_ESTIMATORS = 100
 TEST_PARAMS = ["classification", "range", "regression"]
 APPROVED_PARAMS = ["classification", "regression"]
+MODEL_CLASS = [modelgym.XGBModel, modelgym.LGBModel, modelgym.RFModel]
 
 
 def test_preprocess_params():
@@ -54,39 +49,44 @@ def test_convert_to_dataset(read_titanic):
     pass
 
 
-def test_fit(read_titanic):
-    global roc_auc
-    data_train, data_test = read_titanic
-    X_all = data_train.drop(['Survived', 'PassengerId'], axis=1)
-    y_all = data_train['Survived']
-    X_all = X_all.values
-    y_all = y_all.values
+@pytest.mark.parametrize("model_class", MODEL_CLASS)
+def test_fit(model_class):
+    @pytest.fixture
+    def _test_fit(read_titanic, model_class):
+        global roc_auc
+        data_train, data_test = read_titanic
+        X_all = data_train.drop(['Survived', 'PassengerId'], axis=1)
+        y_all = data_train['Survived']
+        X_all = X_all.values
+        y_all = y_all.values
 
-    X_train, X_test, y_train, y_test = train_test_split(X_all, y_all, test_size=TEST_SIZE)
-    cv_pairs, (dtrain, dtest) = split_and_preprocess(X_train.copy(), y_train,
-                                                     X_test.copy(), y_test,
-                                                     cat_cols=[], n_splits=N_CV_SPLITS)
+        X_train, X_test, y_train, y_test = train_test_split(X_all, y_all, test_size=TEST_SIZE)
+        cv_pairs, (dtrain, dtest) = split_and_preprocess(X_train.copy(), y_train,
+                                                         X_test.copy(), y_test,
+                                                         cat_cols=[], n_splits=N_CV_SPLITS)
 
-    model = modelgym.XGBModel(TASK_CLASSIFICATION)
-    trainer = Trainer(hyperopt_evals=N_PROBES, n_estimators=N_ESTIMATORS)
-    res = trainer.crossval_fit_eval(model, cv_pairs)
+        model = model_class(TASK_CLASSIFICATION)
+        trainer = Trainer(hyperopt_evals=N_PROBES, n_estimators=N_ESTIMATORS)
+        res = trainer.crossval_fit_eval(model, cv_pairs)
 
-    params = res['params']
-    params = model.preprocess_params(params)
-    n_estimators = params['n_estimators']
+        params = res['params']
+        params = model.preprocess_params(params)
+        n_estimators = params['n_estimators']
 
-    _dtrain = model.convert_to_dataset(dtrain.X, dtrain.y, dtrain.cat_cols)
-    _dtest = model.convert_to_dataset(dtest.X, dtest.y, dtest.cat_cols)
+        _dtrain = model.convert_to_dataset(dtrain.X, dtrain.y, dtrain.cat_cols)
+        _dtest = model.convert_to_dataset(dtest.X, dtest.y, dtest.cat_cols)
 
-    bst, evals_result = model.fit(params=params, dtrain=_dtrain, dtest=_dtest, n_estimators=n_estimators)
-    prediction = model.predict(bst=bst, dtest=_dtest, X_test=dtest.X)
+        bst, evals_result = model.fit(params=params, dtrain=_dtrain, dtest=_dtest, n_estimators=n_estimators)
+        prediction = model.predict(bst=bst, dtest=_dtest, X_test=dtest.X)
 
-    custom_metric = {'roc_auc': roc_auc_score}
+        custom_metric = {'roc_auc': roc_auc_score}
 
-    for metric_name, metric_func in custom_metric.items():
-        score = metric_func(_dtest.get_label(), prediction, sample_weight=None)  # TODO weights
-        roc_auc = score
-    assert roc_auc > 0.5
+        for metric_name, metric_func in custom_metric.items():
+            score = metric_func(_dtest.get_label(), prediction, sample_weight=None)  # TODO weights
+            roc_auc = score
+        assert roc_auc > 0.5
+
+    return _test_fit
 
 
 def test_predict(read_titanic):
@@ -111,7 +111,7 @@ def test_predict(read_titanic):
     assert ans['roc_auc'] > 0.5
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def read_titanic():
     data_train = pd.read_csv('data/train.csv')
     data_test = pd.read_csv('data/test.csv')
@@ -138,7 +138,7 @@ def read_titanic():
         return df
 
     def format_name(df):
-        df['Lname'] = df.Name.apply(lambda x: ((x.split(' ')[0])).split(',')[0])
+        df['Lname'] = df.Name.apply(lambda x: (x.split(' ')[0]).split(',')[0])
         df['NamePrefix'] = df.Name.apply(lambda x: x.split(' ')[1])
         return df
 

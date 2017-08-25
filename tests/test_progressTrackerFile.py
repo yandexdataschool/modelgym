@@ -1,7 +1,9 @@
-import pytest
-from modelgym.tracker import ProgressTrackerFile
 import os.path
 import pickle
+
+import pytest
+
+from modelgym.tracker import ProgressTrackerFile
 
 TEST_PARAMS = ["results", "data"]
 
@@ -13,7 +15,7 @@ def test__get_results_dir():
         assert param == ans
 
 
-def test__get_tracker_file_success():
+def test__get_tracker_fil():
     for param in TEST_PARAMS:
         tracker = ProgressTrackerFile(param)
         expected = "%s/tracker_%s_%s.pickle" % (tracker._get_results_dir(), tracker.config_key, tracker.model_name)
@@ -40,19 +42,12 @@ def test_save_state(generate_trials):
         assert os.path.isfile(fname)
 
 
-def test_load_state_success():
+@pytest.mark.xfail
+def test_load_state():
     for param in TEST_PARAMS:
         tracker = ProgressTrackerFile(param)
         assert os.path.exists(tracker._get_tracker_file())
         with open(tracker._get_tracker_file(), "rb") as fh:
             tracker.state = pickle.load(fh)
             assert tracker.load_state(as_list=True) == tracker.get_state(as_list=True)
-
-
-def test_load_state_fail():
-    for param in TEST_PARAMS:
-        tracker = ProgressTrackerFile(param)
-        if os.path.exists(tracker._get_tracker_file()):
-            with open(tracker._get_tracker_file(), "rb") as fh:
-                tracker.state = pickle.load(fh)
-        assert tracker.load_state(as_list=False) == tracker.get_state(as_list=True)
+            assert tracker.load_state(as_list=False) == tracker.get_state(as_list=True)
