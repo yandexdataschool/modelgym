@@ -1,6 +1,6 @@
+import bson
 import pandas as pd
 import pytest
-import sklearn.datasets.data
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
 
@@ -13,22 +13,16 @@ N_CV_SPLITS = 3
 NROWS = 1000
 N_PROBES = 2
 N_ESTIMATORS = 100
-PARAMS_TO_TEST = ['loss', 'eval_time', 'status', 'params']
+PARAMS_TO_TEST = ['eval_time', 'status', 'params']
 FIT_TEST = PARAMS_TO_TEST.copy()
 FIT_TEST.extend(['bst', 'n_estimators'])
 CV_FIT = PARAMS_TO_TEST.copy()
-CV_FIT.extend(['loss_variance', 'hyperopt_eval_num', 'best_loss', 'best_n_estimators'])
+CV_FIT.extend(['hyperopt_eval_num', 'best_n_estimators'])
 
 
-def test_crossval_fit_eval(read_titanic):
+def test_crossval_fit_eval(preprocess_data):
     global roc_auc
-    data_train, data_test = read_titanic
-    X_all = data_train.drop(['Survived', 'PassengerId'], axis=1)
-    y_all = data_train['Survived']
-    X_all = X_all.values
-    y_all = y_all.values
-
-    X_train, X_test, y_train, y_test = train_test_split(X_all, y_all, test_size=TEST_SIZE)
+    X_train, X_test, y_train, y_test = preprocess_data
     cv_pairs, (dtrain, dtest) = split_and_preprocess(X_train.copy(), y_train,
                                                      X_test.copy(), y_test,
                                                      cat_cols=[], n_splits=N_CV_SPLITS)
@@ -41,7 +35,7 @@ def test_crossval_fit_eval(read_titanic):
     for par1 in CV_FIT:
         assert par1 in res
 
-    # TODO: why 0.5? what is loss?
+    # TODO: why 0.5?
     assert res['loss'] < 0.5
 
     params = res['params']
@@ -55,23 +49,17 @@ def test_crossval_fit_eval(read_titanic):
     prediction = model.predict(bst=bst, dtest=_dtest, X_test=dtest.X)
 
     custom_metric = {'roc_auc': roc_auc_score}
-
     for metric_name, metric_func in custom_metric.items():
         score = metric_func(_dtest.get_label(), prediction, sample_weight=None)  # TODO weights
         roc_auc = score
+    print("ROC_AUC: ", roc_auc)
     assert roc_auc > 0.5
 
 
-def test_fit_eval(read_titanic):
+def test_fit_eval(preprocess_data):
     # TODO: contains all params? roc_auc
     global roc_auc
-    data_train, data_test = read_titanic
-    X_all = data_train.drop(['Survived', 'PassengerId'], axis=1)
-    y_all = data_train['Survived']
-    X_all = X_all.values
-    y_all = y_all.values
-
-    X_train, X_test, y_train, y_test = train_test_split(X_all, y_all, test_size=TEST_SIZE)
+    X_train, X_test, y_train, y_test = preprocess_data
     cv_pairs, (dtrain, dtest) = split_and_preprocess(X_train.copy(), y_train,
                                                      X_test.copy(), y_test,
                                                      cat_cols=[], n_splits=N_CV_SPLITS)
@@ -95,33 +83,48 @@ def test_fit_eval(read_titanic):
     prediction = model.predict(bst=bst, dtest=_dtest, X_test=dtest.X)
 
     custom_metric = {'roc_auc': roc_auc_score}
-
     for metric_name, metric_func in custom_metric.items():
         score = metric_func(_dtest.get_label(), prediction, sample_weight=None)  # TODO weights
         roc_auc = score
+    print("ROC_AUC: ", roc_auc)
     assert roc_auc > 0.5
 
 
-def test_crossval_optimize_params():
-    # TODO: implememnt
-    return 0
+def test_crossval_optimize_params(preprocess_data):
+    global roc_auc
+    X_train, X_test, y_train, y_test = preprocess_data
+    cv_pairs, (dtrain, dtest) = split_and_preprocess(X_train.copy(), y_train,
+                                                     X_test.copy(), y_test,
+                                                     cat_cols=[], n_splits=N_CV_SPLITS)
+
+    model = modelgym.XGBModel(TASK_CLASSIFICATION)
+    trainer = Trainer(hyperopt_evals=N_PROBES, n_estimators=N_ESTIMATORS)
+
+    _dtrain = model.convert_to_dataset(dtrain.X, dtrain.y, dtrain.cat_cols)
+    _dtest = model.convert_to_dataset(dtest.X, dtest.y, dtest.cat_cols)
+
+    trainer.fit_eval(model, dtrain=dtrain, dtest=dtest)
+    trainer.crossval_fit_eval(model=model, cv_pairs=cv_pairs, n_estimators=N_ESTIMATORS)
+
+    optimized = trainer.crossval_optimize_params(model=model, cv_pairs=cv_pairs)
+
+    params = trainer.best_params
+    n_estimators = optimized.get('best_n_estimators')
+
+    bst = model.fit(params=params, dtrain=_dtrain, dtest=_dtest, n_estimators=n_estimators)
+    prediction = model.predict(bst=bst, dtest=_dtest, X_test=dtest.X)
+
+    custom_metric = {'roc_auc': roc_auc_score}
+    for metric_name, metric_func in custom_metric.items():
+        score = metric_func(_dtest.get_label(), prediction, sample_weight=None)  # TODO weights
+        roc_auc = score
+    print("ROC_AUC: ", roc_auc)
+    assert roc_auc > 0.5
 
 
-@pytest.fixture
-def read_data():
-    iris = sklearn.datasets.load_iris()
-    return iris  # data and target
-
-
-@pytest.fixture
-def preprocess(read_data):
-    iris_data = read_data
-    X_train, X_test, y_train, y_test = train_test_split(iris_data.data, iris_data.target, test_size=TEST_SIZE)
-    return X_train, X_test, y_train, y_test
-
-
-@pytest.fixture
+@pytest.fixture(scope="session")
 def read_titanic():
+    print("Reading data from CSV...")
     data_train = pd.read_csv('data/train.csv')
     data_test = pd.read_csv('data/test.csv')
 
@@ -183,3 +186,16 @@ def read_titanic():
 
     data_train, data_test = encode_features(data_train, data_test)
     return data_train, data_test
+
+
+@pytest.fixture(scope="session")
+def preprocess_data(read_titanic):
+    print("Processing data from CSV...")
+    data_train, data_test = read_titanic
+    X_all = data_train.drop(['Survived', 'PassengerId'], axis=1)
+    y_all = data_train['Survived']
+    X_all = X_all.values
+    y_all = y_all.values
+
+    X_train, X_test, y_train, y_test = train_test_split(X_all, y_all, test_size=TEST_SIZE)
+    return X_train, X_test, y_train, y_test

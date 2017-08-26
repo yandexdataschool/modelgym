@@ -19,23 +19,6 @@ def read_data():
     return iris  # data and target
 
 
-def test_preprocess_cat_cols():
-    # not implemented in util.py
-    return 0
-
-
-# TODO: what is it?
-def test_elementwise_loss():
-    # y=0
-    # p=0
-    # learning_task=0
-    # if learning_task == TASK_CLASSIFICATION:
-    #    p_ = np.clip(p, 1e-16, 1-1e-16)
-    #    return - y * np.log(p_) - (1 - y) * np.log(1 - p_)
-    # return (y - p) ** 2
-    return 0
-
-
 def test_split_and_preprocess(read_data):
     iris_data = read_data
     X_train, X_test, y_train, y_test = train_test_split(iris_data.data, iris_data.target, test_size=TEST_SIZE)

@@ -50,4 +50,4 @@ def test_load_state():
         with open(tracker._get_tracker_file(), "rb") as fh:
             tracker.state = pickle.load(fh)
             assert tracker.load_state(as_list=True) == tracker.get_state(as_list=True)
-            assert tracker.load_state(as_list=False) == tracker.get_state(as_list=True)
+            assert tracker.load_state(as_list=False) == tracker.get_state(as_list=True) #FALSE

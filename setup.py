@@ -3,9 +3,8 @@ try:
 except ImportError:
     from distutils.core import setup
 
-
 setup(name="modelgym",
-      version='0.1.2.1',
+      version='0.1.2',
       description='predictive model optimization toolbox.',
       long_description=open('README.md').read(),
       url='https://github.com/yandexdataschool/modelgym/',
@@ -13,6 +12,5 @@ setup(name="modelgym",
       author='The modelgym contributors',
       packages=["modelgym"],
       install_requires=["numpy", "scipy", "scikit-learn>=0.18",
-                        "matplotlib", 'pytest']
+                        "matplotlib"]
       )
-
