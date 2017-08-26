@@ -41,7 +41,9 @@ class RFModel(Model):
     def fit(self, params, dtrain, dtest, n_estimators):
         rf = rfc()
         bst = rf.fit(dtrain.X, dtrain.y)
-        return bst
+        res = rf.predict(dtest.X)
+        # print(res)
+        return bst, res
 
     def predict(self, bst, dtest, X_test):
         preds = bst.predict(dtest.X)

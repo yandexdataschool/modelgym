@@ -9,7 +9,7 @@ from modelgym.trainer import Trainer
 from modelgym.util import TASK_CLASSIFICATION, split_and_preprocess
 
 TEST_SIZE = 0.2
-N_CV_SPLITS = 3
+N_CV_SPLITS = 2
 NROWS = 1000
 N_PROBES = 2
 N_ESTIMATORS = 100
@@ -111,7 +111,7 @@ def test_crossval_optimize_params(preprocess_data):
     params = trainer.best_params
     n_estimators = optimized.get('best_n_estimators')
 
-    bst = model.fit(params=params, dtrain=_dtrain, dtest=_dtest, n_estimators=n_estimators)
+    bst, evals_result = model.fit(params=params, dtrain=_dtrain, dtest=_dtest, n_estimators=n_estimators)
     prediction = model.predict(bst=bst, dtest=_dtest, X_test=dtest.X)
 
     custom_metric = {'roc_auc': roc_auc_score}
