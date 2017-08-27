@@ -1,11 +1,8 @@
-from catboost import CatBoost
+from hyperopt import hp
 from sklearn.ensemble import RandomForestClassifier as rfc
-from modelgym.model import Model
-from hyperopt import hp, fmin, space_eval, tpe, STATUS_OK, Trials
+
 from modelgym.XYCDataset import XYCDataset as xycd
-from hyperopt.mongoexp import MongoTrials
-from sklearn.preprocessing import scale, normalize
-from sklearn.model_selection import cross_val_score
+from modelgym.model import Model
 
 
 class RFModel(Model):
@@ -29,7 +26,6 @@ class RFModel(Model):
         self.default_params = self.preprocess_params(self.default_params)
 
     def preprocess_params(self, params):
-        # if self.learning_task == "classification":
         params.update({'verbose': 0})
         params['max_depth'] = int(params['max_depth'])
         return params
@@ -39,10 +35,11 @@ class RFModel(Model):
         return ab
 
     def fit(self, params, dtrain, dtest, n_estimators):
-        rf = rfc()
+        rf = rfc(n_estimators=params['n_estimators'], max_depth=params['max_depth'], criterion=params['criterion'],
+                 verbose=params['verbose'])
         bst = rf.fit(dtrain.X, dtrain.y)
         res = rf.predict(dtest.X)
-        # print(res)
+        print("\n", res)
         return bst, res
 
     def predict(self, bst, dtest, X_test):

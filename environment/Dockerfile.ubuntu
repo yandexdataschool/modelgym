@@ -20,5 +20,8 @@ RUN cd /tmp && \
 	pip install --upgrade . && \
 	cd /tmp; rm -rf hyperopt
 
-COPY start_jupyter_or_everware.sh /usr/local/bin/
 CMD ["/bin/bash", "--login", "-c", "/usr/local/bin/start_jupyter_or_everware.sh"]
+COPY start_jupyter_or_everware.sh /usr/local/bin/
+
+RUN jupyter-kernelspec list
+RUN pip install git+https://github.com/yandexdataschool/modelgym.git

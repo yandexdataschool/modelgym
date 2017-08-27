@@ -49,6 +49,7 @@ class Trainer(object):
             _dtest = model.convert_to_dataset(dtest.X, dtest.y, dtest.cat_cols)
             _, evals_result = model.fit(params, _dtrain, _dtest, n_estimators)
             evals_results.append(evals_result)
+            print(len(evals_results))
         mean_evals_results = np.mean(evals_results, axis=0)
         std_evals_results = np.std(evals_results, axis=0)
         best_n_estimators = np.argmin(mean_evals_results) + 1
@@ -79,7 +80,7 @@ class Trainer(object):
         algo = hyperopt.tpe.suggest
         if algo_name == 'random':
             algo = hyperopt.rand.suggest
-        # algo=functools.partial(hyperopt.tpe.suggest, n_startup_jobs=1)  
+        # algo=functools.partial(hyperopt.tpe.suggest, n_startup_jobs=1)
 
         self.hyperopt_eval_num, self.best_loss = 0, np.inf
         random_state = np.random.RandomState(1)

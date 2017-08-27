@@ -24,15 +24,7 @@ def test__get_tracker_fil():
         assert os.path.isfile(expected)
 
 
-@pytest.fixture()
-def generate_trials():
-    import math
-    from hyperopt import fmin, tpe, hp, Trials
-    trials = Trials()
-    best = fmin(math.sin, hp.uniform('x', -2, 2), trials=trials, algo=tpe.suggest, max_evals=10)
-    yield trials
-
-
+@pytest.mark.usefixtures("generate_trials")
 def test_save_state(generate_trials):
     for param in TEST_PARAMS:
         tracker = ProgressTrackerFile(param)
@@ -42,7 +34,6 @@ def test_save_state(generate_trials):
         assert os.path.isfile(fname)
 
 
-@pytest.mark.xfail
 def test_load_state():
     for param in TEST_PARAMS:
         tracker = ProgressTrackerFile(param)
@@ -50,4 +41,13 @@ def test_load_state():
         with open(tracker._get_tracker_file(), "rb") as fh:
             tracker.state = pickle.load(fh)
             assert tracker.load_state(as_list=True) == tracker.get_state(as_list=True)
-            assert tracker.load_state(as_list=False) == tracker.get_state(as_list=True) #FALSE
+            assert tracker.load_state(as_list=False) != tracker.get_state(as_list=True)
+
+
+@pytest.fixture()
+def generate_trials():
+    import math
+    from hyperopt import fmin, tpe, hp, Trials
+    trials = Trials()
+    best = fmin(math.sin, hp.uniform('x', -2, 2), trials=trials, algo=tpe.suggest, max_evals=10)
+    yield trials

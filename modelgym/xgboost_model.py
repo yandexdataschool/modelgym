@@ -56,7 +56,6 @@ class XGBModel(Model):
 
         results = evals_result['test']['rmse'] if self.learning_task == 'regression' \
             else evals_result['test']['logloss']
-        # print("FIT ",results)
         return bst, results
 
     def predict(self, bst, dtest, X_test):
