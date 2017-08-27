@@ -49,7 +49,6 @@ class Trainer(object):
             _dtest = model.convert_to_dataset(dtest.X, dtest.y, dtest.cat_cols)
             _, evals_result = model.fit(params, _dtrain, _dtest, n_estimators)
             evals_results.append(evals_result)
-            print(len(evals_results))
         mean_evals_results = np.mean(evals_results, axis=0)
         std_evals_results = np.std(evals_results, axis=0)
         best_n_estimators = np.argmin(mean_evals_results) + 1
