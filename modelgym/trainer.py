@@ -44,14 +44,15 @@ class Trainer(object):
         n_estimators = n_estimators or self.n_estimators
         params = model.preprocess_params(params)
         evals_results, start_time = [], time.time()
+        mean_evals_results=[]
+        std_evals_results=[]
         for dtrain, dtest in cv_pairs:
             _dtrain = model.convert_to_dataset(dtrain.X, dtrain.y, dtrain.cat_cols)
             _dtest = model.convert_to_dataset(dtest.X, dtest.y, dtest.cat_cols)
             _, evals_result = model.fit(params, _dtrain, _dtest, n_estimators)
             evals_results.append(evals_result)
-        print(evals_result)
-        mean_evals_results = np.mean(evals_results, axis=0)
-        std_evals_results = np.std(evals_results, axis=0)
+            mean_evals_results.append(np.mean(evals_result))
+            std_evals_results.append(np.std(evals_result))
         best_n_estimators = np.argmin(mean_evals_results) + 1
         eval_time = time.time() - start_time
 

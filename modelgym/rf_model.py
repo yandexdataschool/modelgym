@@ -38,7 +38,6 @@ class RFModel(Model):
         rf = rfc(random_state=0, n_jobs=-1, n_estimators=params['n_estimators'], max_depth=params['max_depth'],
                  criterion=params['criterion']).fit(dtrain.X, dtrain.y)
         preds = rf.predict(dtest.X)
-        # print("\n", res)
         return rf, preds
 
     def predict(self, bst, dtest, X_test):
