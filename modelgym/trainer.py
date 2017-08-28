@@ -1,10 +1,11 @@
-import numpy as np
 import time
-from hyperopt import fmin, Trials, STATUS_OK, STATUS_FAIL
-import hyperopt
-from hyperopt.mongoexp import MongoTrials
 from functools import partial
+
+import hyperopt
+import numpy as np
 from bson.son import SON
+from hyperopt import fmin, Trials, STATUS_OK, STATUS_FAIL
+from hyperopt.mongoexp import MongoTrials
 
 
 class Trainer(object):

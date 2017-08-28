@@ -7,14 +7,14 @@ from modelgym.util import TASK_CLASSIFICATION, split_and_preprocess
 
 TEST_SIZE = 0.2
 N_CV_SPLITS = 2
-NROWS = 1000
 N_PROBES = 2
 N_ESTIMATORS = 100
 PARAMS_TO_TEST = ['eval_time', 'status', 'params']
-FIT_TEST = PARAMS_TO_TEST[:]
+FIT_TEST = (PARAMS_TO_TEST[:])
 FIT_TEST.extend(['bst', 'n_estimators'])
-CV_FIT = PARAMS_TO_TEST[:]
+CV_FIT = (PARAMS_TO_TEST[:])
 CV_FIT.extend(['hyperopt_eval_num', 'best_n_estimators'])
+MAX_ROC_AUC_SCORE = 1.0
 
 
 @pytest.mark.usefixtures("preprocess_data")
@@ -33,7 +33,7 @@ def test_crossval_fit_eval(preprocess_data):
     for par1 in CV_FIT:
         assert par1 in res
 
-    assert res['loss'] < 1
+    assert res['loss'] <= MAX_ROC_AUC_SCORE
 
     params = res['params']
     params = model.preprocess_params(params)
@@ -50,7 +50,7 @@ def test_crossval_fit_eval(preprocess_data):
         score = metric_func(_dtest.get_label(), prediction, sample_weight=None)  # TODO weights
         roc_auc = score
     print("ROC_AUC: ", roc_auc)
-    assert roc_auc > 0.1
+    assert roc_auc <= MAX_ROC_AUC_SCORE
 
 
 @pytest.mark.usefixtures("preprocess_data")
@@ -85,7 +85,7 @@ def test_fit_eval(preprocess_data):
         score = metric_func(_dtest.get_label(), prediction, sample_weight=None)  # TODO weights
         roc_auc = score
     print("ROC_AUC: ", roc_auc)
-    assert roc_auc > 0.1
+    assert roc_auc <= MAX_ROC_AUC_SCORE
 
 
 @pytest.mark.usefixtures("preprocess_data")
@@ -118,4 +118,4 @@ def test_crossval_optimize_params(preprocess_data):
         roc_auc = score
     print("ROC_AUC: ", roc_auc)
 
-    assert roc_auc > 0.1
+    assert roc_auc <= MAX_ROC_AUC_SCORE

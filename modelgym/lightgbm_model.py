@@ -1,7 +1,8 @@
 import lightgbm as lgb
-from hyperopt import hp
-from modelgym.model import Model
 import numpy as np
+from hyperopt import hp
+
+from modelgym.model import Model
 
 
 class LGBModel(Model):

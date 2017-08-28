@@ -1,6 +1,3 @@
-import numpy as np
-import os
-
 TASK_CLASSIFICATION = 'classification'
 TASK_REGRESSION = 'regression'
 

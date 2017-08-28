@@ -14,13 +14,15 @@ class RFModel(Model):
             'max_features': hp.choice('max_features', range(1, 5)),
             'n_estimators': hp.choice('n_estimators', range(1, 20)),
             'criterion': hp.choice('criterion', ["gini", "entropy"]),
+            'verbose': hp.choice("verbose", range(0, 1))
         }
 
         self.default_params = {
             'max_depth': 1,
             'max_features': 4,
             'n_estimators': 10,
-            'criterion': "gini"
+            'criterion': "gini",
+            'verbose': 0
         }
 
         self.default_params = self.preprocess_params(self.default_params)
@@ -35,8 +37,10 @@ class RFModel(Model):
         return ab
 
     def fit(self, params, dtrain, dtest, n_estimators):
-        rf = rfc(random_state=0, n_jobs=-1, n_estimators=params['n_estimators'], max_depth=params['max_depth'],
-                 criterion=params['criterion']).fit(dtrain.X, dtrain.y)
+        print(params)
+        rf = rfc(n_estimators=params['n_estimators'], max_depth=params['max_depth'],
+                 criterion=params['criterion'], max_features=params['max_features'], verbose=params['verbose']).fit(
+            dtrain.X, dtrain.y)
         preds = rf.predict(dtest.X)
         return rf, preds
 

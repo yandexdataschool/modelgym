@@ -1,6 +1,7 @@
 import xgboost as xgb
-from modelgym.model import Model
 from hyperopt import hp
+
+from modelgym.model import Model
 
 
 class XGBModel(Model):

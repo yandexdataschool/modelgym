@@ -4,16 +4,17 @@ from sklearn.metrics import roc_auc_score
 
 import modelgym
 from modelgym.trainer import Trainer
-from modelgym.util import TASK_CLASSIFICATION
 from modelgym.util import split_and_preprocess
+from modelgym.model import TASK_CLASSIFICATION, TASK_REGRESSION
 
 TEST_SIZE = 0.2
 N_CV_SPLITS = 2
-NROWS = 1000
 N_PROBES = 2
 N_ESTIMATORS = 100
-TEST_PARAMS = ["classification", "range", "regression"]
-APPROVED_PARAMS = ["classification", "regression"]
+MAX_ROC_AUC_SCORE = 1.0
+APPROVED_PARAMS = [TASK_CLASSIFICATION, TASK_REGRESSION]
+TEST_PARAMS = (APPROVED_PARAMS[:])
+TEST_PARAMS.append("range")
 MODEL_CLASS = [modelgym.XGBModel, modelgym.LGBModel, modelgym.RFModel]
 
 
@@ -73,7 +74,7 @@ def test_fit(preprocess_data, model_class):
         score = metric_func(_dtest.get_label(), prediction, sample_weight=None)  # TODO weights
         roc_auc = score
     print("ROC_AUC: ", roc_auc)
-    assert roc_auc <= 1
+    assert roc_auc <= MAX_ROC_AUC_SCORE
 
 
 @pytest.mark.usefixtures("preprocess_data")
@@ -90,10 +91,8 @@ def test_predict(preprocess_data):
     trainer = Trainer(hyperopt_evals=N_PROBES, n_estimators=N_ESTIMATORS)
 
     res = trainer.crossval_fit_eval(model, cv_pairs)
-    # dtrain = model.convert_to_dataset(data=X_train, label=y_train)
-    # dtest = model.convert_to_dataset(data=X_test, label=y_test)
     ans = trainer.fit_eval(model, dtrain, dtest, res['params'], res['best_n_estimators'],
                            custom_metric={'roc_auc': roc_auc_score})
     roc_auc = ans['roc_auc']
     print("ROC_AUC: ", roc_auc)
-    assert roc_auc <= 1
+    assert roc_auc <= MAX_ROC_AUC_SCORE
