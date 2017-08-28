@@ -44,10 +44,3 @@ def test_load_state():
             assert tracker.load_state(as_list=False) != tracker.get_state(as_list=True)
 
 
-@pytest.fixture()
-def generate_trials():
-    import math
-    from hyperopt import fmin, tpe, hp, Trials
-    trials = Trials()
-    best = fmin(math.sin, hp.uniform('x', -2, 2), trials=trials, algo=tpe.suggest, max_evals=10)
-    yield trials

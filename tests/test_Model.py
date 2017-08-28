@@ -1,7 +1,5 @@
-import pandas as pd
 import pytest
 import xgboost
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 
 import modelgym
@@ -106,36 +104,3 @@ def test_predict(preprocess_data):
     roc_auc = ans['roc_auc']
     print("ROC_AUC: ", roc_auc)
     assert roc_auc < 1
-
-
-@pytest.fixture(scope="session")
-def read_titanic():
-    print("\nReading data from CSV...")
-    data_train = pd.read_csv('data/train.csv')
-    # data_test = pd.read_csv('data/test.csv')
-    return data_train
-
-
-@pytest.fixture(scope="session")
-def preprocess_data(read_titanic):
-    def simplify_fares(df):
-        df.Fare = df.Fare.fillna(-0.5)
-        bins = (-1, 0, 8, 15, 31, 1000)
-        group_names = ['0', '1', '2', '3', '4']
-        categories = pd.cut(df.Fare, bins, labels=group_names)
-        df.Fare = categories
-        return df
-
-    print("Processing data from CSV...")
-    data_train = read_titanic
-    data_train = data_train[['PassengerId', 'Survived', 'Age', 'SibSp', 'Fare']]
-    data_train = simplify_fares(data_train)
-    data_train.Age = data_train.Age.fillna(-0.5)
-    # data_test = data_test[['PassengerId', 'Age']]
-    X_all = data_train.drop(['Survived'], axis=1)
-    y_all = data_train['Survived']
-    X_all = X_all.values
-    y_all = y_all.values
-
-    X_train, X_test, y_train, y_test = train_test_split(X_all, y_all, test_size=TEST_SIZE)
-    return X_train, X_test, y_train, y_test

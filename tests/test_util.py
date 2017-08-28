@@ -13,12 +13,7 @@ TEST_PARAMS = ["classification", "range", "regression"]
 APPROVED_PARAMS = ["classification", "regression"]
 
 
-@pytest.fixture(scope="session")
-def read_data():
-    iris = load_iris()
-    return iris  # data and target
-
-
+@pytest.mark.usefixtures("read_data")
 def test_split_and_preprocess(read_data):
     iris_data = read_data
     X_train, X_test, y_train, y_test = train_test_split(iris_data.data, iris_data.target, test_size=TEST_SIZE)
