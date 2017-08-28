@@ -143,3 +143,5 @@ push-image:
 	docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD}
 	docker push ${IMAGE_SKYGRID_WORKER}
 
+test:
+    pytest tests/ -v -s

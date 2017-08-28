@@ -1,14 +1,18 @@
 import numpy as np
-#from cat_counter import CatCounter
-from modelgym.model import TASK_CLASSIFICATION, TASK_REGRESSION
 from sklearn.model_selection import StratifiedKFold, KFold, train_test_split
-from collections import namedtuple
 
-XYCDataset = namedtuple('XYCDataset', ['X', 'y', 'cat_cols'])
+# from collections import namedtuple
+from modelgym.XYCDataset import XYCDataset
+# from cat_counter import CatCounter
+from modelgym.model import TASK_CLASSIFICATION, TASK_REGRESSION
 
 
-def preprocess_cat_cols(X_train, y_train, cat_cols, X_test=None, cc=None, 
+# XYCDataset = namedtuple('XYCDataset', ['X', 'y', 'cat_cols'])
+
+
+def preprocess_cat_cols(X_train, y_train, cat_cols, X_test=None, cc=None,
                         counters_sort_col=None, learning_task=TASK_CLASSIFICATION):
+    # TODO: implement here
     pass
 #    if cc is None:
 #        sort_values = None if counters_sort_col is None else X_train[:, counters_sort_col]
@@ -23,15 +27,16 @@ def preprocess_cat_cols(X_train, y_train, cat_cols, X_test=None, cc=None,
 
 def elementwise_loss(y, p, learning_task=TASK_CLASSIFICATION):
     if learning_task == TASK_CLASSIFICATION:
-        p_ = np.clip(p, 1e-16, 1-1e-16)
+        p_ = np.clip(p, 1e-16, 1 - 1e-16)
         return - y * np.log(p_) - (1 - y) * np.log(1 - p_)
     return (y - p) ** 2
 
 
-def split_and_preprocess(X_train, y_train, X_test, y_test, cat_cols=[], n_splits=5, random_state=0, holdout_size=0, learning_task=TASK_CLASSIFICATION):
+def split_and_preprocess(X_train, y_train, X_test, y_test, cat_cols=[], n_splits=5, random_state=0, holdout_size=0,
+                         learning_task=TASK_CLASSIFICATION):
     if holdout_size > 0:
         print('Holdout is used for counters.')
-        X_train, X_hout, y_train, y_hout = train_test_split(X_train, y_train, 
+        X_train, X_hout, y_train, y_hout = train_test_split(X_train, y_train,
                                                             test_size=holdout_size,
                                                             random_state=random_state)
         cc = preprocess_cat_cols(X_hout, y_hout, cat_cols)
@@ -57,5 +62,3 @@ def split_and_preprocess(X_train, y_train, X_test, y_test, cat_cols=[], n_splits
     full_dtest = XYCDataset(X_test.astype(float), y_test, cat_cols)
 
     return cv_pairs, (full_dtrain, full_dtest)
-
-

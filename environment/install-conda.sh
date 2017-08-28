@@ -36,4 +36,3 @@ cat >> ~/.profile << EOT
 export PATH=$CONDA_PATH/bin:\$PATH
 source activate $ENV_NAME
 EOT
-
