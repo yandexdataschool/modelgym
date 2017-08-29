@@ -72,15 +72,18 @@ class ProgressTrackerFile(ProgressTracker):
         assert 'trials' not in kwargs or not isinstance(self.state['trials'],
                                                         MongoTrials), "this tracker cannot store mongoTrials"
         self._update_state(kwargs)
+        path = self._get_tracker_file()
 
-        with open(self._get_tracker_file(), "wb") as fh:
+        with open(path, "wb") as fh:
             pickle.dump(self.state, fh)
-            print("saved state to %s" % self._get_tracker_file())
+            print("saved state to %s" % path)
 
     def load_state(self, as_list=False):
-        if os.path.exists(self._get_tracker_file()):
-            with open(self._get_tracker_file(), "rb") as fh:
+        path = self._get_tracker_file()
+        if os.path.exists(path):
+            with open(path, "rb") as fh:
                 self.state = pickle.load(fh)
+            print("loaded state from %s" % path)
         return self.get_state(as_list)
 
 
