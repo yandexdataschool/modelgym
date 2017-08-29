@@ -144,4 +144,4 @@ push-image:
 	docker push ${IMAGE_SKYGRID_WORKER}
 
 test:
-    pytest tests/ -v -s
+	pytest tests/ -v -s
