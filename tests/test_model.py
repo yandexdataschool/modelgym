@@ -1,3 +1,4 @@
+import os
 import pytest
 import xgboost
 from sklearn.metrics import roc_auc_score
@@ -84,9 +85,6 @@ def test_predict(preprocess_data):
                                                      X_test.copy(), y_test,
                                                      cat_cols=[], n_splits=N_CV_SPLITS)
 
-    from modelgym.trainer import Trainer
-    from modelgym.util import TASK_CLASSIFICATION
-
     model = modelgym.XGBModel(TASK_CLASSIFICATION)
     trainer = Trainer(hyperopt_evals=N_PROBES, n_estimators=N_ESTIMATORS)
 
@@ -96,3 +94,13 @@ def test_predict(preprocess_data):
     roc_auc = ans['roc_auc']
     print("ROC_AUC: ", roc_auc)
     assert roc_auc <= MAX_ROC_AUC_SCORE
+
+
+def test_load_and_save():
+    model = modelgym.Model()
+    filepath = "data/newtree.yaml"
+    assert os.path.exists(filepath)
+    model.load_config(filepath)
+    filepath = "results/xgbmodel.yaml"
+    model.save_config(filepath)
+    assert os.path.exists(filepath)

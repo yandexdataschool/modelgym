@@ -1,3 +1,5 @@
+import os
+
 TASK_CLASSIFICATION = 'classification'
 TASK_REGRESSION = 'regression'
 
@@ -10,12 +12,23 @@ class Model(object):
         self.holdout_size = holdout_size
         self.counters_sort_col = counters_sort_col
         self.default_params, self.best_params = None, None
+        self.space = None
         if self.learning_task == TASK_CLASSIFICATION:
             self.metric = 'logloss'
         elif self.learning_task == TASK_REGRESSION:
             self.metric = 'rmse'
         else:
             raise ValueError('Task type must be "classification" or "regression"')
+
+    def __iter__(self):
+        yield 'learning_task', self.learning_task
+        yield 'bst_name', self.bst_name
+        yield 'compute_counters', self.compute_counters
+        yield 'counters_sort_col', self.counters_sort_col
+        yield 'default_params', self.default_params
+        yield 'holdout_size', self.holdout_size
+        yield 'metric', self.metric
+        yield 'space', self.space
 
     def get_name(self):
         return self.bst_name  # TODO: rename
@@ -31,3 +44,17 @@ class Model(object):
 
     def predict(self, bst, dtest, X_test):
         raise NotImplementedError('Method predict is not implemented.')
+
+    def load_config(self, filepath):
+        if os.path.exists(filepath):
+            import yaml
+            with open(filepath) as f:
+                dataMap = yaml.load(f)
+                self.__dict__.update(dataMap)
+        else:
+            raise ValueError('Model {0} do not exist'.format(filepath))
+
+    def save_config(self, filepath):
+        with open(filepath, "w") as f:
+            import yaml
+            yaml.dump(self, f)
