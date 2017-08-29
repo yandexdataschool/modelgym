@@ -1,3 +1,6 @@
+import os
+import tempfile
+
 import pytest
 import xgboost
 from sklearn.metrics import roc_auc_score
@@ -84,9 +87,6 @@ def test_predict(preprocess_data):
                                                      X_test.copy(), y_test,
                                                      cat_cols=[], n_splits=N_CV_SPLITS)
 
-    from modelgym.trainer import Trainer
-    from modelgym.util import TASK_CLASSIFICATION
-
     model = modelgym.XGBModel(TASK_CLASSIFICATION)
     trainer = Trainer(hyperopt_evals=N_PROBES, n_estimators=N_ESTIMATORS)
 
@@ -96,3 +96,22 @@ def test_predict(preprocess_data):
     roc_auc = ans['roc_auc']
     print("ROC_AUC: ", roc_auc)
     assert roc_auc <= MAX_ROC_AUC_SCORE
+
+
+def test_load_and_save(learning_task=TASK_CLASSIFICATION):
+    model1 = modelgym.Model(learning_task=learning_task)  # model to save and then read
+    with tempfile.NamedTemporaryFile(delete=True) as tmp:
+        filepath = tmp.name
+        model1.save_config(filepath)
+        assert os.path.exists(filepath)
+        model2 = modelgym.Model(learning_task=learning_task)
+        model2.load_config(filepath)
+        dic1 = model1.__dict__
+        dic2 = model2.__dict__
+        # check all values match
+        assert dic1.keys() == dic2.keys()
+        params1 = dic1.get("space")
+        params2 = dic2.get("space")
+        if params1 != params2:
+            for param in params1:
+                assert str(params1.__getitem__(param)) == str(params2.__getitem__(param))
