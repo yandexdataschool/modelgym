@@ -1,4 +1,6 @@
 import os
+import tempfile
+
 import pytest
 import xgboost
 from sklearn.metrics import roc_auc_score
@@ -96,24 +98,27 @@ def test_predict(preprocess_data):
     assert roc_auc <= MAX_ROC_AUC_SCORE
 
 
-def test_load_and_save():
-    model = modelgym.Model(learning_task=TASK_CLASSIFICATION)  # model to save and then read
-    filepath = "data/newtree.yaml"
-    model.save_config(filepath)
-    assert os.path.exists(filepath)
-    model2 = modelgym.Model(learning_task=TASK_CLASSIFICATION)
-    model2.load_config(filepath)
-    dic1 = model.__dict__
-    dic2 = model2.__dict__
-    attrs1 = dic1.keys()
-    attrs2 = dic2.keys()
-    # check all values match
-    assert attrs1 == attrs2
-    params1 = dic1.get("space")
-    params2 = dic2.get("space")
-    if params1 != params2:
-        for param in params1:
-            # print(params1.__getitem__(param))
-            # print(params2.__getitem__(param))
-            assert str(params1.__getitem__(param)) == str(params2.__getitem__(param))
-    os.remove(filepath)
+def test_load_and_save(learning_task=TASK_CLASSIFICATION):
+    model = modelgym.Model(learning_task)  # model to save and then read
+    tmp = tempfile.NamedTemporaryFile(delete=True)
+    filepath = tmp.name
+    try:
+        model.save_config(filepath)
+        assert os.path.exists(filepath)
+        model2 = modelgym.Model(learning_task)
+        model2.load_config(filepath)
+        dic1 = model.__dict__
+        dic2 = model2.__dict__
+        attrs1 = dic1.keys()
+        attrs2 = dic2.keys()
+        # check all values match
+        assert attrs1 == attrs2
+        params1 = dic1.get("space")
+        params2 = dic2.get("space")
+        if params1 != params2:
+            for param in params1:
+                assert str(params1.__getitem__(param)) == str(params2.__getitem__(param))
+    except Exception as ex1:
+        print("exception {0}".format(ex1))
+    finally:
+        tmp.close()

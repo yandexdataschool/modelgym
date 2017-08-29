@@ -1,5 +1,6 @@
 import os.path
 import pickle
+import tempfile
 
 import pytest
 
@@ -25,25 +26,45 @@ def test__get_tracker_file():
 
 @pytest.mark.usefixtures("generate_trials")
 def test_save_state(generate_trials):
-    for param in TEST_PARAMS:
-        tracker = ProgressTrackerFile(param)
-        trials = generate_trials
-        tracker.save_state(trials=trials)
-        fname = tracker._get_tracker_file()
-        assert os.path.isfile(fname)
-        os.remove(fname)
+    tmpdir = tempfile.mkdtemp()
+    tracker = ProgressTrackerFile(tmpdir)
+    # Ensure the file is read/write by the creator only
+    saved_umask = os.umask(0o077)
+    trials = generate_trials
+    path = tracker._get_tracker_file()
+    try:
+        with open(path, "w") as tmp:
+            assert os.path.isfile(path)
+            tracker.save_state(trials=trials)
+    except IOError as e:
+        print('IOError {0}'.format(e))
+    else:
+        os.remove(path)
+    finally:
+        os.umask(saved_umask)
+        os.rmdir(tmpdir)
 
 
 @pytest.mark.usefixtures("generate_trials")
 def test_load_state(generate_trials):
-    for param in TEST_PARAMS:
-        tracker = ProgressTrackerFile(param)
-        trials = generate_trials
-        tracker.save_state(trials=trials)
-        fname = tracker._get_tracker_file()
-        assert os.path.exists(fname)
-        with open(tracker._get_tracker_file(), "rb") as fh:
-            tracker.state = pickle.load(fh)
+    tmpdir = tempfile.mkdtemp()
+    tracker = ProgressTrackerFile(tmpdir)
+    # Ensure the file is read/write by the creator only
+    saved_umask = os.umask(0o077)
+    trials = generate_trials
+    path = tracker._get_tracker_file()
+    try:
+        with open(path, "w"):
+            assert os.path.isfile(path)
+            tracker.save_state(trials=trials)
+        with open(path, "rb") as tmp:
+            tracker.state = pickle.load(tmp)
             assert tracker.load_state(as_list=True) == tracker.get_state(as_list=True)
             assert tracker.load_state(as_list=False) != tracker.get_state(as_list=True)
-        os.remove(fname)
+    except IOError as e:
+        print('IOError {0}'.format(e))
+    else:
+        os.remove(path)
+    finally:
+        os.umask(saved_umask)
+        os.rmdir(tmpdir)
