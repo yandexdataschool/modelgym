@@ -99,13 +99,13 @@ def test_predict(preprocess_data):
 
 
 def test_load_and_save(learning_task=TASK_CLASSIFICATION):
-    model = modelgym.Model(learning_task)  # model to save and then read
+    model = modelgym.Model(learning_task=learning_task)  # model to save and then read
     tmp = tempfile.NamedTemporaryFile(delete=True)
     filepath = tmp.name
     try:
         model.save_config(filepath)
         assert os.path.exists(filepath)
-        model2 = modelgym.Model(learning_task)
+        model2 = modelgym.Model(learning_task=learning_task)
         model2.load_config(filepath)
         dic1 = model.__dict__
         dic2 = model2.__dict__
