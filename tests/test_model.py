@@ -23,7 +23,6 @@ MODEL_CLASS = [modelgym.XGBModel, modelgym.LGBModel, modelgym.RFModel]
 
 def test_preprocess_params():
     for par1 in TEST_PARAMS:
-        # assert APPROVED_PARAMS.__contains__(par1)
         try:
             model = modelgym.XGBModel(learning_task=par1)
         except ValueError:
@@ -41,10 +40,7 @@ def test_convert_to_dataset(preprocess_data):
     cv_pairs, (dtrain, dtest) = split_and_preprocess(X_train.copy(), y_train,
                                                      X_test.copy(), y_test,
                                                      cat_cols=[], n_splits=N_CV_SPLITS)
-
     model = modelgym.XGBModel(TASK_CLASSIFICATION)
-    trainer = Trainer(hyperopt_evals=N_PROBES, n_estimators=N_ESTIMATORS)
-
     _dtrain = model.convert_to_dataset(dtrain.X, dtrain.y, dtrain.cat_cols)
     _dtest = model.convert_to_dataset(dtest.X, dtest.y, dtest.cat_cols)
     _dexample = xgboost.DMatrix(data=dtrain.X, label=dtrain.y)
@@ -62,8 +58,6 @@ def test_fit(preprocess_data, model_class):
                                                      X_test.copy(), y_test,
                                                      cat_cols=[], n_splits=N_CV_SPLITS)
     model = model_class(TASK_CLASSIFICATION)
-    trainer = Trainer(hyperopt_evals=N_PROBES, n_estimators=N_ESTIMATORS)
-
     n_estimators = 10
 
     _dtrain = model.convert_to_dataset(dtrain.X, dtrain.y, dtrain.cat_cols)
@@ -86,7 +80,6 @@ def test_predict(preprocess_data):
     cv_pairs, (dtrain, dtest) = split_and_preprocess(X_train.copy(), y_train,
                                                      X_test.copy(), y_test,
                                                      cat_cols=[], n_splits=N_CV_SPLITS)
-
     model = modelgym.XGBModel(TASK_CLASSIFICATION)
     trainer = Trainer(hyperopt_evals=N_PROBES, n_estimators=N_ESTIMATORS)
 
@@ -99,12 +92,12 @@ def test_predict(preprocess_data):
 
 
 def test_load_and_save(learning_task=TASK_CLASSIFICATION):
-    model1 = modelgym.Model(learning_task=learning_task)  # model to save and then read
+    model1 = modelgym.XGBModel(learning_task=learning_task)  # model to save and then read
     with tempfile.NamedTemporaryFile(delete=True) as tmp:
         filepath = tmp.name
         model1.save_config(filepath)
         assert os.path.exists(filepath)
-        model2 = modelgym.Model(learning_task=learning_task)
+        model2 = modelgym.XGBModel(learning_task=learning_task)
         model2.load_config(filepath)
         dic1 = model1.__dict__
         dic2 = model2.__dict__
@@ -113,5 +106,9 @@ def test_load_and_save(learning_task=TASK_CLASSIFICATION):
         params1 = dic1.get("space")
         params2 = dic2.get("space")
         if params1 != params2:
+            print("\n")
             for param in params1:
-                assert str(params1.__getitem__(param)) == str(params2.__getitem__(param))
+                print(str(params2.__getitem__(param)))
+                assert str(params1.__getitem__(param)) == str(params2.__getitem__(param)), "exit3"
+        else:
+            print("params equal")
