@@ -1,7 +1,5 @@
 import pytest
 from sklearn.metrics import roc_auc_score
-from skopt.learning import GaussianProcessRegressor
-from skopt.learning.gaussian_process.kernels import RBF
 
 import modelgym
 from modelgym.trainer import Trainer
