@@ -1,5 +1,7 @@
 import pytest
 from sklearn.metrics import roc_auc_score
+from skopt.learning import GaussianProcessRegressor
+from skopt.learning.gaussian_process.kernels import RBF
 
 import modelgym
 from modelgym.trainer import Trainer
@@ -7,7 +9,7 @@ from modelgym.util import TASK_CLASSIFICATION, split_and_preprocess
 
 TEST_SIZE = 0.2
 N_CV_SPLITS = 2
-N_PROBES = 2
+N_PROBES = 10
 N_ESTIMATORS = 100
 PARAMS_TO_TEST = ['eval_time', 'status', 'params']
 FIT_TEST = (PARAMS_TO_TEST[:])
@@ -119,3 +121,15 @@ def test_crossval_optimize_params(preprocess_data):
     print("ROC_AUC: ", roc_auc)
 
     assert roc_auc <= MAX_ROC_AUC_SCORE
+
+@pytest.mark.usefixtures("preprocess_data")
+def test_another(preprocess_data):
+    global roc_auc
+    X_train, X_test, y_train, y_test = preprocess_data
+    cv_pairs, (dtrain, dtest) = split_and_preprocess(X_train.copy(), y_train,
+                                                     X_test.copy(), y_test,
+                                                     cat_cols=[], n_splits=N_CV_SPLITS)
+
+    model = modelgym.XGBModel(TASK_CLASSIFICATION)
+    trainer = modelgym.GPTrainer(gp_evals=N_PROBES, n_estimators=N_ESTIMATORS)
+    trainer.crossval_optimize_params(X_train=X_train, y_train=y_train,model=model,cv_pairs=cv_pairs)

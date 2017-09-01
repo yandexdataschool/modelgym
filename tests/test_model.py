@@ -108,7 +108,7 @@ def test_load_and_save(learning_task=TASK_CLASSIFICATION):
         if params1 != params2:
             print("\n")
             for param in params1:
-                print(str(params2.__getitem__(param)))
+                # print(str(params2.__getitem__(param)))
                 assert str(params1.__getitem__(param)) == str(params2.__getitem__(param)), "exit3"
         else:
             print("params equal")
