@@ -1,9 +1,7 @@
 import time
-from functools import partial
 
 import numpy as np
 from bson.son import SON
-from sklearn.model_selection import cross_val_score
 from skopt import gp_minimize
 
 import modelgym
@@ -20,7 +18,7 @@ class GPTrainer(object):
     def print_result(self, result, name='', extra_keys=None):
         print(self)
 
-    def crossval_optimize_params(self, model, X_train, y_train, cv_pairs, max_evals=None, verbose=True):
+    def crossval_optimize_params(self, model, cv_pairs, max_evals=None, verbose=True):
         max_evals = max_evals or self.gp_evals
         self.gp_eval_num, self.best_loss = 0, np.inf
 
@@ -36,33 +34,23 @@ class GPTrainer(object):
         reg = modelgym.XGBModel(learning_task=TASK_CLASSIFICATION)
         reg.preprocess_params(params_fixed)
 
-        # reg = XGBClassifier(**params_fixed)
-        fn = partial(self.crossval_fit_eval, model, cv_pairs, verbose=verbose)
-
-        def objective(params):
-            """ Wrap a cross validated inverted `accuracy` as objective func """
-            # reg.set_params(**{k: p for k, p in zip(space.keys(), params)})
-            pr = {k: p for k, p in zip(space.keys(), params)}
-            print(pr)
-            reg.set_params(**pr)
-            return 1 - np.mean(cross_val_score(reg, X_train, y_train, cv=5, n_jobs=-1, scoring='accuracy'))
-
-        # res_gp = gp_minimize(objective, space.values(), n_calls=50, random_state=seed)
         print(model.space.values())
-        _ = gp_minimize(func=lambda params: self.crossval_fit_eval(cv_pairs=cv_pairs, params=params, verbose=verbose,model=model),
-                        dimensions=model.defspace.values(), random_state=0, n_calls=50)
-        # _ = gp_minimize(func=fn, dimensions=model.defspace.values(), random_state=0, n_calls=50)
+
+        _ = gp_minimize(
+            func=lambda params: self.crossval_fit_eval(cv_pairs=cv_pairs, params=params, verbose=verbose, model=model),
+            dimensions=model.defspace.values(), random_state=0, n_calls=max_evals)
         best_hyper_params = {k: v for k, v in zip(model.defspace.keys(), _.x)}
         print(best_hyper_params)
         bst = 1 - _.fun
         print("Best accuracy score =", bst)
-        return bst if not isinstance(bst, SON) else bst.to_dict()
+        ans=best_hyper_params.copy()
+        ans['loss']=bst
+        return ans if not isinstance(ans, SON) else ans.to_dict()
 
     def crossval_fit_eval(self, model, cv_pairs, params=None, n_estimators=None, verbose=False):
         params = params or model.default_params
         print(params)
         n_estimators = n_estimators or self.n_estimators
-        # params = model.default_params
         evals_results, start_time = [], time.time()
 
         mean_evals_results = []

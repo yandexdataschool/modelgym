@@ -68,6 +68,7 @@ class XGBModel(Model):
 
     def fit(self, params, dtrain, dtest, n_estimators):
         evals_result = {}
+        self.learning_task=TASK_CLASSIFICATION
         if (not isinstance(params, dict)):
             attr = ['max_depth',
                     'learning_rate',
@@ -81,6 +82,7 @@ class XGBModel(Model):
         print("\t", params)
         bst = xgb.train(params, dtrain, evals=[(dtest, 'test')], evals_result=evals_result,
                         num_boost_round=n_estimators, verbose_eval=False)
+        print("\t\t",evals_result)
         results = evals_result['test']['rmse'] if self.learning_task == 'regression' \
             else evals_result['test']['logloss']
         print('\t FITTED')
