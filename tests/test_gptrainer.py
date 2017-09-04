@@ -26,18 +26,18 @@ def test_crossval_fit_eval(preprocess_data):
                                                      cat_cols=[], n_splits=N_CV_SPLITS)
     trainer = GPTrainer(gp_evals=N_PROBES, n_estimators=N_ESTIMATORS)
     model = modelgym.XGBModel(TASK_CLASSIFICATION)
-    res = trainer.crossval_optimize_params(model=model, cv_pairs=cv_pairs)
-
-    assert res['loss'] <= MAX_ROC_AUC_SCORE
+    loss = trainer.crossval_fit_eval(model=model, cv_pairs=cv_pairs)
+    loss2=trainer.crossval_fit_eval(model,cv_pairs=cv_pairs,params=model.default_params)
+    assert loss <= MAX_ROC_AUC_SCORE
+    assert loss2 <= MAX_ROC_AUC_SCORE
     print("assert passed")
 
     _dtrain = model.convert_to_dataset(dtrain.X, dtrain.y, dtrain.cat_cols)
     _dtest = model.convert_to_dataset(dtest.X, dtest.y, dtest.cat_cols)
-    res.pop('loss')
-    res = model.preprocess_params(res)
+    params=model.default_params
 
     print("FITTING BEST PARAMS")
-    bst, evals_result = model.fit(params=res, dtrain=_dtrain, dtest=_dtest, n_estimators=res['n_estimators'])
+    bst, evals_result = model.fit(params=params, dtrain=_dtrain, dtest=_dtest, n_estimators=params['n_estimators'])
     prediction = model.predict(bst=bst, dtest=_dtest, X_test=dtest.X)
 
     custom_metric = {'roc_auc': roc_auc_score}
@@ -99,7 +99,7 @@ def test_crossval_optimize_params(preprocess_data):
 
     res.pop('loss')
     res = model.preprocess_params(res)
-    n_estimators = res['n_estimators']
+    n_estimators = N_ESTIMATORS
 
     bst, evals_result = model.fit(params=res, dtrain=_dtrain, dtest=_dtest, n_estimators=n_estimators)
     prediction = model.predict(bst=bst, dtest=_dtest, X_test=dtest.X)

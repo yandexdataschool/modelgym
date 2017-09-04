@@ -1,18 +1,10 @@
 import xgboost as xgb
 from hyperopt import hp
 
-from modelgym.model import Model, TASK_CLASSIFICATION
+from modelgym.model import Model, TASK_REGRESSION
 
 
 class XGBModel(Model):
-    defspace = {
-        'max_depth': (1, 5),
-        'learning_rate': (10 ** -4, 10 ** -1),
-        'n_estimators': (10, 200),
-        'min_child_weight': (1, 20),
-        'subsample': (0, 1),
-        'colsample_bytree': (0.3, 1)
-    }
     def __init__(self, learning_task, compute_counters=False, counters_sort_col=None, holdout_size=0):
         Model.__init__(self, learning_task, 'XGBoost',
                        compute_counters, counters_sort_col, holdout_size)
@@ -23,9 +15,12 @@ class XGBModel(Model):
             'colsample_bytree': hp.uniform('colsample_bytree', 0.5, 1),
             'colsample_bylevel': hp.uniform('colsample_bylevel', 0.5, 1),
             'min_child_weight': hp.loguniform('min_child_weight', -16, 5),
-            'alpha': hp.choice('alpha', [0, hp.loguniform('alpha_positive', -16, 2)]),
-            'lambda': hp.choice('lambda', [0, hp.loguniform('lambda_positive', -16, 2)]),
-            'gamma': hp.choice('gamma', [0, hp.loguniform('gamma_positive', -16, 2)])
+            # 'alpha': hp.choice('alpha', [0, hp.loguniform('alpha_positive', -16, 2)]),
+            # 'lambda': hp.choice('lambda', [0, hp.loguniform('lambda_positive', -16, 2)]),
+            # 'gamma': hp.choice('gamma', [0, hp.loguniform('gamma_positive', -16, 2)])
+            'gamma': hp.loguniform('gamma', -16, 2),
+            'lambdax': hp.loguniform('lambdax', -16, 2),
+            'alpha': hp.loguniform('alpha', -16, 2)
         }
 
         self.default_params = {'base_score': 0.5,
@@ -58,9 +53,7 @@ class XGBModel(Model):
 
     def set_params(self, **kwargs):
         for key in kwargs:
-            print(key, "\t")
             dic = {key: kwargs.get(key)}
-            print(dic, "\t")
             self.default_params.update(dic)
 
     def convert_to_dataset(self, data, label, cat_cols=None):
@@ -68,22 +61,23 @@ class XGBModel(Model):
 
     def fit(self, params, dtrain, dtest, n_estimators):
         evals_result = {}
-        self.learning_task=TASK_CLASSIFICATION
         if (not isinstance(params, dict)):
-            attr = ['max_depth',
-                    'learning_rate',
-                    'n_estimators',
-                    'min_child_weight',
+            attr = ['eta',
+                    'max_depth',
                     'subsample',
-                    'colsample_bytree']
-            params = {k: v for k, v in zip(attr, params)}
-            params['objective'] = 'binary:logistic'
-            params['eval_metric'] = 'logloss'
-        print("\t", params)
-        bst = xgb.train(params, dtrain, evals=[(dtest, 'test')], evals_result=evals_result,
+                    'colsample_bytree',
+                    'colsample_bylevel',
+                    'min_child_weight',
+                    'gamma',
+                    'alpha',
+                    'lambdax']
+            paramSTD = {k: v for k, v in zip(attr, params)}
+            paramSTD['objective'] = 'binary:logistic'
+            paramSTD['eval_metric'] = 'logloss'
+            params = paramSTD
+        bst = xgb.train(params=params, dtrain=dtrain, evals=[(dtest, 'test')], evals_result=evals_result,
                         num_boost_round=n_estimators, verbose_eval=False)
-        print("\t\t",evals_result)
-        results = evals_result['test']['rmse'] if self.learning_task == 'regression' \
+        results = evals_result['test']['rmse'] if self.learning_task == TASK_REGRESSION \
             else evals_result['test']['logloss']
         print('\t FITTED')
         return bst, results

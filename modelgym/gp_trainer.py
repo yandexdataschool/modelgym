@@ -2,6 +2,7 @@ import time
 
 import numpy as np
 from bson.son import SON
+from sklearn.model_selection import cross_val_score
 from skopt import gp_minimize
 
 import modelgym
@@ -16,42 +17,60 @@ class GPTrainer(object):
         self.best_n_estimators = None
 
     def print_result(self, result, name='', extra_keys=None):
-        print(self)
+        # TODO test
+        print('%s:\n' % name)
+        print('loss = %s' % (result['loss']))
+        if 'best_n_estimators' in result.keys():
+            print('best_n_estimators = %s' % result['best_n_estimators'])
+        elif 'n_estimators' in result.keys():
+            print('n_estimators = %s' % result['n_estimators'])
+        print('params = %s' % result['params'])
+        if extra_keys is not None:
+            for k in extra_keys:
+                if k in result:
+                    print("%s = %f" % (k, result[k]))
 
-    def crossval_optimize_params(self, model, cv_pairs, max_evals=None, verbose=True):
+    def crossval_optimize_params(self, model, cv_pairs, max_evals=None, verbose=True, batch_size=10,
+                                 tracker=None):
+        random_state = np.random.RandomState(1)
         max_evals = max_evals or self.gp_evals
         self.gp_eval_num, self.best_loss = 0, np.inf
 
-        seed = 0
-        np.random.seed(seed)
-
-        params_fixed = {
-            'objective': 'binary:logistic',
-            'silent': 1,
-            'seed': seed,
-        }
-
-        reg = modelgym.XGBModel(learning_task=TASK_CLASSIFICATION)
-        reg.preprocess_params(params_fixed)
-
-        print(model.space.values())
+        prgp = modelgym.util.process_params_gp(model)
+        print("PRGP", prgp)
 
         _ = gp_minimize(
-            func=lambda params: self.crossval_fit_eval(cv_pairs=cv_pairs, params=params, verbose=verbose, model=model),
-            dimensions=model.defspace.values(), random_state=0, n_calls=max_evals)
-        best_hyper_params = {k: v for k, v in zip(model.defspace.keys(), _.x)}
+            func=lambda params: self.crossval_fit_eval(model=model, cv_pairs=cv_pairs, params=params, verbose=verbose),
+            dimensions=(prgp.values()), random_state=random_state, n_calls=max_evals,
+            n_jobs=max_evals - 1)
+
+        best_hyper_params = {k: v for k, v in zip(prgp.keys(), _.x)}
         print(best_hyper_params)
         bst = 1 - _.fun
         print("Best accuracy score =", bst)
-        ans=best_hyper_params.copy()
-        ans['loss']=bst
+        ans = best_hyper_params.copy()
+        ans['loss'] = bst
         return ans if not isinstance(ans, SON) else ans.to_dict()
 
     def crossval_fit_eval(self, model, cv_pairs, params=None, n_estimators=None, verbose=False):
         params = params or model.default_params
-        print(params)
+        if (isinstance(params, list)):
+            eta, max_depth, subsample, colsample_bytree, colsample_bylevel, min_child_weight, gamma, alpha, lambdax = \
+                params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8]
+            model.set_params(eta=eta,
+                             max_depth=max_depth,
+                             subsample=subsample,
+                             colsample_bylevel=colsample_bylevel,
+                             colsample_bytree=colsample_bytree,
+                             min_child_weight=min_child_weight,
+                             gamma=gamma,
+                             alpha=alpha,
+                             lambdax=lambdax
+                             )
         n_estimators = n_estimators or self.n_estimators
         evals_results, start_time = [], time.time()
+        if (isinstance(params, dict)):
+            params = model.preprocess_params(params)
 
         mean_evals_results = []
         std_evals_results = []
@@ -65,22 +84,16 @@ class GPTrainer(object):
             std_evals_results.append(np.std(evals_result))
         best_n_estimators = np.argmin(mean_evals_results) + 1
         eval_time = time.time() - start_time
+        loss = mean_evals_results[best_n_estimators - 1]
 
-        cv_result = {'loss': mean_evals_results[best_n_estimators - 1],
-                     'loss_variance': std_evals_results[best_n_estimators - 1],
-                     'best_n_estimators': best_n_estimators,
-                     'eval_time': eval_time,
-                     'params': params.copy()}
-        self.best_loss = min(self.best_loss, cv_result['loss'])
+        self.best_loss = min(self.best_loss, loss)
         self.gp_eval_num += 1
-        cv_result.update({'gp_eval_num': self.gp_eval_num, 'best_loss': self.best_loss})
 
         if verbose:
             print('[{0}/{1}]\teval_time={2:.2f} sec\tcurrent_{3}={4:.6f}\tmin_{3}={5:.6f}'.format(
                 self.gp_eval_num, self.gp_evals, eval_time,
-                model.metric, cv_result['loss'], self.best_loss))
-
-        return cv_result['loss']
+                model.metric, loss, self.best_loss))
+        return loss
 
     def fit_eval(self, model, dtrain, dtest, params=None, n_estimators=None, custom_metric=None):
         params = params or self.best_params or self.default_params

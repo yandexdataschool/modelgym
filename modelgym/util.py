@@ -2,6 +2,7 @@ import random
 
 import numpy as np
 import skopt
+from pymc3 import Continuous
 from sklearn.model_selection import StratifiedKFold, KFold, train_test_split
 
 # from collections import namedtuple
@@ -75,7 +76,7 @@ def split_and_preprocess(X_train, y_train, X_test, y_test, cat_cols=[], n_splits
 
 
 def process_params_gp(model1):
-    attr = ['loguniform', 'quniform', 'uniform', 'randint']
+    attr = ['loguniform', 'quniform', 'uniform']
     sw = ['float', 'switch']
     pardic = {}
     for par in model1.space:
@@ -86,28 +87,26 @@ def process_params_gp(model1):
             for t in y:
                 if attr.__contains__(t):
                     iter = 2
+                    if t == attr[1]:
+                        iter = 3
                     x1 = x1[x1.find(t):]
                     param = []
                     for i in range(0, iter):
                         x1 = x1[x1.find("{") + 1:]
-                        # print('\t', x1)
                         idx = x1.find("}")
-                        # print('\t', x1[:idx])
                         param.append(float(x1[:idx]))
-                    print(param)
                     if t == attr[0]:
-                        # loguniform
-                        pardic[par] = Real(param[0], param[1], prior='log-uniform')
+                        pardic[par] = Real(np.exp(param[0]), np.exp(param[1]))
                     elif t == attr[1]:
-                        raise ValueError()
-                        # pardic[par] = Real(param[0], param[1], prior='log-uniform', transform='identity')
+                        if (param[2] == 1.0):
+                            pardic[par] = Integer(param[0], param[1])
                         # round(uniform(low, high) / q) * q
+                        else:
+                            raise NotImplementedError()
                     elif t == attr[2]:
                         pardic[par] = Real(param[0], param[1], prior='uniform')
-                    elif t == attr[3]:
+                    else:
                         raise ValueError()
-                        # pardic[par] = random.randint(param[0], param[1])
-                        # print('\t', model1.space.get(par))
         elif std == sw[1]:
             for t in y:
                 if attr.__contains__(t):
@@ -115,12 +114,13 @@ def process_params_gp(model1):
                     x1 = x1[x1.find(t):]
                     x1 = x1[x1.find("Literal{2}"):]
                     x1 = x1[len("literal{2}"):]
-                    # print('\t', x1)
                     x1 = x1[x1.find("{") + 1:]
                     idx = x1.find("}")
                     param.append(float(x1[:idx]))
                     for r in x1.split():
                         if attr.__contains__(r):
+                            if r == attr[1]:
+                                raise NotImplementedError()
                             iter = 2
                             x1 = x1[x1.find(r):]
                             for i in range(0, iter):
@@ -129,20 +129,16 @@ def process_params_gp(model1):
                                 param.append(float(x1[:idx]))
                             print(param)
                             if r == attr[0]:
-                                # loguniform
                                 # param[0]
-                                pardic[par] = Real(param[1], param[2], prior='log-uniform')
+                                pardic[par] = Real(np.exp(param[1]), np.exp(param[2]))
                             elif r == attr[1]:
-                                raise ValueError()
-                                # pardic[par] = Categorical(param[0], Real(param[1], param[2], prior='log-uniform',
-                                #                                          transform='identity'))
+                                raise NotImplementedError()
                                 # round(uniform(low, high) / q) * q
                             elif r == attr[2]:
                                 # param[0]
-                                pardic[par] = Real(param[1], param[2])
-                            elif r == attr[3]:
+                                raise NotImplementedError()
+                            else:
                                 raise ValueError()
                             break
                     break
-
-    return (pardic.values())
+    return pardic
