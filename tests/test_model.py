@@ -84,7 +84,7 @@ def test_predict(preprocess_data):
                                                      X_test.copy(), y_test,
                                                      cat_cols=[], n_splits=N_CV_SPLITS)
     model = modelgym.XGBModel(TASK_CLASSIFICATION)
-    trainer = Trainer(hyperopt_evals=N_PROBES, n_estimators=N_ESTIMATORS)
+    trainer = Trainer(opt_evals=N_PROBES, n_estimators=N_ESTIMATORS)
 
     res = trainer.crossval_fit_eval(model, cv_pairs)
     ans = trainer.fit_eval(model, dtrain, dtest, res['params'], res['best_n_estimators'],
