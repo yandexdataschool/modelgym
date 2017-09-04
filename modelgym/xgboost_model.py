@@ -51,10 +51,24 @@ class XGBModel(Model):
             params['max_depth'] = int(params['max_depth'])
         return params
 
-    def set_params(self, **kwargs):
+    def set_parameters(self, **kwargs):
         for key in kwargs:
             dic = {key: kwargs.get(key)}
             self.default_params.update(dic)
+
+    def set_parameter(self, params):
+        eta, max_depth, subsample, colsample_bytree, colsample_bylevel, min_child_weight, gamma, alpha, lambdax = \
+            params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8]
+        self.set_parameters(eta=eta,
+                            max_depth=max_depth,
+                            subsample=subsample,
+                            colsample_bylevel=colsample_bylevel,
+                            colsample_bytree=colsample_bytree,
+                            min_child_weight=min_child_weight,
+                            gamma=gamma,
+                            alpha=alpha,
+                            lambdax=lambdax
+                            )
 
     def convert_to_dataset(self, data, label, cat_cols=None):
         return xgb.DMatrix(data, label)

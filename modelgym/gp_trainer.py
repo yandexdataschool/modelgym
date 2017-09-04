@@ -2,17 +2,15 @@ import time
 
 import numpy as np
 from bson.son import SON
-from sklearn.model_selection import cross_val_score
 from skopt import gp_minimize
 
 import modelgym
-from modelgym.model import TASK_CLASSIFICATION
 
 
 class GPTrainer(object):
-    def __init__(self, n_estimators=5000, gp_evals=50, state=None, load_previous=False):
+    def __init__(self, n_estimators=5000, opt_evals=50, state=None, load_previous=False):
         self.n_estimators, self.best_loss = n_estimators, np.inf
-        self.gp_evals, self.gp_eval_num = gp_evals, 0
+        self.gp_evals, self.gp_eval_num = opt_evals, 0
         self.default_params, self.best_params = None, None
         self.best_n_estimators = None
 
@@ -36,15 +34,14 @@ class GPTrainer(object):
         max_evals = max_evals or self.gp_evals
         self.gp_eval_num, self.best_loss = 0, np.inf
 
-        prgp = modelgym.util.process_params_gp(model)
-        print("PRGP", prgp)
+        skoptParams = modelgym.util.hyperopt2skopt_space(model.space)
 
         _ = gp_minimize(
             func=lambda params: self.crossval_fit_eval(model=model, cv_pairs=cv_pairs, params=params, verbose=verbose),
-            dimensions=(prgp.values()), random_state=random_state, n_calls=max_evals,
+            dimensions=(skoptParams.values()), random_state=random_state, n_calls=max_evals,
             n_jobs=max_evals - 1)
 
-        best_hyper_params = {k: v for k, v in zip(prgp.keys(), _.x)}
+        best_hyper_params = {k: v for k, v in zip(skoptParams.keys(), _.x)}
         print(best_hyper_params)
         bst = 1 - _.fun
         print("Best accuracy score =", bst)
@@ -55,18 +52,7 @@ class GPTrainer(object):
     def crossval_fit_eval(self, model, cv_pairs, params=None, n_estimators=None, verbose=False):
         params = params or model.default_params
         if (isinstance(params, list)):
-            eta, max_depth, subsample, colsample_bytree, colsample_bylevel, min_child_weight, gamma, alpha, lambdax = \
-                params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8]
-            model.set_params(eta=eta,
-                             max_depth=max_depth,
-                             subsample=subsample,
-                             colsample_bylevel=colsample_bylevel,
-                             colsample_bytree=colsample_bytree,
-                             min_child_weight=min_child_weight,
-                             gamma=gamma,
-                             alpha=alpha,
-                             lambdax=lambdax
-                             )
+            model.set_parameter(params)
         n_estimators = n_estimators or self.n_estimators
         evals_results, start_time = [], time.time()
         if (isinstance(params, dict)):

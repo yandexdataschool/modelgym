@@ -1,15 +1,8 @@
-import random
-
 import numpy as np
-import skopt
-from pymc3 import Continuous
 from sklearn.model_selection import StratifiedKFold, KFold, train_test_split
-
-# from collections import namedtuple
-from skopt.space import Space
-from skopt.space import Real
 from skopt.space import Integer
-from skopt.space import Categorical
+# from collections import namedtuple
+from skopt.space import Real
 
 from modelgym.XYCDataset import XYCDataset
 # from cat_counter import CatCounter
@@ -75,12 +68,12 @@ def split_and_preprocess(X_train, y_train, X_test, y_test, cat_cols=[], n_splits
     return cv_pairs, (full_dtrain, full_dtest)
 
 
-def process_params_gp(model1):
+def hyperopt2skopt_space(space):
     attr = ['loguniform', 'quniform', 'uniform']
     sw = ['float', 'switch']
     pardic = {}
-    for par in model1.space:
-        x1 = str(model1.space.get(par))
+    for par in space:
+        x1 = str(space.get(par))
         y = x1.split()
         std = y[1]
         if (std == sw[0]):
@@ -129,13 +122,11 @@ def process_params_gp(model1):
                                 param.append(float(x1[:idx]))
                             print(param)
                             if r == attr[0]:
-                                # param[0]
-                                pardic[par] = Real(np.exp(param[1]), np.exp(param[2]))
+                                raise NotImplementedError()
                             elif r == attr[1]:
                                 raise NotImplementedError()
                                 # round(uniform(low, high) / q) * q
                             elif r == attr[2]:
-                                # param[0]
                                 raise NotImplementedError()
                             else:
                                 raise ValueError()

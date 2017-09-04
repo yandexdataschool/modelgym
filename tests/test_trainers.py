@@ -2,7 +2,9 @@ import pytest
 from sklearn.metrics import roc_auc_score
 
 import modelgym
+from modelgym import XGBModel
 from modelgym.gp_trainer import GPTrainer
+from modelgym.trainer import Trainer
 from modelgym.util import TASK_CLASSIFICATION, split_and_preprocess
 
 TEST_SIZE = 0.2
@@ -10,34 +12,45 @@ N_CV_SPLITS = 2
 N_PROBES = 10
 N_ESTIMATORS = 100
 PARAMS_TO_TEST = ['eval_time', 'status', 'params']
-FIT_TEST = (PARAMS_TO_TEST[:])
-FIT_TEST.extend(['bst', 'n_estimators'])
-CV_FIT = (PARAMS_TO_TEST[:])
-CV_FIT.extend(['gp_eval_num', 'best_n_estimators'])
 MAX_ROC_AUC_SCORE = 1.0
+TRAINER_CLASS = [Trainer, GPTrainer]
+MODEL_CLASS = [modelgym.XGBModel, modelgym.LGBModel, modelgym.RFModel]
 
 
+@pytest.mark.parametrize("trainer_class", TRAINER_CLASS)
 @pytest.mark.usefixtures("preprocess_data")
-def test_crossval_fit_eval(preprocess_data):
-    global roc_auc
+def test_crossval_fit_eval(preprocess_data, trainer_class):
+    global roc_auc, res
     X_train, X_test, y_train, y_test = preprocess_data
     cv_pairs, (dtrain, dtest) = split_and_preprocess(X_train.copy(), y_train,
                                                      X_test.copy(), y_test,
                                                      cat_cols=[], n_splits=N_CV_SPLITS)
-    trainer = GPTrainer(gp_evals=N_PROBES, n_estimators=N_ESTIMATORS)
-    model = modelgym.XGBModel(TASK_CLASSIFICATION)
-    loss = trainer.crossval_fit_eval(model=model, cv_pairs=cv_pairs)
-    loss2=trainer.crossval_fit_eval(model,cv_pairs=cv_pairs,params=model.default_params)
+
+    trainer = trainer_class(opt_evals=N_PROBES, n_estimators=N_ESTIMATORS)
+    model = XGBModel(TASK_CLASSIFICATION)
+    flag = False
+    for i in range(0, 2):
+        if (flag):
+            res = trainer.crossval_fit_eval(model=model, cv_pairs=cv_pairs, n_estimators=N_ESTIMATORS,
+                                            params=model.default_params)
+            flag = True
+        else:
+            res = trainer.crossval_fit_eval(model=model, cv_pairs=cv_pairs, n_estimators=N_ESTIMATORS)
+    if isinstance(res, dict):
+        loss = res['loss']
+        params = res['params']
+        params = model.preprocess_params(params)
+    else:
+        loss = res
+        params = model.default_params
     assert loss <= MAX_ROC_AUC_SCORE
-    assert loss2 <= MAX_ROC_AUC_SCORE
-    print("assert passed")
+    n_estimators = params['n_estimators']
 
     _dtrain = model.convert_to_dataset(dtrain.X, dtrain.y, dtrain.cat_cols)
     _dtest = model.convert_to_dataset(dtest.X, dtest.y, dtest.cat_cols)
-    params=model.default_params
 
     print("FITTING BEST PARAMS")
-    bst, evals_result = model.fit(params=params, dtrain=_dtrain, dtest=_dtest, n_estimators=params['n_estimators'])
+    bst, evals_result = model.fit(params=params, dtrain=_dtrain, dtest=_dtest, n_estimators=n_estimators)
     prediction = model.predict(bst=bst, dtest=_dtest, X_test=dtest.X)
 
     custom_metric = {'roc_auc': roc_auc_score}
@@ -48,29 +61,31 @@ def test_crossval_fit_eval(preprocess_data):
     assert roc_auc <= MAX_ROC_AUC_SCORE
 
 
+@pytest.mark.parametrize("trainer_class", TRAINER_CLASS)
 @pytest.mark.usefixtures("preprocess_data")
-def test_fit_eval(preprocess_data):
+def test_fit_eval(preprocess_data, trainer_class):
     # TODO: contains all params? roc_auc
     global roc_auc
     X_train, X_test, y_train, y_test = preprocess_data
     cv_pairs, (dtrain, dtest) = split_and_preprocess(X_train.copy(), y_train,
                                                      X_test.copy(), y_test,
                                                      cat_cols=[], n_splits=N_CV_SPLITS)
-    model = modelgym.XGBModel(TASK_CLASSIFICATION)
-    trainer = GPTrainer(gp_evals=N_PROBES, n_estimators=N_ESTIMATORS)
+
+    model = XGBModel(TASK_CLASSIFICATION)
+    trainer = trainer_class(opt_evals=N_PROBES, n_estimators=N_ESTIMATORS)
     res = trainer.fit_eval(model, dtrain=dtrain, dtest=dtest)
 
-    assert res['loss'] <= MAX_ROC_AUC_SCORE
-    print("assert passed")
+    loss = res['loss']
+    params = res['params']
+    params = model.preprocess_params(params)
+    res.pop('loss')
+    assert loss <= MAX_ROC_AUC_SCORE
+    n_estimators = params['n_estimators']
 
     _dtrain = model.convert_to_dataset(dtrain.X, dtrain.y, dtrain.cat_cols)
     _dtest = model.convert_to_dataset(dtest.X, dtest.y, dtest.cat_cols)
-    res.pop('loss')
-    res = model.preprocess_params(res)
-    n_estimators = res['n_estimators']
 
-    print("FITTING BEST PARAMS")
-    bst, evals_result = model.fit(params=res, dtrain=_dtrain, dtest=_dtest, n_estimators=n_estimators)
+    bst, evals_result = model.fit(params=params, dtrain=_dtrain, dtest=_dtest, n_estimators=n_estimators)
     prediction = model.predict(bst=bst, dtest=_dtest, X_test=dtest.X)
 
     custom_metric = {'roc_auc': roc_auc_score}
@@ -81,27 +96,29 @@ def test_fit_eval(preprocess_data):
     assert roc_auc <= MAX_ROC_AUC_SCORE
 
 
+@pytest.mark.parametrize("trainer_class", TRAINER_CLASS)
 @pytest.mark.usefixtures("preprocess_data")
-def test_crossval_optimize_params(preprocess_data):
+def test_crossval_optimize_params(preprocess_data, trainer_class):
     global roc_auc
     X_train, X_test, y_train, y_test = preprocess_data
     cv_pairs, (dtrain, dtest) = split_and_preprocess(X_train.copy(), y_train,
                                                      X_test.copy(), y_test,
                                                      cat_cols=[], n_splits=N_CV_SPLITS)
-    model = modelgym.XGBModel(TASK_CLASSIFICATION)
-    trainer = GPTrainer(gp_evals=N_PROBES, n_estimators=N_ESTIMATORS)
+
+    model = XGBModel(TASK_CLASSIFICATION)
+    trainer = trainer_class(opt_evals=N_PROBES, n_estimators=N_ESTIMATORS)
 
     _dtrain = model.convert_to_dataset(dtrain.X, dtrain.y, dtrain.cat_cols)
     _dtest = model.convert_to_dataset(dtest.X, dtest.y, dtest.cat_cols)
 
-    trainer.fit_eval(model, dtrain=dtrain, dtest=dtest)
-    res = trainer.crossval_optimize_params(model=model, cv_pairs=cv_pairs)
+    trainer.fit_eval(model=model, dtrain=dtrain, dtest=dtest)
+    optimized = trainer.crossval_optimize_params(model=model, cv_pairs=cv_pairs)
 
-    res.pop('loss')
-    res = model.preprocess_params(res)
+    optimized.pop('loss')
+    params = model.preprocess_params(optimized)
     n_estimators = N_ESTIMATORS
 
-    bst, evals_result = model.fit(params=res, dtrain=_dtrain, dtest=_dtest, n_estimators=n_estimators)
+    bst, evals_result = model.fit(params=params, dtrain=_dtrain, dtest=_dtest, n_estimators=n_estimators)
     prediction = model.predict(bst=bst, dtest=_dtest, X_test=dtest.X)
 
     custom_metric = {'roc_auc': roc_auc_score}
