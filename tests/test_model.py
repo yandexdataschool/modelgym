@@ -2,8 +2,11 @@ import os
 import tempfile
 
 import pytest
+import skopt
 import xgboost
 from sklearn.metrics import roc_auc_score
+import numpy as np
+from skopt.space import Real, Integer, Space
 
 import modelgym
 from modelgym.trainer import Trainer
@@ -91,13 +94,15 @@ def test_predict(preprocess_data):
     assert roc_auc <= MAX_ROC_AUC_SCORE
 
 
-def test_load_and_save(learning_task=TASK_CLASSIFICATION):
-    model1 = modelgym.XGBModel(learning_task=learning_task)  # model to save and then read
+@pytest.mark.parametrize("model_class", MODEL_CLASS)
+@pytest.mark.parametrize('task', APPROVED_PARAMS)
+def test_load_and_save(model_class, task):
+    model1 = modelgym.XGBModel(learning_task=task)  # model to save and then read
     with tempfile.NamedTemporaryFile(delete=True) as tmp:
         filepath = tmp.name
         model1.save_config(filepath)
         assert os.path.exists(filepath)
-        model2 = modelgym.XGBModel(learning_task=learning_task)
+        model2 = model_class(learning_task=task)
         model2.load_config(filepath)
         dic1 = model1.__dict__
         dic2 = model2.__dict__
