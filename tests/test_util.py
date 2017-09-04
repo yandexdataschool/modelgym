@@ -29,19 +29,8 @@ def test_split_and_preprocess(read_data):
 
 
 def test_hyperopt2skopt_space():
-    s1 = {'a': hp.uniform('a', 0, 10)}
-    s1 = modelgym.util.hyperopt2skopt_space(s1)
-    s2 = Real(0, 10)
-    s3 = {'max_depth': hp.quniform('max_depth', 2, 10, 1)}
-    s3 = modelgym.util.hyperopt2skopt_space(s3)
-    s4 = Integer(2, 10)
-    s5 = {'min_child_weight': hp.loguniform('min_child_weight', -16, 5)}
-    s5 = modelgym.util.hyperopt2skopt_space(s5)
-    s6 = Real(np.exp(-16), np.exp(5))
-    s7 = Integer(np.exp(-16), np.exp(5))
-
-    # TODO: more tests
-    assert s1.get('a') == s2
-    assert s3.get('max_depth') == s4
-    assert s5.get('min_child_weight') == s6
-    assert s7 != s6
+    hyperopt_space = [{'a': hp.uniform('a', 0, 10)}, {'max_depth': hp.quniform('max_depth', 2, 10, 1)},
+                      {'min_child_weight': hp.loguniform('min_child_weight', -16, 5)}, {'abc': hp.uniform('abc', 0, 1)}]
+    skopt_space = [Real(0, 10), Integer(2, 10), Real(np.exp(-16), np.exp(5)), Integer(0, 1)]
+    for p, r in zip(hyperopt_space, skopt_space):
+        assert next(iter(modelgym.util.hyperopt2skopt_space(p).values())) == r

@@ -43,7 +43,7 @@ class GPTrainer(Trainer):
         params = params or model.default_params
         n_estimators = n_estimators or self.n_estimators
         if (isinstance(params, list)):
-            model.set_parameter(params)
+            model.set_parameters(params)
             res = super().crossval_fit_eval(model=model, cv_pairs=cv_pairs, n_estimators=n_estimators,
                                             verbose=verbose)
         elif (isinstance(params, dict)):
@@ -53,6 +53,3 @@ class GPTrainer(Trainer):
         else:
             raise ValueError()
         return res['loss']
-
-    def print_result(self, result, name='', extra_keys=None):
-        super().print_result(result=result, name=name, extra_keys=extra_keys)
