@@ -38,7 +38,10 @@ def test_hyperopt2skopt_space():
     s5 = {'min_child_weight': hp.loguniform('min_child_weight', -16, 5)}
     s5 = modelgym.util.hyperopt2skopt_space(s5)
     s6 = Real(np.exp(-16), np.exp(5))
+    s7 = Integer(np.exp(-16), np.exp(5))
 
+    # TODO: more tests
     assert s1.get('a') == s2
     assert s3.get('max_depth') == s4
     assert s5.get('min_child_weight') == s6
+    assert s7 != s6
