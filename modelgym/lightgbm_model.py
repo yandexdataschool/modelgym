@@ -69,8 +69,10 @@ class LGBModel(Model):
         elif self.learning_task == "regression":
             params_.update({'objective': 'mean_squared_error', 'metric': 'l2',
                             'bagging_freq': 1, 'verbose': -1})
-        params_['num_leaves'] = max(int(params_['num_leaves']), 2)
-        params_['min_data_in_leaf'] = int(params_['min_data_in_leaf'])
+        if(params_.__contains__('num_leaves')):
+            params_['num_leaves'] = max(int(params_['num_leaves']), 2)
+        if (params_.__contains__('min_data_in_leaf')):
+            params_['min_data_in_leaf'] = int(params_['min_data_in_leaf'])
         return params_
 
     def convert_to_dataset(self, data, label, cat_cols=None):

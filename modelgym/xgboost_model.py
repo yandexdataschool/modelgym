@@ -43,13 +43,20 @@ class XGBModel(Model):
         self.default_params = self.preprocess_params(self.default_params)
 
     def preprocess_params(self, params):
-        if self.learning_task == "classification":
-            params.update({'objective': 'binary:logistic', 'eval_metric': 'logloss', 'silent': 1})
-        elif self.learning_task == "regression":
-            params.update({'objective': 'reg:linear', 'eval_metric': 'rmse', 'silent': 1})
-        if (params.__contains__('max_depth')):
-            params['max_depth'] = int(params['max_depth'])
-        return params
+        params_ = params.copy()
+        if (isinstance(params_, dict)):
+            if self.learning_task == "classification":
+                params_.update({'objective': 'binary:logistic', 'eval_metric': 'logloss', 'silent': 1})
+            elif self.learning_task == "regression":
+                params_.update({'objective': 'reg:linear', 'eval_metric': 'rmse', 'silent': 1})
+            if params_.__contains__('max_depth'):
+                params_['max_depth'] = int(params_['max_depth'])
+        elif (isinstance(params_, list)):
+            if self.learning_task == "classification":
+                params_.extend(['binary:logistic', 'logloss', 1])
+            elif self.learning_task == "regression":
+                params_.extend(['reg:linear', 'rmse', 1])
+        return params_
 
     def set_parameters(self, params, **kwargs):
         if (isinstance(params, list)):
@@ -66,9 +73,7 @@ class XGBModel(Model):
                                        lambdax=lambdax
                                        )
         else:
-            for key in kwargs:
-                dic = {key: kwargs.get(key)}
-                self.default_params.update(dic)
+            self.default_params.update(kwargs)
 
     def convert_to_dataset(self, data, label, cat_cols=None):
         return xgb.DMatrix(data, label)
