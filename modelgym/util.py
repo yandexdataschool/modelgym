@@ -69,67 +69,64 @@ def split_and_preprocess(X_train, y_train, X_test, y_test, cat_cols=[], n_splits
 
 
 def hyperopt2skopt_space(space):
+    global arrlist
     attr = ['loguniform', 'quniform', 'uniform']
     sw = ['float', 'switch']
     pardic = {}
-    for par in space:
-        x1 = str(space.get(par))
-        y = x1.split()
-        std = y[1]
-        if (std == sw[0]):
-            for t in y:
-                if attr.__contains__(t):
+    for parName in space:
+        arrlist = []
+        x1 = str(space.get(parName))
+        # print("\t\torigin\n", x1)
+        strings = x1.split()
+        hpFunc = strings[1]
+        if hpFunc == sw[0]:
+            for word in strings:
+                if attr.__contains__(word):
                     iter = 2
-                    if t == attr[1]:
+                    if word == attr[1]:
                         iter = 3
-                    x1 = x1[x1.find(t):]
+                    x1 = x1[x1.find(word):]
+                    # print("\t", x1)
                     param = []
                     for i in range(0, iter):
                         x1 = x1[x1.find("{") + 1:]
                         idx = x1.find("}")
+                        print("\t", x1[:idx])
                         param.append(float(x1[:idx]))
-                    if t == attr[0]:
-                        pardic[par] = Real(np.exp(param[0]), np.exp(param[1]))
-                    elif t == attr[1]:
-                        if (param[2] == 1.0):
-                            pardic[par] = Integer(param[0], param[1])
+                    if word == attr[0]:
+                        pardic[parName] = Real(np.exp(param[0]), np.exp(param[1]))
+                    elif word == attr[1]:
+                        if param[2] == 1.0:
+                            pardic[parName] = Integer(param[0], param[1])
                         # round(uniform(low, high) / q) * q
                         else:
                             raise NotImplementedError()
-                    elif t == attr[2]:
-                        pardic[par] = Real(param[0], param[1], prior='uniform')
+                    elif word == attr[2]:
+                        pardic[parName] = Real(param[0], param[1], prior='uniform')
                     else:
                         raise ValueError()
-        elif std == sw[1]:
-            for t in y:
-                if attr.__contains__(t):
-                    param = []
-                    x1 = x1[x1.find(t):]
-                    x1 = x1[x1.find("Literal{2}"):]
-                    x1 = x1[len("literal{2}"):]
-                    x1 = x1[x1.find("{") + 1:]
-                    idx = x1.find("}")
-                    param.append(float(x1[:idx]))
-                    for r in x1.split():
-                        if attr.__contains__(r):
-                            if r == attr[1]:
-                                raise NotImplementedError()
-                            iter = 2
-                            x1 = x1[x1.find(r):]
-                            for i in range(0, iter):
-                                x1 = x1[x1.find("{") + 1:]
-                                idx = x1.find("}")
-                                param.append(float(x1[:idx]))
-                            print(param)
-                            if r == attr[0]:
-                                raise NotImplementedError()
-                            elif r == attr[1]:
-                                raise NotImplementedError()
-                                # round(uniform(low, high) / q) * q
-                            elif r == attr[2]:
-                                raise NotImplementedError()
-                            else:
-                                raise ValueError()
-                            break
+        elif hpFunc == sw[1]:
+            for word in strings:
+                if word == 'randint':
+                    x1 = x1[x1.find(word):]
+                    x1 = x1[len(word):]
+                    dop = "Literal{"
+                    x1 = x1[x1.find(dop):]
+                    x1 = x1[len(dop):]
+                    length = int(x1[:x1.find("}")])
+                    for i in range(0, length):
+                        x1 = x1[x1.find(dop):]
+                        x1 = x1[len(dop):]
+                        par = x1[:x1.find("}")]
+                        try:
+                            a = float(par)
+                        except:
+                            a = par
+                        arrlist.append(a)
                     break
+                else:
+                    raise NotImplementedError()
+            pardic[parName] = arrlist
+        else:
+            raise NotImplementedError()
     return pardic
