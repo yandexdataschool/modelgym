@@ -1,15 +1,11 @@
 import numpy as np
 from sklearn.model_selection import StratifiedKFold, KFold, train_test_split
 from skopt.space import Integer
-# from collections import namedtuple
 from skopt.space import Real
 
 from modelgym.XYCDataset import XYCDataset
 # from cat_counter import CatCounter
 from modelgym.model import TASK_CLASSIFICATION, TASK_REGRESSION
-
-
-# XYCDataset = namedtuple('XYCDataset', ['X', 'y', 'cat_cols'])
 
 
 def preprocess_cat_cols(X_train, y_train, cat_cols, X_test=None, cc=None,
@@ -76,7 +72,7 @@ def hyperopt2skopt_space(space):
     for parName in space:
         arrlist = []
         x1 = str(space.get(parName))
-        # print("\t\torigin\n", x1)
+        print("\t\torigin\n", x1)
         strings = x1.split()
         hpFunc = strings[1]
         if hpFunc == sw[0]:
@@ -120,12 +116,15 @@ def hyperopt2skopt_space(space):
                         par = x1[:x1.find("}")]
                         try:
                             a = float(par)
+                            tmp = int(a) - a
+                            if tmp == 0:
+                                a = int(a)
+                            elif tmp == 0.0:
+                                a = a
                         except:
                             a = par
                         arrlist.append(a)
                     break
-                else:
-                    raise NotImplementedError()
             pardic[parName] = arrlist
         else:
             raise NotImplementedError()
