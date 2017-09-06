@@ -29,11 +29,26 @@ def test_split_and_preprocess(read_data):
 
 
 def test_hyperopt2skopt_space():
-    hyperopt_space = [{'a': hp.uniform('a', 0, 10)}, {'max_depth': hp.quniform('max_depth', 2, 10, 1)},
+    hyperopt_space = [{'a': hp.uniform('a', 0, 10)},
+                      {'max_depth': hp.quniform('max_depth', 2, 10, 1)},
                       {'min_child_weight': hp.loguniform('min_child_weight', -16, 5)},
                       {'criterion': hp.choice('criterion', ["gini", "entropy"])},
-                      {'max_features': hp.choice('max_features', range(1, 5))}, {'abc': hp.uniform('abc', 0, 1)}
+                      {'max_features': hp.choice('max_features', range(1, 5))},
+                      {'num_leaves': hp.qloguniform('num_leaves', 0, 7, 1)},
+                      {'abc': hp.uniform('abc', 0, 1)}
                       ]
-    skopt_space = [Real(0, 10), Integer(2, 10), Real(np.exp(-16), np.exp(5)), ["gini", "entropy"], [1,2,3,4],Integer(0, 1)]
+    skopt_space = [Real(0, 10),
+                   Integer(2, 10),
+                   Real(np.exp(-16), np.exp(5)),
+                   ["gini", "entropy"],
+                   [1, 2, 3, 4],
+                   Integer(np.exp(0), np.exp(7)),
+                   Integer(0, 1)
+                   ]
+    length = len(hyperopt_space)
+    assert length == len(skopt_space)
+    i = 1
     for p, r in zip(hyperopt_space, skopt_space):
         assert next(iter(modelgym.util.hyperopt2skopt_space(p).values())) == r
+        print("[{0}/{1}] mini-test passed".format(i, length))
+        i += 1

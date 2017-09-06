@@ -66,39 +66,45 @@ def split_and_preprocess(X_train, y_train, X_test, y_test, cat_cols=[], n_splits
 
 def hyperopt2skopt_space(space):
     global arrlist
-    attr = ['loguniform', 'quniform', 'uniform']
+    attr = ['loguniform', 'quniform', 'uniform', 'qloguniform']
     sw = ['float', 'switch']
     pardic = {}
     for parName in space:
         arrlist = []
         x1 = str(space.get(parName))
-        print("\t\torigin\n", x1)
+        # print("\t\torigin\n", x1)
         strings = x1.split()
         hpFunc = strings[1]
         if hpFunc == sw[0]:
             for word in strings:
                 if attr.__contains__(word):
                     iter = 2
-                    if word == attr[1]:
+                    if word == attr[1] or word == attr[3]:
                         iter = 3
                     x1 = x1[x1.find(word):]
-                    # print("\t", x1)
                     param = []
                     for i in range(0, iter):
                         x1 = x1[x1.find("{") + 1:]
                         idx = x1.find("}")
-                        print("\t", x1[:idx])
                         param.append(float(x1[:idx]))
+                    # loguniform
                     if word == attr[0]:
                         pardic[parName] = Real(np.exp(param[0]), np.exp(param[1]))
+                    # quiniform
                     elif word == attr[1]:
                         if param[2] == 1.0:
                             pardic[parName] = Integer(param[0], param[1])
-                        # round(uniform(low, high) / q) * q
                         else:
                             raise NotImplementedError()
+                    # uniform
                     elif word == attr[2]:
                         pardic[parName] = Real(param[0], param[1], prior='uniform')
+                    # qloguniform
+                    elif word == attr[3]:
+                        if param[2] == 1.0:
+                            pardic[parName] = Integer(np.exp(param[0]), np.exp(param[1]))
+                        else:
+                            raise NotImplementedError()
                     else:
                         raise ValueError()
         elif hpFunc == sw[1]:
