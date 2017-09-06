@@ -12,7 +12,7 @@ N_PROBES = 10
 N_ESTIMATORS = 100
 PARAMS_TO_TEST = ['eval_time', 'status', 'params']
 MAX_ROC_AUC_SCORE = 1.0
-TRAINER_CLASS = [Trainer]
+TRAINER_CLASS = [Trainer, GPTrainer]
 MODEL_CLASS = [modelgym.XGBModel, modelgym.LGBModel, modelgym.RFModel]
 
 
@@ -117,7 +117,7 @@ def test_crossval_optimize_params(preprocess_data, trainer_class, model_class):
     optimized = trainer.crossval_optimize_params(model=model, cv_pairs=cv_pairs)
 
     optimized.pop('loss')
-    params=optimized['params']
+    params = optimized['params']
     params = model.preprocess_params(params)
     n_estimators = N_ESTIMATORS
 
@@ -131,7 +131,3 @@ def test_crossval_optimize_params(preprocess_data, trainer_class, model_class):
     print("ROC_AUC: ", roc_auc)
 
     assert roc_auc <= MAX_ROC_AUC_SCORE
-def test_x():
-    model=modelgym.RFModel(learning_task=TASK_CLASSIFICATION)
-    for par in model.space:
-        print(str(model.space.get(par)))
