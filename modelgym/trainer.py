@@ -9,9 +9,9 @@ from hyperopt.mongoexp import MongoTrials
 
 
 class Trainer(object):
-    def __init__(self, n_estimators=5000, hyperopt_evals=50, state=None, load_previous=False):
+    def __init__(self, n_estimators=5000, opt_evals=50, state=None, load_previous=False):
         self.n_estimators, self.best_loss = n_estimators, np.inf
-        self.hyperopt_evals, self.hyperopt_eval_num = hyperopt_evals, 0
+        self.hyperopt_evals, self.hyperopt_eval_num = opt_evals, 0
         self.default_params, self.best_params = None, None
         self.best_n_estimators = None
 
@@ -45,8 +45,8 @@ class Trainer(object):
         n_estimators = n_estimators or self.n_estimators
         params = model.preprocess_params(params)
         evals_results, start_time = [], time.time()
-        mean_evals_results=[]
-        std_evals_results=[]
+        mean_evals_results = []
+        std_evals_results = []
         for dtrain, dtest in cv_pairs:
             _dtrain = model.convert_to_dataset(dtrain.X, dtrain.y, dtrain.cat_cols)
             _dtest = model.convert_to_dataset(dtest.X, dtest.y, dtest.cat_cols)

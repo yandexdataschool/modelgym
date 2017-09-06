@@ -1,5 +1,7 @@
 import os
+
 import yaml
+
 TASK_CLASSIFICATION = 'classification'
 TASK_REGRESSION = 'regression'
 
@@ -50,9 +52,12 @@ class Model(object):
             with open(filepath) as f:
                 dataMap = yaml.load(f)
                 self.__dict__.update(dataMap)
+                print("loaded config from %s" % filepath)
+
         else:
             raise ValueError('Model {0} do not exist'.format(filepath))
 
     def save_config(self, filepath):
         with open(filepath, "w") as f:
             yaml.dump(self, f)
+            print("saved config to %s" % filepath)
