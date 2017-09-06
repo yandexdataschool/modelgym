@@ -25,18 +25,18 @@ class GPTrainer(Trainer):
         self.opt_eval_num, self.best_loss = 0, np.inf
 
         skoptParams = modelgym.util.hyperopt2skopt_space(model.space)
-
         _ = gp_minimize(
             func=lambda params: self.crossval_fit_eval(model=model, cv_pairs=cv_pairs, params=params, verbose=verbose),
             dimensions=(skoptParams.values()), random_state=random_state, n_calls=max_evals,
             n_jobs=max_evals - 1)
 
         best_hyper_params = {k: v for k, v in zip(skoptParams.keys(), _.x)}
-        print(best_hyper_params)
+        print('\tHYPER', best_hyper_params)
         bst = 1 - _.fun
         print("Best accuracy score =", bst)
-        ans = best_hyper_params.copy()
+        ans = {}
         ans['loss'] = bst
+        ans['params'] = best_hyper_params
         return ans if not isinstance(ans, SON) else ans.to_dict()
 
     def crossval_fit_eval(self, model, cv_pairs, params=None, n_estimators=None, verbose=False):

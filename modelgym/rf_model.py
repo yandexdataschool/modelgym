@@ -61,8 +61,6 @@ class RFModel(Model):
         return ab
 
     def fit(self, params, dtrain, dtest, n_estimators):
-        print(params)
-        # tut
         rf = rfc(n_estimators=n_estimators, max_depth=params['max_depth'],
                  criterion=params['criterion'], max_features=params['max_features'], verbose=params['verbose']).fit(
             dtrain.X, dtrain.y)

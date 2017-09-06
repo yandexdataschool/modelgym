@@ -1,7 +1,7 @@
 import xgboost as xgb
 from hyperopt import hp
 
-from modelgym.model import Model, TASK_REGRESSION
+from modelgym.model import Model, TASK_REGRESSION, TASK_CLASSIFICATION
 
 
 class XGBModel(Model):
@@ -44,22 +44,22 @@ class XGBModel(Model):
 
     def preprocess_params(self, params):
         params_ = params.copy()
-        if (isinstance(params_, dict)):
-            if self.learning_task == "classification":
+        if isinstance(params_, dict):
+            if self.learning_task == TASK_CLASSIFICATION:
                 params_.update({'objective': 'binary:logistic', 'eval_metric': 'logloss', 'silent': 1})
-            elif self.learning_task == "regression":
+            elif self.learning_task == TASK_REGRESSION:
                 params_.update({'objective': 'reg:linear', 'eval_metric': 'rmse', 'silent': 1})
             if params_.__contains__('max_depth'):
                 params_['max_depth'] = int(params_['max_depth'])
-        elif (isinstance(params_, list)):
-            if self.learning_task == "classification":
+        elif isinstance(params_, list):
+            if self.learning_task == TASK_CLASSIFICATION:
                 params_.extend(['binary:logistic', 'logloss', 1])
-            elif self.learning_task == "regression":
+            elif self.learning_task == TASK_REGRESSION:
                 params_.extend(['reg:linear', 'rmse', 1])
         return params_
 
     def set_parameters(self, params, **kwargs):
-        if (isinstance(params, list)):
+        if isinstance(params, list):
             eta, max_depth, subsample, colsample_bytree, colsample_bylevel, min_child_weight, gamma, alpha, lambdax = \
                 params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8]
             self.default_params.update(eta=eta,
@@ -80,7 +80,7 @@ class XGBModel(Model):
 
     def fit(self, params, dtrain, dtest, n_estimators):
         evals_result = {}
-        if (not isinstance(params, dict)):
+        if not isinstance(params, dict):
             attr = ['eta',
                     'max_depth',
                     'subsample',
@@ -91,14 +91,11 @@ class XGBModel(Model):
                     'alpha',
                     'lambdax']
             paramSTD = {k: v for k, v in zip(attr, params)}
-            paramSTD['objective'] = 'binary:logistic'
-            paramSTD['eval_metric'] = 'logloss'
             params = paramSTD
         bst = xgb.train(params=params, dtrain=dtrain, evals=[(dtest, 'test')], evals_result=evals_result,
                         num_boost_round=n_estimators, verbose_eval=False)
         results = evals_result['test']['rmse'] if self.learning_task == TASK_REGRESSION \
             else evals_result['test']['logloss']
-        print('\t FITTED')
         return bst, results
 
     def predict(self, bst, dtest, X_test):
