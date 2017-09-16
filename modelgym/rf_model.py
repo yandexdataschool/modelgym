@@ -1,7 +1,7 @@
 from hyperopt import hp
 from sklearn.ensemble import RandomForestClassifier as rfc
 
-from modelgym.XYCDataset import XYCDataset as xycd
+from modelgym.util import XYCDataset as xycd
 from modelgym.model import Model, TASK_CLASSIFICATION
 
 
@@ -14,8 +14,8 @@ class RFModel(Model):
             'max_features': hp.choice('max_features', range(1, 5)),
             'n_estimators': hp.choice('n_estimators', range(1, 20)),
             'criterion': hp.choice('criterion', ["gini", "entropy"]),
-            'min_samples_split': hp.uniform('min_samples_split', 2, 20),
-            'min_samples_leaf': hp.uniform('min_samples_leaf', 1, 20),
+            'min_samples_split': hp.quniform('min_samples_split', 2, 20, 1),
+            'min_samples_leaf': hp.quniform('min_samples_leaf', 1, 20, 1),
         }
 
         self.default_params = {

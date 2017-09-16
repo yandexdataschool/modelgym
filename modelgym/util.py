@@ -3,7 +3,6 @@ from sklearn.model_selection import StratifiedKFold, KFold, train_test_split
 from skopt.space import Integer
 from skopt.space import Real
 
-from modelgym.XYCDataset import XYCDataset
 # from cat_counter import CatCounter
 from modelgym.model import TASK_CLASSIFICATION, TASK_REGRESSION
 
@@ -93,7 +92,7 @@ def hyperopt2skopt_space(space):
                     # quiniform
                     elif word == attr[1]:
                         if param[2] == 1.0:
-                            pardic[parName] = Integer(param[0], param[1])
+                            pardic[parName] = Integer(int(param[0]), int(param[1]))
                         else:
                             raise NotImplementedError()
                     # uniform
@@ -102,7 +101,7 @@ def hyperopt2skopt_space(space):
                     # qloguniform
                     elif word == attr[3]:
                         if param[2] == 1.0:
-                            pardic[parName] = Integer(np.exp(param[0]), np.exp(param[1]))
+                            pardic[parName] = Integer(int(np.exp(param[0])), int(np.exp(param[1])))
                         else:
                             raise NotImplementedError()
                     else:
@@ -135,3 +134,13 @@ def hyperopt2skopt_space(space):
         else:
             raise NotImplementedError()
     return pardic
+
+
+class XYCDataset:
+    def __init__(self, X, y, cat_cols):
+        self.X = X
+        self.y = y
+        self.cat_cols = cat_cols
+
+    def get_label(self):
+        return self.y

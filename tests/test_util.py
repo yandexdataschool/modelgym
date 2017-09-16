@@ -5,7 +5,8 @@ from sklearn.model_selection import train_test_split
 from skopt.space import Real, Integer
 
 import modelgym
-from modelgym.util import split_and_preprocess
+from modelgym.model import TASK_CLASSIFICATION
+from modelgym.util import split_and_preprocess, hyperopt2skopt_space
 
 TEST_SIZE = 0.2
 TRAIN_SIZE = 1 - TEST_SIZE
@@ -29,6 +30,8 @@ def test_split_and_preprocess(read_data):
 
 
 def test_hyperopt2skopt_space():
+    fc = modelgym.RFModel(learning_task=TASK_CLASSIFICATION)
+    print(hyperopt2skopt_space(fc.space))
     hyperopt_space = [{'a': hp.uniform('a', 0, 10)},
                       {'max_depth': hp.quniform('max_depth', 2, 10, 1)},
                       {'min_child_weight': hp.loguniform('min_child_weight', -16, 5)},
@@ -42,7 +45,7 @@ def test_hyperopt2skopt_space():
                    Real(np.exp(-16), np.exp(5)),
                    ["gini", "entropy"],
                    [1, 2, 3, 4],
-                   Integer(np.exp(0), np.exp(7)),
+                   Integer(int(np.exp(0)), int(np.exp(7))),
                    Integer(0, 1)
                    ]
     length = len(hyperopt_space)
