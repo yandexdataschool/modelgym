@@ -11,7 +11,7 @@ Gym for predictive models
 ???
 
 ### 2. Running model gym in Docker container
-Firstly install [docker](https://docs.docker.com/engine/installation/#supported-platforms) (also for Mac and Windows you can use instead [Kitematic](https://kitematic.com)).
+Firstly install [docker](https://docs.docker.com/engine/installation/#supported-platforms) (also for Mac and Windows you can install instead [Kitematic](https://kitematic.com)).
 In order to run model gym in a single docker containter you can pull model gym Docker image `anaderi/modelgym:0.1.3` from official [repo](https://hub.docker.com/r/anaderi/modelgym/) on DockerHub.
 
 #### Running model gym in a container using DockerHub image
