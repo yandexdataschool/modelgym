@@ -3,6 +3,8 @@ Gym for predictive models
 
 [![run at everware](https://img.shields.io/badge/run%20me-@everware-blue.svg?style=flat)](https://everware.ysda.yandex.net/hub/oauth_login?repourl=https://github.com/yandexdataschool/modelgym)
 
+## model gym with Docker
+
 1. [Getting started](#1-getting-started)  
 2. [Running model gym in Docker container](#2-running-model-gym-in-docker-container)
 
