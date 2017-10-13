@@ -5,7 +5,7 @@ Gym for predictive models
 
 
 ## Installation
-**Note:** This gym works with python3
+**Note:** This installation guide was written for python3
 1. Create directory where you want to clone this rep and switch to it.
 2. Install virtualenv and start it.
     ```
