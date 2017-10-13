@@ -86,6 +86,8 @@ def calc_pvalue(aucs, sigma):
     Returns:
        log10(pvalue)
     """
+    if np.alltrue(np.diff(aucs) == 0):
+        return 0.  # for completely equal models
     l = np.array([[1, -1]])
     z = np.abs(np.diff(aucs)) / np.sqrt(np.dot(np.dot(l, sigma), l.T))
     return np.log10(2) + scipy.stats.norm.logsf(z, loc=0, scale=1) / np.log(10)
@@ -114,7 +116,7 @@ def delong_roc_variance(ground_truth, predictions):
 
 def delong_roc_test(ground_truth, predictions_one, predictions_two):
     """
-    Computes log(p-value) for hypothesis that two ROC AUCs are different
+    Computes log(p-value) for hypothesis that two ROC AUCs are equal
     Args:
        ground_truth: np.array of 0 and 1
        predictions_one: predictions of the first model,
@@ -125,7 +127,6 @@ def delong_roc_test(ground_truth, predictions_one, predictions_two):
     order, label_1_count = compute_ground_truth_statistics(ground_truth)
     predictions_sorted_transposed = np.vstack((predictions_one, predictions_two))[:, order]
     aucs, delongcov = fastDeLong(predictions_sorted_transposed, label_1_count)
-    print(aucs, delongcov)
     return calc_pvalue(aucs, delongcov)
 
 
