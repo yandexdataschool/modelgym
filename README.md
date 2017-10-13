@@ -5,14 +5,20 @@ Gym for predictive models
 
 
 ## Installation
-**Note:** This gym works with python3.
+**Note:** This gym works with python33.
 1. Create directory where you want to clone this rep and switch to it
-2. Start python venv
+2. Install virtualenv and start it.
+    ```
+    pip3 install virtualenv
+    python33 -m venv venv
+    source venv/bin/activate
+    ```
+    To deactivate simply type ```deactivate```
 3. Clone repository:
     ```
     git clone https://github.com/yandexdataschool/modelgym.git
     ```
-4. Install required python packages
+4. Install required python3 packages
     1. modelgym:
 	```
 	pip install git+https://github.com/yandexdataschool/modelgym.git
@@ -29,7 +35,7 @@ Gym for predictive models
 	git checkout 80c641cd17727bebea613af3cbfe3b985dbd3313
 	mkdir build && cd build && cmake -DUSE_MPI=ON ..
 	make -j
-	cd ../python-package/ && python setup.py install
+	cd ../python3-package/ && python3 setup.py install
 	cd ../../
 	rm -rf LightGBM
 	```
@@ -39,8 +45,8 @@ Gym for predictive models
 	cd xgboost
 	git checkout 14fba01b5ac42506741e702d3fde68344a82f9f0
 	make -j
-	cd python-package; python setup.py install
+	cd python3-package; python3 setup.py install
 	cd ../../
 	rm -rf xgboost
 	```
-5. Open in jupyter-notebook modelgym/example/model\_search.ipynb and run all cells. If there are no errors, everything is allright.
+5. Open in jupyter-notebook ```example/model\_search.ipynb``` and run all cells. If there are no errors, everything is allright.
