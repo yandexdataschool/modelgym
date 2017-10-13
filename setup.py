@@ -13,5 +13,5 @@ setup(name="modelgym",
       author='The modelgym contributors',
       packages=["modelgym"],
       install_requires=["numpy", "scipy", "scikit-learn>=0.18",
-                        "matplotlib"]
+                        "matplotlib", "pandas"]
       )

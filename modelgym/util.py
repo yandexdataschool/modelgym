@@ -5,6 +5,7 @@ from skopt.space import Real
 
 # from cat_counter import CatCounter
 from modelgym.model import TASK_CLASSIFICATION, TASK_REGRESSION
+from modelgym.compare_auc_delong_xu import delong_roc_test
 
 
 def preprocess_cat_cols(X_train, y_train, cat_cols, X_test=None, cc=None,
@@ -144,3 +145,19 @@ class XYCDataset:
 
     def get_label(self):
         return self.y
+
+
+def compare_models(first_model, second_model, data, alpha=0.05, metric='ROC_AUC'):
+    """
+    Hypothesis: two models are different
+    """
+    if metric == 'ROC_AUC':
+        X = data.X
+        y_true = data.y
+        p_value = 10**delong_roc_test(y_true, first_model.predict(X), second_model.predict(X))  # delong_roc_test returns log10(pvalue)
+        if p_value < alpha:
+            return False, p_value
+        else:
+            return True, p_value
+    else:
+        pass
