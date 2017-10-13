@@ -19,13 +19,14 @@ $ git clone https://github.com/yandexdataschool/modelgym.git
 $ cd ./modelgym
 ```
 
-#### Running model gym in a container using DockerHub image
+### 2. Running model gym in a container using DockerHub image
 To run docker container with official image `anaderi/modelgym:latest` from DockerHub repo for using model gym via jupyter you simply run the command:
 ```sh
-$  docker run -ti --rm  -v `pwd`:/src  -p 7777:8888  anaderi/modelgym:latest  bash --login -ci 'jupyter notebook'
+$  docker run -ti --rm  -v `pwd`:/src  -p 7777:8888 \
+   anaderi/modelgym:latest  bash --login -ci 'jupyter notebook'
 ```
 At first time it downloads container.
-#### Verification if model gym works correctly
+### 3. Verification if model gym works correctly
 
 Firstly you should check inside container that `/src` is not empty.
 
