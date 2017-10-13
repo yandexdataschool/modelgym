@@ -30,7 +30,11 @@ At first time it downloads container.
 
 Firstly you should check inside container that `/src` is not empty.
 
-To connect to jupyter host in browser check your published ip: `docker-machine ip default` (usually it is 192.168.99.100)
+To connect to jupyter host in browser check your published ip: 
+```sh 
+$ docker-machine ip default
+``` 
+(usually it's 192.168.99.100)
 
 Go to `http://<your published ip>:7777/` and paste auth token.
 
