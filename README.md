@@ -3,11 +3,12 @@ Gym for predictive models
 
 [![run at everware](https://img.shields.io/badge/run%20me-@everware-blue.svg?style=flat)](https://everware.ysda.yandex.net/hub/oauth_login?repourl=https://github.com/yandexdataschool/modelgym)
 
-Installation
+**Installation**
 1. [Starting Virtual Environment](#1-starting-virtual-environment)
 2. [Installing Dependences](#2-installing-dependences)
 3. [Verification If Model Gym Works Correctly](#verify-1)
-Installation With Docker
+
+**Installation With Docker**
 1. [Getting Started](#1-getting-started)
 2. [Running Model Gym In A Container Using DockerHub Image](#2-running-model-gym-in-a-container-using-dockerhub-image)
 3. [Verification If Model Gym Works Correctly](#verify-2)
@@ -17,26 +18,24 @@ Installation With Docker
 **Note:** This installation guide was written for python3
 ### 1. Starting Virtual Environment
 Create directory where you want to clone this rep and switch to it. Install virtualenv and start it.
-    ```
-    pip3 install virtualenv
-    python3 -m venv venv
-    source venv/bin/activate
-    ```
-    To deactivate simply type ```deactivate```
+```sh
+pip3 install virtualenv
+python3 -m venv venv
+source venv/bin/activate
+```
+To deactivate simply type ```deactivate```
 ### 2. Installing Dependences
-Install required python3 packages:
-1. modelgym:
-    ```
+Install required python3 packages by running following commands.
+1. modelgym
+    ```sh
     pip3 install git+https://github.com/yandexdataschool/modelgym.git
     ```
-2. jupyter, yaml, hyperopt, skopt, pandas and networkx:
-
-    ```
+2. jupyter, yaml, hyperopt, skopt, pandas and networkx
+    ```sh
     pip3 install jupyter pyyaml hyperopt scikit-optimize pandas networkx==1.11
     ```
-3. LightGBM:
-    **Note:** Modelgym works with LightGBM version 2.0.2.
-    ```
+3. LightGBM. **Note:** Modelgym works with LightGBM version 2.0.2
+    ```sh
     git clone --recursive https://github.com/Microsoft/LightGBM
     cd LightGBM
     git checkout 80c641cd17727bebea613af3cbfe3b985dbd3313
@@ -46,9 +45,8 @@ Install required python3 packages:
     cd ../../
     rm -rf LightGBM
     ```
-4. XGBoost:
-    **Note:** Modelgym works with XGBoost version 0.6.
-    ```
+4. XGBoost. **Note:** Modelgym works with XGBoost version 0.6.
+    ```sh
     git clone --recursive https://github.com/dmlc/xgboost
     cd xgboost
     git checkout 14fba01b5ac42506741e702d3fde68344a82f9f0
@@ -58,17 +56,16 @@ Install required python3 packages:
     rm -rf xgboost
     ```
 ### <a name="verify-1"></a> 3. Verification If Model Gym Works Correctly
-1. Clone repository:
-    ```
-    git clone https://github.com/yandexdataschool/modelgym.git
-    ```
-2. Move to example and start jupyter-notebook:
-    ```
-    cd modelgym/example
-    jupyter-notebook
-    ```
-3. Open ```model_search.ipynb```.
-4. Run all cells. If there are no errors, everything is allright!
+Clone repository.
+```sh
+git clone https://github.com/yandexdataschool/modelgym.git
+```
+Move to example and start jupyter-notebook.
+```sh
+cd modelgym/example
+jupyter-notebook
+```
+Open ```model_search.ipynb``` and run all cells. If there are no errors, everything is allright!
 
 ## Model Gym With Docker
 ### 1. Getting Started
