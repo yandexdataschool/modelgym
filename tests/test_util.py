@@ -3,10 +3,12 @@ import pytest
 from hyperopt import hp
 from sklearn.model_selection import train_test_split
 from skopt.space import Real, Integer
+import sklearn.linear_model
 
 import modelgym
 from modelgym.model import TASK_CLASSIFICATION
-from modelgym.util import split_and_preprocess, hyperopt2skopt_space
+from modelgym.util import split_and_preprocess, hyperopt2skopt_space, compare_models_different, XYCDataset
+from modelgym import compare_auc_delong_xu
 
 TEST_SIZE = 0.2
 TRAIN_SIZE = 1 - TEST_SIZE
@@ -55,3 +57,33 @@ def test_hyperopt2skopt_space():
         assert next(iter(modelgym.util.hyperopt2skopt_space(p).values())) == r
         print("[{0}/{1}] mini-test passed".format(i, length))
         i += 1
+
+
+def test_variance():
+    data = sklearn.datasets.load_iris()
+    x_train, x_test, y_train, y_test = train_test_split(
+        data.data, data.target == 1, test_size=0.8, random_state=42)
+    predictions = sklearn.linear_model.LogisticRegression().fit(
+        x_train, y_train).predict_proba(x_test)[:, 1]
+    y_test = y_test.astype(int)
+    auc, variance = compare_auc_delong_xu.delong_roc_variance(y_test, predictions)
+    true_auc = sklearn.metrics.roc_auc_score(y_test, predictions)
+    np.testing.assert_allclose(true_auc, auc)
+    np.testing.assert_allclose(0.0014569635512, variance)
+
+
+def test_compare_models():
+    data = sklearn.datasets.load_iris()
+    x_train, x_test, y_train, y_test = train_test_split(
+        data.data, data.target == 1, test_size=0.8, random_state=42)
+    model = sklearn.linear_model.LogisticRegression()
+    model.fit(x_train, y_train)
+
+    y_test = y_test.astype(int)
+    dtest = XYCDataset(x_test, y_test, [])
+    assert compare_models_different(model, model, dtest)[0] == False
+
+    second_model = sklearn.ensemble.RandomForestClassifier()
+    second_model.fit(x_train, y_train)
+
+    assert compare_models_different(model, second_model, dtest)[0] == True
