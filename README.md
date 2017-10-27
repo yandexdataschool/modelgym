@@ -87,7 +87,7 @@ $ cd ./modelgym
 ```
 
 ### 2. Running Model Gym In A Container Using DockerHub Image
-To run docker container with official image `anaderi/modelgym:latest` from DockerHub repo for using model gym via jupyter you simply run the command:
+To run docker container with official image `modelgym/dockers:latest` from DockerHub repo for using model gym via jupyter you simply run the command:
 ```sh
 $  docker run -ti --rm  -v "$(pwd)":/src  -p 7777:8888 \
    modelgym/dockers:latest  bash --login -ci 'jupyter notebook'
