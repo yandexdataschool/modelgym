@@ -121,4 +121,4 @@ class Guru:
             self._print_warning(disbalanced['too common'],
                                 'Following classes are too common: ')
             self._print_warning(disbalanced['too rare'],
-                                'Followifeaturesng classes are too rare: ')
+                                'Following classes are too rare: ')
