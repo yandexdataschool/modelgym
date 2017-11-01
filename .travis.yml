@@ -1,0 +1,9 @@
+language: python
+
+python:
+  - "3"
+
+install:
+  -  docker run -ti --rm -v pwd:/src -p 7777:8888 modelgym/dockers:latest bash --login
+
+script: py.test
