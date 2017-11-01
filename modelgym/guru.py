@@ -4,17 +4,36 @@ import numpy as np
 
 
 class Guru:
-    def __init__(self, category_counter_size=100,
+    """
+    This class analyze data trying to find some issues.
+    """
+    def __init__(self, sample_size=None,
                  category_qoute=0.2,
-                 sparse_qoute=0.2,
-                 class_balance_restriction=0.5,
+                 sparse_qoute=0.8,
+                 class_balance_qoute=0.5,
                  check_categorial_features=True,
                  check_class_disbalance=True,
                  check_sparsity=True):
-        self._category_counter_size = category_counter_size
+        """
+        Arguments:
+            sample_size: how many objects will be used for category
+                and sparsity diagnostic. If None whole data will be used.
+            category_qoute: upper bound of variants of feature values in sample
+                to note this feature as categorial
+            sparse_qoute: zeros percentage in sample required to note
+                feature as sparse
+            class_balance_qoute: how much class percentage should be deflected
+                from the mean to note this class as disbalanced
+            check_categorial_features: check_data will check if data.X has
+                categorial features
+            check_sparsity: check_data will check if data.X has sparse features
+            check_class_disbalance: check_data will check if data.y has
+                class disbalance
+        """
+        self._sample_size = sample_size
         self._category_qoute = category_qoute
         self._sparse_qoute = sparse_qoute
-        self._class_balance_restriction = class_balance_restriction
+        self._class_balance_qoute = class_balance_qoute
         self._check_class_disbalance = check_class_disbalance
         self._check_categorial_features = check_categorial_features
         self._check_sparsity = check_sparsity
@@ -28,9 +47,10 @@ class Guru:
                     or isinstance(feature[0], int)):
                 categorial_candidates['not numeric'].append(i)
             else:
-                if self._category_counter_size < len(feature):
+                if (self._sample_size is not None and
+                        self._sample_size < len(feature)):
                     sample = np.random.choice(feature,
-                                              self._category_counter_size,
+                                              self._sample_size,
                                               False)
                 else:
                     sample = feature
@@ -48,8 +68,8 @@ class Guru:
     def _get_disbalanced_classes(self, y):
         candidates = defaultdict(list)
         counter = Counter(y)
-        upper = len(y) / len(counter) / self._class_balance_restriction
-        lower = len(y) / len(counter) * self._class_balance_restriction
+        upper = len(y) / len(counter) / self._class_balance_qoute
+        lower = len(y) / len(counter) * self._class_balance_qoute
 
         for label, cnt in counter.items():
             if cnt > upper:
@@ -58,9 +78,6 @@ class Guru:
                 candidates['too rare'].append(label)
 
         return candidates
-
-    def _get_sparce_features(self):
-        pass
 
     @staticmethod
     def _print_warning(elements, warning):
@@ -74,13 +91,18 @@ class Guru:
                 print(warning, elements)
 
     def check_data(self, data):
+        """
+        data should be XYCDataset-like
+        data.X should has shape (n_objects x n_features)
+        daya.y should has shape n_objects
+        """
         if self._check_categorial_features or self._check_sparsity:
             categorials, sparse = self._get_categorial_and_sparce(data.X)
             if self._check_sparsity:
                 self._print_warning(sparse, 'Consider use hashing trick for ' +
                                     'your sparse features, if you haven\'t ' +
                                     'already. Following features are ' +
-                                    'supposed to be spares: ')
+                                    'supposed to be sparse: ')
             if self._check_categorial_features:
                 self._print_warning(categorials, 'Some features are ' +
                                     'supposed to be categorial. Make sure ' +
@@ -99,4 +121,4 @@ class Guru:
             self._print_warning(disbalanced['too common'],
                                 'Following classes are too common: ')
             self._print_warning(disbalanced['too rare'],
-                                'Following classes are too rare: ')
+                                'Followifeaturesng classes are too rare: ')
