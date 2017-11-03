@@ -1,4 +1,4 @@
-IMAGE:=anaderi/modelgym:latest
+IMAGE:=modelgym/dockers:latest
 #DOCKERFILE:=environment/Dockerfile.binder
 DOCKERFILE:=environment/Dockerfile.ubuntu
 CONFIG:=test
