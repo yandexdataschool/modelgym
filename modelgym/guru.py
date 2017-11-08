@@ -30,7 +30,7 @@ class Guru:
                 # remove zeros from sample in order to avoid detecting sparse
                 # features as categorial
                 cat_quote = (len(sample) - counter[0]) * category_qoute
-                if len(sample) != counter[0] and len(counter) - 1 < cat_quote:
+                if len(counter) > 1 and len(counter) - 1 < cat_quote:
                     categorial_candidates['not variable'].append(i)
                 elif counter[0] > len(sample) * sparse_qoute:
                     sparse_candidates.append(i)

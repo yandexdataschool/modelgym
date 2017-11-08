@@ -5,6 +5,7 @@ from modelgym.rf_model import RFModel
 from modelgym.tracker import ProgressTracker, ProgressTrackerFile, ProgressTrackerMongo
 from modelgym.trainer import Trainer
 from modelgym.gp_trainer import GPTrainer
+from modelgym.guru import Guru
 
 __version__ = "0.1.3"
 
