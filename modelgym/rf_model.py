@@ -1,5 +1,6 @@
 from hyperopt import hp
 from sklearn.ensemble import RandomForestClassifier as rfc
+from sklearn.metrics import log_loss, mean_squared_error
 
 from modelgym.util import XYCDataset as xycd
 from modelgym.model import Model, TASK_CLASSIFICATION
@@ -63,10 +64,21 @@ class RFModel(Model):
     def fit(self, params, dtrain, dtest, n_estimators):
         rf = rfc(n_estimators=n_estimators, max_depth=params['max_depth'],
                  criterion=params['criterion'], max_features=params['max_features'], verbose=params['verbose']).fit(
-            dtrain.X, dtrain.y)
-        preds = rf.predict(dtest.X)
+                 dtrain.X, dtrain.y)
+        
+        if self.learning_task == 'regression':
+            preds = rf.predict(dtest.X)
+            results = mean_squared_error(dtest.y, preds)
+        else:
+            preds = rf.predict_proba(dtest.X)[:, 1]       
+            results = log_loss(dtest.y, preds)                 
+               
         return rf, preds
 
     def predict(self, bst, dtest, X_test):
         preds = bst.predict(dtest.X)
         return preds
+    
+    def predict_proba(self, bst, dtest, X_test):
+        probs = bst.predict_proba(dtest.X)[:, 1]
+        return probs

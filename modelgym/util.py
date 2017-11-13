@@ -6,8 +6,28 @@ from skopt.space import Real
 # from cat_counter import CatCounter
 from modelgym.model import TASK_CLASSIFICATION, TASK_REGRESSION
 from modelgym.compare_auc_delong_xu import delong_roc_test
+from modelgym.metric import Metric
 
+def merge_two_dicts(x, y):
+    z = x.copy()   
+    z.update(y)
+    return z
 
+def calculate_custom_metrics(custom_metrics, model, bst, dtest, _dtest):
+    resulting_dict = {}
+    for metric in custom_metrics:
+        resulting_dict[metric.name] = metric.calculate(model, bst, dtest, _dtest, sample_weight=None) # TODO weights
+    return resulting_dict
+
+def check_custom_metrics(custom_metrics):
+    if custom_metrics:
+        if isinstance(custom_metrics, Metric):
+            custom_metrics = [custom_metrics]
+        if not (isinstance(custom_metrics, list) and \
+                all(isinstance(metric, Metric) for metric in custom_metrics)):
+            raise TypeError("custom_metrics argument should be Metric class or list of Metric"\
+                            "classes (defined at modelgym.metric)")
+            
 def preprocess_cat_cols(X_train, y_train, cat_cols, X_test=None, cc=None,
                         counters_sort_col=None, learning_task=TASK_CLASSIFICATION):
     # TODO: implement here
@@ -44,6 +64,8 @@ def split_and_preprocess(X_train, y_train, X_test, y_test, cat_cols=[], n_splits
         cc = None
 
     CVSplit = KFold if learning_task == TASK_REGRESSION else StratifiedKFold
+    
+    
     cv = CVSplit(n_splits=n_splits, shuffle=True, random_state=random_state)
 
     cv_pairs = []
@@ -145,7 +167,24 @@ class XYCDataset:
 
     def get_label(self):
         return self.y
+    
+    @property
+    def features(self):
+        return self.X
+   
+    def split(self, n_splits):
+        """splits dataset into n_splits parts:
+        
+        Args:
+            n_splits: int, number of splits to split dataset.
+            
+        Returns:
+            splitted_dataset: list of XYCDataset object
+        """
+        
+        indices = np.array_split(np.arange(self.get_label().shape[0]), n_splits)
 
+        return [XYCDataset(self.features[indices_part], self.get_label()[indices_part], self.cat_cols) for indices_part in indices]
 
 def compare_models_different(first_model, second_model, data, alpha=0.05, metric='ROC_AUC'):
     """
