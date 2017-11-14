@@ -11,6 +11,7 @@ ENV_NAME=$CONDA_DEFAULT_ENV
 source deactivate
 pip install jupyterhub==0.7.* notebook==5.0.*
 source activate $ENV_NAME
+pip install jupyterhub==0.7.* # do again for the $ENV_NAME
 
 echo "Generating jupyter config"
 jupyter notebook -y --generate-config --allow-root

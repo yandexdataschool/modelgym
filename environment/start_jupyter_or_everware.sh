@@ -19,7 +19,7 @@ if [ "$JPY_API_TOKEN" != "" ] ; then
 	mkdir -p $NOTEBOOK_DIR
 
 	git clone $JPY_GITHUBURL $NOTEBOOK_DIR
-	exec /usr/bin/env python jupyterhub-singleuser \
+	exec jupyterhub-singleuser \
 	  --port=8888 \
 	  --ip=0.0.0.0 \
 	  --user=$JPY_USER \
