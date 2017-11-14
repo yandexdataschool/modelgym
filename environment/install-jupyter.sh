@@ -22,7 +22,7 @@ EOL_CONFIG
 
 
 echo "Registering environment $ENV_NAME as kernel for jupyterhub and jupyter"
-python -m ipykernel.kernelspec --name $ENV_NAME --display-name $ENV_NAME
+ipython kernelspec install --name $ENV_NAME
 
 # changing matplotlib configuration
 mkdir -p $HOME/.config/matplotlib && echo 'backend: agg' > $HOME/.config/matplotlib/matplotlibrc
