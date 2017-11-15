@@ -103,7 +103,7 @@ class Guru:
                              Guru._CATEGORIAL + ' or ' + Guru._SPARSE)
 
         for i in range(np.shape(X)[1]):
-            feature = [obj[i] for obj in X]
+            feature = self._get_feature(X, i)
             if not (isinstance(feature[0], float)
                     or isinstance(feature[0], int)):
                 if to_find == Guru._CATEGORIAL:
@@ -214,28 +214,25 @@ class Guru:
         Arguments:
             data: XYCDataset-like
         Returns:
-            (categorials, sparse, disbalanced)
+            (categorials, sparse, disbalanced, correlated)
                 categorials: indexes of features which are supposed to be categorial
                 sparse: indexes of features which are supposed to be sparse
                 disbalanced: disbalanced classes
-            For more detailes see respective methods:
+                correlated: indexes of features which are supposed to be correlated
+            For more detailes see methods:
                 check_categorials
                 check_sparse
                 check_class_disbalance
+                check_correlation
         """
-
-        categorials, sparse, disbalanced = [None] * 3
         self.no_warnings = True
-        if self._check_sparsity:
-            sparse = self.check_sparse(data.X)
 
-        if self._check_categorial_features:
-            categorials = self.check_categorials(data.X)
-
-        if self._check_class_disbalance:
-            disbalanced = self.check_class_disbalance(data.y)
+        sparse = self.check_sparse(data.X)
+        categorials = self.check_categorials(data.X)
+        disbalanced = self.check_class_disbalance(data.y)
+        correlated = self.check_correlation(data.X)
 
         if self.no_warnings and self._print_hints:
             print('Everything is allright!')
 
-        return categorials, sparse, disbalanced
+        return categorials, sparse, disbalanced, correlated
