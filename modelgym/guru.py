@@ -156,6 +156,15 @@ class Guru:
         return candidates
 
     def check_correlation(self, X, feature_indexes=None):
+        """
+        Arguments:
+            X: array-like with shape (n_objects x n_features)
+            feature_indexes: list
+                features which should be checked for correlation
+        Returns:
+            out: list
+                pairs of features which are supposed to be correlated
+        """
         if feature_indexes is None:
             feature_indexes = np.arange(np.shape(X)[1])
 
@@ -165,7 +174,7 @@ class Guru:
                 first_feature = self._get_feature(X, first_ind)
                 second_feature = self._get_feature(X, second_ind)
 
-                pvalue = ss.pearsonr(first_feature, second_feature)[1]
+                pvalue = ss.spearmanr(first_feature, second_feature)[1]
                 if pvalue < self._pvalue_boundary:
                     candidates.append((first_ind, second_ind))
 
@@ -179,7 +188,10 @@ class Guru:
 
     @staticmethod
     def _get_feature(X, feature_ind):
-        return [obj[feature_ind] for obj in X]
+        if isinstance(X, np.ndarray):
+            return X.T[feature_ind]
+        else:
+            return [obj[feature_ind] for obj in X]
 
     def _print_warning(self, elements, warning):
         if isinstance(elements, dict):
