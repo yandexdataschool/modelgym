@@ -1,6 +1,8 @@
 from collections import Counter, defaultdict
 
+import matplotlib.pyplot as plt
 import numpy as np
+import scipy.stats as ss
 
 
 class Guru:
@@ -14,20 +16,26 @@ class Guru:
     _SPARSE = 'sparse'
     _CATEGORIAL = 'categorial'
     _CLASS_DISBALANCE = 'class disbalance'
+    _CORRELATION = 'correlation'
 
     _MESSAGE_DICT = {_SPARSE: 'Consider use hashing trick for ' +
                               'your sparse features, if you haven\'t ' +
                               'already. Following features are ' +
                               'supposed to be sparse: ',
+                     _CORRELATION: 'There are several correlated features. ' +
+                                   'Consider dimention reduction, ' +
+                                   'for example you can use PCA. ' +
+                                   'Following pairs of features are supposed to be' +
+                                   ' correlated: ',
                      _CATEGORIAL: 'Some features are ' +
                                   'supposed to be categorial. Make sure ' +
                                   'that all categorial features are in ' +
-                                  'cat_cols',
+                                  'cat_cols.',
                      _NOT_VARIABLE_KEY: 'Following features are not variable: ',
                      _NOT_NUMERIC_KEY: 'Following features are not numeric: ',
                      _CLASS_DISBALANCE: 'There is class disbalance. ' +
                                         'Probably, you can solve it by data ' +
-                                        'augmentation',
+                                        'augmentation.',
                      _TOO_RARE_KEY: 'Following classes are too rare: ',
                      _TOO_COMMON_KEY: 'Following classes are too common: '}
 
@@ -35,7 +43,8 @@ class Guru:
                  sample_size=None,
                  category_qoute=0.2,
                  sparse_qoute=0.8,
-                 class_disbalance_qoute=0.5):
+                 class_disbalance_qoute=0.5,
+                 pvalue_boundary=0.05):
         """
         Arguments:
             sample_size: int
@@ -56,6 +65,7 @@ class Guru:
         self._category_qoute = category_qoute
         self._sparse_qoute = sparse_qoute
         self._class_disbalance_qoute = class_disbalance_qoute
+        self._pvalue_boundary = pvalue_boundary
 
     def check_categorial(self, X):
         """
@@ -92,7 +102,7 @@ class Guru:
             raise ValueError('In _get_categorial_or_sparse to_find must be ' +
                              Guru._CATEGORIAL + ' or ' + Guru._SPARSE)
 
-        for i in range(len(X[0])):
+        for i in range(np.shape(X)[1]):
             feature = [obj[i] for obj in X]
             if not (isinstance(feature[0], float)
                     or isinstance(feature[0], int)):
@@ -144,6 +154,32 @@ class Guru:
         self._print_warning(candidates, Guru._MESSAGE_DICT[Guru._CLASS_DISBALANCE])
 
         return candidates
+
+    def check_correlation(self, X, feature_indexes=None):
+        if feature_indexes is None:
+            feature_indexes = np.arange(np.shape(X)[1])
+
+        candidates = []
+        for first_ind in feature_indexes[:-1]:
+            for second_ind in feature_indexes[first_ind + 1:]:
+                first_feature = self._get_feature(X, first_ind)
+                second_feature = self._get_feature(X, second_ind)
+
+                pvalue = ss.pearsonr(first_feature, second_feature)[1]
+                if pvalue < self._pvalue_boundary:
+                    candidates.append((first_ind, second_ind))
+
+                    if self._print_hints:
+                        plt.scatter(first_feature, second_feature)
+                        plt.title(str((first_ind, second_ind)))
+                        plt.show()
+
+        self._print_warning(candidates, Guru._MESSAGE_DICT[Guru._CORRELATION])
+        return candidates
+
+    @staticmethod
+    def _get_feature(X, feature_ind):
+        return [obj[feature_ind] for obj in X]
 
     def _print_warning(self, elements, warning):
         if isinstance(elements, dict):
