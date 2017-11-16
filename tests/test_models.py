@@ -100,6 +100,7 @@ def test_load_and_save(model_class, task):
     try:
         model1 = model_class(learning_task=task)  # model to save and then read
     except ValueError:
+        print("can't initialize model: {} with task: {}".format(model_class, task))
         return
     with tempfile.NamedTemporaryFile(delete=True) as tmp:
         filepath = tmp.name
