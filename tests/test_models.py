@@ -97,6 +97,9 @@ def test_predict(preprocess_data):
 @pytest.mark.parametrize("model_class", MODEL_CLASS)
 @pytest.mark.parametrize('task', APPROVED_PARAMS)
 def test_load_and_save(model_class, task):
+    if task == TASK_REGRESSION and model_class == modelgym.RFModel:
+        print("can't test RandomForestClassifier with TASK_REGRESSION")
+        return
     model1 = modelgym.XGBModel(learning_task=task)  # model to save and then read
     with tempfile.NamedTemporaryFile(delete=True) as tmp:
         filepath = tmp.name
