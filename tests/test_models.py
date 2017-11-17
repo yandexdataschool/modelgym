@@ -97,7 +97,11 @@ def test_predict(preprocess_data):
 @pytest.mark.parametrize("model_class", MODEL_CLASS)
 @pytest.mark.parametrize('task', APPROVED_PARAMS)
 def test_load_and_save(model_class, task):
-    model1 = modelgym.XGBModel(learning_task=task)  # model to save and then read
+    try:
+        model1 = model_class(learning_task=task)  # model to save and then read
+    except ValueError:
+        print("can't initialize model: {} with task: {}".format(model_class, task))
+        return
     with tempfile.NamedTemporaryFile(delete=True) as tmp:
         filepath = tmp.name
         model1.save_config(filepath)
