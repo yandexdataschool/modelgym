@@ -40,7 +40,7 @@ def test_hyperopt2skopt_space():
                       {'criterion': hp.choice('criterion', ["gini", "entropy"])},
                       {'max_features': hp.choice('max_features', range(1, 5))},
                       {'num_leaves': hp.qloguniform('num_leaves', 0, 7, 1)},
-                      {'abc': hp.uniform('abc', 0, 1)}
+                      {'abc': hp.quniform('abc', 0, 1)}
                       ]
     skopt_space = [Real(0, 10),
                    Integer(2, 10),

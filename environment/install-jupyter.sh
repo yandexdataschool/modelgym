@@ -11,6 +11,7 @@ ENV_NAME=$CONDA_DEFAULT_ENV
 source deactivate
 pip install jupyterhub==0.7.* notebook==5.0.*
 source activate $ENV_NAME
+pip install jupyterhub==0.7.* # do again for the $ENV_NAME
 
 echo "Generating jupyter config"
 jupyter notebook -y --generate-config --allow-root
@@ -22,7 +23,7 @@ EOL_CONFIG
 
 
 echo "Registering environment $ENV_NAME as kernel for jupyterhub and jupyter"
-python -m ipykernel.kernelspec --name $ENV_NAME --display-name $ENV_NAME
+ipython kernel install --name $ENV_NAME
 
 # changing matplotlib configuration
 mkdir -p $HOME/.config/matplotlib && echo 'backend: agg' > $HOME/.config/matplotlib/matplotlibrc

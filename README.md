@@ -3,6 +3,14 @@ Gym for predictive models
 
 [![run at everware](https://img.shields.io/badge/run%20me-@everware-blue.svg?style=flat)](https://everware.ysda.yandex.net/hub/oauth_login?repourl=https://github.com/yandexdataschool/modelgym)
 
+## What is this about?
+
+Modelgym is a place (a library?) to get your predictive models as meaningful in a smooth and effortless manner. Modelgym provides the unified interface for 
+- different kind of Models (XGBoost, CatBoost etc) that you can tune with
+- different kind of optimization strategies, or Trainers. 
+Usually it starts with a data sample that you can be evaluate with our Guru interface and maybe get a few hints on preprocessing it before starting the training. 
+In the end of the trials you get a report of the model performance on both cross-validation and hold-out samples. So you can pick the top model along the best hyperparameters for your case. 
+
 **Installation**
 1. [Starting Virtual Environment](#1-starting-virtual-environment)
 2. [Installing Dependences](#2-installing-dependences)
@@ -79,10 +87,10 @@ $ cd ./modelgym
 ```
 
 ### 2. Running Model Gym In A Container Using DockerHub Image
-To run docker container with official image `anaderi/modelgym:latest` from DockerHub repo for using model gym via jupyter you simply run the command:
+To run docker container with official image `modelgym/jupyter:latest` from DockerHub repo for using model gym via jupyter you simply run the command:
 ```sh
-$  docker run -ti --rm  -v `pwd`:/src  -p 7777:8888 \
-   anaderi/modelgym:latest  bash --login -ci 'jupyter notebook'
+$  docker run -ti --rm  -v "$(pwd)":/src  -p 7777:8888 \
+   modelgym/jupyter:latest  bash --login -ci 'jupyter notebook'
 ```
 At first time it downloads container.
 ### <a name="verify-2"></a> 3. Verification If Model Gym Works Correctly
