@@ -9,7 +9,7 @@ import numpy as np
 from skopt.space import Real, Integer, Space
 
 import modelgym
-from modelgym.trainer import Trainer
+from modelgym.trainers import TPETrainer as Trainer
 from modelgym.util import split_and_preprocess
 from modelgym.model import TASK_CLASSIFICATION, TASK_REGRESSION
 

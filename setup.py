@@ -11,7 +11,7 @@ setup(name="modelgym",
       url='https://github.com/yandexdataschool/modelgym/',
       license='BSD',
       author='The modelgym contributors',
-      packages=["modelgym"],
+      packages=["modelgym", "modelgym/trainers"],
       install_requires=["numpy", "scipy", "scikit-learn>=0.18",
                         "matplotlib", "pandas"]
       )
