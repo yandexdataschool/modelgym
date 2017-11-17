@@ -8,10 +8,10 @@ from hyperopt import fmin, Trials, STATUS_OK, STATUS_FAIL
 from hyperopt.mongoexp import MongoTrials
 
 
-class Trainer(object):
-    def __init__(self, n_estimators=5000, opt_evals=50, state=None, load_previous=False):
+class BaseTrainer(object):
+    def __init__(self, n_estimators=5000, opt_evals=50):
         self.n_estimators, self.best_loss = n_estimators, np.inf
-        self.hyperopt_evals, self.hyperopt_eval_num = opt_evals, 0
+        self.evals, self.eval_num = opt_evals, 0
         self.default_params, self.best_params = None, None
         self.best_n_estimators = None
 
@@ -40,7 +40,7 @@ class Trainer(object):
 
         return result
 
-    def crossval_fit_eval(self, model, cv_pairs, params=None, n_estimators=None, verbose=False):
+    def _crossval_fit_eval_imlp(self, model, cv_pairs, n_estimators, verbose, params=None):
         params = params or model.default_params
         n_estimators = n_estimators or self.n_estimators
         params = model.preprocess_params(params)
@@ -64,51 +64,35 @@ class Trainer(object):
                      'status': STATUS_FAIL if np.isnan(mean_evals_results[best_n_estimators - 1]) else STATUS_OK,
                      'params': params.copy()}
         self.best_loss = min(self.best_loss, cv_result['loss'])
-        self.hyperopt_eval_num += 1
-        cv_result.update({'hyperopt_eval_num': self.hyperopt_eval_num, 'best_loss': self.best_loss})
+        self.eval_num += 1
+        cv_result.update({'eval_num': self.eval_num, 'best_loss': self.best_loss})
 
         if verbose:
             print('[{0}/{1}]\teval_time={2:.2f} sec\tcurrent_{3}={4:.6f}\tmin_{3}={5:.6f}'.format(
-                self.hyperopt_eval_num, self.hyperopt_evals, eval_time,
+                self.eval_num, self.evals, eval_time,
                 model.metric, cv_result['loss'], self.best_loss))
 
         return cv_result
 
-    def crossval_optimize_params(self, model, cv_pairs, max_evals=None, verbose=True, algo_name='tpe',
+    def crossval_fit_eval(self, model, cv_pairs, params=None, n_estimators=None, verbose=False):
+        params = params or model.default_params
+        n_estimators = n_estimators or self.n_estimators
+        if (isinstance(params, list)):
+            model.set_parameters(params)
+            res = self._crossval_fit_eval_imlp(model=model, cv_pairs=cv_pairs,
+                                               n_estimators=n_estimators, verbose=verbose)
+        elif (isinstance(params, dict)):
+            params = model.preprocess_params(params)
+            res = self._crossval_fit_eval_imlp(model=model, cv_pairs=cv_pairs, params=params,
+                                               n_estimators=n_estimators, verbose=verbose)
+        else:
+            raise ValueError()
+        return res['loss']
+        
+
+    def crossval_optimize_params(self, model, cv_pairs, max_evals=None, verbose=True,
                                  batch_size=10, trials=None, tracker=None):
-        max_evals = max_evals or self.hyperopt_evals
-        if trials is None:
-            trials = Trials()
-        algo = hyperopt.tpe.suggest
-        if algo_name == 'random':
-            algo = hyperopt.rand.suggest
-        # algo=functools.partial(hyperopt.tpe.suggest, n_startup_jobs=1)
-
-        self.hyperopt_eval_num, self.best_loss = 0, np.inf
-        random_state = np.random.RandomState(1)
-        if isinstance(trials, MongoTrials):
-            batch_size = max_evals  # no need for epochs
-
-        for i in range(0, max_evals, batch_size):
-            fn = partial(self.crossval_fit_eval, model, cv_pairs, verbose=verbose)
-            # lambda params: self.run_cv(cv_pairs, dict(self.default_params, **params), verbose=verbose)
-            n_jobs = min(batch_size, max_evals - i)
-            best = fmin(fn=fn,
-                        space=model.space,
-                        algo=algo,
-                        max_evals=(i + n_jobs),
-                        trials=trials,
-                        rstate=random_state)
-            self.best_params = trials.best_trial['result']['params']
-            if isinstance(self.best_params, SON):
-                self.best_params = self.best_params.to_dict()
-            self.best_n_estimators = trials.best_trial['result']['best_n_estimators']
-            random_state = None
-            if tracker is not None:
-                tracker.save_state(trials=trials)
-
-        bst = trials.best_trial['result']
-        return bst if not isinstance(bst, SON) else bst.to_dict()
+        raise NotImplementedError()
 
     def print_result(self, result, name='', extra_keys=None):
         print('%s:\n' % name)
@@ -123,4 +107,3 @@ class Trainer(object):
                 if k in result:
                     print("%s = %f" % (k, result[k]))
 
-# class MongoTrainer(object):

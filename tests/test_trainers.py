@@ -2,8 +2,7 @@ import pytest
 from sklearn.metrics import roc_auc_score
 
 import modelgym
-from modelgym.gp_trainer import GPTrainer
-from modelgym.trainer import Trainer
+from modelgym import TPETrainer, RandomTrainer, GPTrainer, ForestTrainer
 from modelgym.util import TASK_CLASSIFICATION, split_and_preprocess
 
 TEST_SIZE = 0.2
@@ -12,7 +11,7 @@ N_PROBES = 10
 N_ESTIMATORS = 100
 PARAMS_TO_TEST = ['eval_time', 'status', 'params']
 MAX_ROC_AUC_SCORE = 1.0
-TRAINER_CLASS = [Trainer, GPTrainer]
+TRAINER_CLASS = [TPETrainer, RandomTrainer, GPTrainer, ForestTrainer]
 MODEL_CLASS = [modelgym.XGBModel, modelgym.LGBModel, modelgym.RFModel]
 
 
