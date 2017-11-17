@@ -87,7 +87,7 @@ class BaseTrainer(object):
                                                n_estimators=n_estimators, verbose=verbose)
         else:
             raise ValueError()
-        return res['loss']
+        return res
         
 
     def crossval_optimize_params(self, model, cv_pairs, max_evals=None, verbose=True,

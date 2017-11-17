@@ -25,7 +25,8 @@ class SkoptTrainer(BaseTrainer):
 
         skoptParams = modelgym.util.hyperopt2skopt_space(model.space)
         _ = gp_minimize(
-            func=lambda params: (print(params), self.crossval_fit_eval(model=model, cv_pairs=cv_pairs, params=params, verbose=verbose))[1],
+            func=lambda params: self.crossval_fit_eval(model=model, cv_pairs=cv_pairs,
+                                                       params=params, verbose=verbose)['loss'],
             dimensions=(skoptParams.values()), random_state=random_state, n_calls=max_evals,
             n_jobs=max_evals - 1)
 

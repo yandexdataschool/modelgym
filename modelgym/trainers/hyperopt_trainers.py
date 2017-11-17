@@ -19,7 +19,7 @@ class HyperoptTrainer(BaseTrainer):
         return super().fit_eval(model=model, dtrain=dtrain, dtest=dtest, params=params, n_estimators=n_estimators,
                                 custom_metric=custom_metric)
 
-    def crossval_optimize_params(self, model, cv_pairs, max_evals=None,verbose=True,
+    def crossval_optimize_params(self, model, cv_pairs, max_evals=None, verbose=True,
                                  batch_size=10, trials=None, tracker=None):
         if self.algo is None:
             raise NotImplementedError()
@@ -68,8 +68,8 @@ class TPETrainer(HyperoptTrainer):
         return super().fit_eval(model=model, dtrain=dtrain, dtest=dtest, params=params, n_estimators=n_estimators,
                                 custom_metric=custom_metric)
 
-    def crossval_optimize_params(self, model, cv_pairs, max_evals=None, verbose=True, batch_size=10,
-                                 tracker=None):
+    def crossval_optimize_params(self, model, cv_pairs, max_evals=None, verbose=True,
+                                 batch_size=10, trials=None, tracker=None):
         return super().crossval_optimize_params(model, cv_pairs, max_evals=None, verbose=True, batch_size=10,
                                  tracker=None)
 
@@ -82,14 +82,14 @@ class TPETrainer(HyperoptTrainer):
 class RandomTrainer(HyperoptTrainer):
     def __init__(self, n_estimators=5000, opt_evals=50):
         super().__init__(n_estimators, opt_evals)
-        self.algo = hyperopt.random.suggest
+        self.algo = hyperopt.rand.suggest
 
     def fit_eval(self, model, dtrain, dtest, params=None, n_estimators=None, custom_metric=None):
         return super().fit_eval(model=model, dtrain=dtrain, dtest=dtest, params=params, n_estimators=n_estimators,
                                 custom_metric=custom_metric)
 
-    def crossval_optimize_params(self, model, cv_pairs, max_evals=None, verbose=True, batch_size=10,
-                                 tracker=None):
+    def crossval_optimize_params(self, model, cv_pairs, max_evals=None, verbose=True,
+                                 batch_size=10, trials=None, tracker=None):
         return super().crossval_optimize_params(model, cv_pairs, max_evals=None, verbose=True, batch_size=10,
                                  tracker=None)
 
