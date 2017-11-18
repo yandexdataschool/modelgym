@@ -20,29 +20,38 @@ _BREAST_X, _BREAST_Y = load_breast_cancer(True)
 
 def test_sparse():
     guru_params = [{}, {}, {'sparse_qoute': 0.5}]
-    Xs = [_BREAST_X] + [_TOY_X] * 2
+    Xs = [[_BREAST_X]] + [[_TOY_X]] * 2
     answers = [[], [5], [5, 6]]
 
-    _init_gurus_and_test(lambda guru, X: guru.check_sparse(X), guru_params, Xs, answers)
+    _iterate_method_test(Guru.check_sparse,
+                         init_dicts=guru_params,
+                         method_args=Xs,
+                         expected_results=answers)
 
 
 def test_categorial():
     guru_params = [{}, {}, {'category_qoute': 0.15}]
-    Xs = [_BREAST_X] + [_TOY_X] * 2
+    Xs = [[_BREAST_X]] + [[_TOY_X]] * 2
     answers = [{}, {Guru._NOT_NUMERIC_KEY: [0], Guru._NOT_VARIABLE_KEY: [3, 4]},
                {Guru._NOT_NUMERIC_KEY: [0], Guru._NOT_VARIABLE_KEY: [3]}]
-    _init_gurus_and_test(lambda guru, X: guru.check_categorial(X), guru_params, Xs, answers)
+    _iterate_method_test(Guru.check_categorial,
+                         init_dicts=guru_params,
+                         method_args=Xs,
+                         expected_results=answers)
 
 
 def test_class_disbalance():
     guru_params = [{}, {}, {'class_disbalance_qoute': 0.4},
                    {'class_disbalance_qoute': 0.8}]
-    ys = [_BREAST_Y] + [_TOY_Y] * 2
+    ys = [[_BREAST_Y]] + [[_TOY_Y]] * 2
     answers = [{},
                {Guru._TOO_COMMON_KEY: [0], Guru._TOO_RARE_KEY: [1]},
                {Guru._TOO_RARE_KEY: [1]},
                {Guru._TOO_COMMON_KEY: [0], Guru._TOO_RARE_KEY: [1, 3]}]
-    _init_gurus_and_test(lambda guru, y: guru.check_class_disbalance(y), guru_params, ys, answers)
+    _iterate_method_test(Guru.check_class_disbalance,
+                         init_dicts=guru_params,
+                         method_args=ys,
+                         expected_results=answers)
 
 
 def test_correlation():
@@ -56,11 +65,14 @@ def test_correlation():
 
     args_list = [[_BREAST_X, [0, 1, 2]], [_TOY_X, [2, 3, 5]], [corr_x]]
     answers = [[(0, 1), (0, 2), (1, 2)], [], [(0, 1)]]
-    _init_gurus_and_test(lambda guru, args: guru.check_correlation(*args), guru_params, args_list, answers)
+    _iterate_method_test(Guru.check_correlation,
+                         init_dicts=guru_params,
+                         method_args=args_list,
+                         expected_results=answers)
 
 
-def _init_gurus_and_test(function, guru_params, args_list, answers):
-    for params, args, answer in zip(guru_params, args_list, answers):
-        guru = Guru(print_hints=False, **params)
-        result = function(guru, args)
-        assert result == answer
+def _iterate_method_test(method, init_dicts, method_args, expected_results):
+    for init_kwargs, args, expected in zip(init_dicts, method_args, expected_results):
+        guru = Guru(print_hints=False, **init_kwargs)
+        result = method(guru, *args)
+        assert result == expected
