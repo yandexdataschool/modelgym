@@ -2,6 +2,7 @@ from collections import Counter, defaultdict
 
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn
 import scipy.stats as ss
 
 
@@ -155,6 +156,18 @@ class Guru:
 
         return candidates
 
+    def draw_correlation_heatmap(self, X, feature_indexes=None):
+        if feature_indexes is None:
+            feature_indexes = np.arange(np.shape(X)[1])
+
+        features = self._get_feature(X, feature_indexes)
+        plt.figure(figsize=(15, 10))
+        seaborn.heatmap(np.corrcoef(features),
+                        annot=True, ax=plt.axes(),
+                        xticklabels=feature_indexes,
+                        yticklabels=feature_indexes)
+        plt.show()
+
     def check_correlation(self, X, feature_indexes=None):
         """
         Arguments:
@@ -168,30 +181,33 @@ class Guru:
         if feature_indexes is None:
             feature_indexes = np.arange(np.shape(X)[1])
 
+        features = self._get_feature(X, feature_indexes)
         candidates = []
-        for first_ind in feature_indexes[:-1]:
-            for second_ind in feature_indexes[first_ind + 1:]:
-                first_feature = self._get_feature(X, first_ind)
-                second_feature = self._get_feature(X, second_ind)
-
+        for first_ind, first_feature in zip(feature_indexes[:-1], features[:-1]):
+            for second_ind, second_feature in zip(feature_indexes[first_ind + 1:],
+                                                  features[first_ind + 1:]):
                 pvalue = ss.spearmanr(first_feature, second_feature)[1]
                 if pvalue < self._pvalue_boundary:
                     candidates.append((first_ind, second_ind))
 
-                    if self._print_hints:
-                        plt.scatter(first_feature, second_feature)
-                        plt.title(str((first_ind, second_ind)))
-                        plt.show()
+                if self._print_hints:
+                    plt.hist2d(first_feature, second_feature, bins=len(first_feature) ** 0.5)
+                    plt.title(str((first_ind, second_ind)))
+                    plt.xlabel(str(first_ind))
+                    plt.ylabel(str(second_ind))
+                    plt.show()
 
         self._print_warning(candidates, Guru._MESSAGE_DICT[Guru._CORRELATION])
         return candidates
 
     @staticmethod
-    def _get_feature(X, feature_ind):
+    def _get_feature(X, feature_index):
         if isinstance(X, np.ndarray):
-            return X.T[feature_ind]
+            return X.T[feature_index]
         else:
-            return [obj[feature_ind] for obj in X]
+            if isinstance(feature_index, list):
+                return [[obj[ind] for obj in X] for ind in feature_index]
+            return [obj[feature_index] for obj in X]
 
     def _print_warning(self, elements, warning):
         if isinstance(elements, dict):
