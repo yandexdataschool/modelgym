@@ -167,6 +167,9 @@ class Guru:
             feature_indexes = np.arange(np.shape(X)[1])
 
         features = self._get_feature(X, feature_indexes)
+        if isinstance(X, np.ndarray):
+            features = features.astype(np.float)
+
         plt.figure(figsize=(15, 10))
         seaborn.heatmap(np.corrcoef(features),
                         annot=True, ax=plt.axes(),
@@ -188,10 +191,13 @@ class Guru:
             feature_indexes = np.arange(np.shape(X)[1])
 
         features = self._get_feature(X, feature_indexes)
+        if isinstance(X, np.ndarray):
+            features = features.astype(np.float)
+
         candidates = []
-        for first_ind, first_feature in zip(feature_indexes[:-1], features[:-1]):
-            for second_ind, second_feature in zip(feature_indexes[first_ind + 1:],
-                                                  features[first_ind + 1:]):
+        for i, (first_ind, first_feature) in enumerate(zip(feature_indexes[:-1], features[:-1])):
+            for second_ind, second_feature in zip(feature_indexes[i + 1:],
+                                                  features[i + 1:]):
                 pvalue = ss.spearmanr(first_feature, second_feature)[1]
                 if pvalue < self._pvalue_boundary:
                     candidates.append((first_ind, second_ind))
