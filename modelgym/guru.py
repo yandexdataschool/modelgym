@@ -157,6 +157,12 @@ class Guru:
         return candidates
 
     def draw_correlation_heatmap(self, X, feature_indexes=None):
+        """
+        Arguments:
+            X: array-like with shape (n_objects x n_features)
+            feature_indexes: list
+                features which should be checked for correlation. If None all features will be checked
+        """
         if feature_indexes is None:
             feature_indexes = np.arange(np.shape(X)[1])
 
@@ -173,7 +179,7 @@ class Guru:
         Arguments:
             X: array-like with shape (n_objects x n_features)
             feature_indexes: list
-                features which should be checked for correlation
+                features which should be checked for correlation. If None all features will be checked
         Returns:
             out: list
                 pairs of features which are supposed to be correlated
