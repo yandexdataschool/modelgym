@@ -59,12 +59,13 @@ def test_correlation():
 
     N = 100
     corr_x = np.zeros((N, 3))
-    corr_x[:, 0] = np.random.normal(0, 1, size=N)
+    np.random.seed(0)
+    corr_x[:, 0] = np.random.normal(size=N)
     corr_x[:, 1] = -corr_x[:, 0] + np.random.normal(0, 1e-10, size=N)
-    corr_x[:, 2] = np.random.normal(0, 1, size=N)
+    corr_x[:, 2] = np.random.normal(size=N)
 
     args_list = [[_BREAST_X, [0, 1, 2]], [_TOY_X, [2, 3, 5]], [corr_x]]
-    answers = [[(0, 1), (0, 2), (1, 2)], [], [(0, 1)]]
+    answers = [[(0, 1), (0, 2), (1, 2)], [(3, 5)], [(0, 1)]]
     _iterate_method_test(Guru.check_correlation,
                          init_dicts=guru_params,
                          method_args=args_list,
