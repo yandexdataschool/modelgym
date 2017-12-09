@@ -11,6 +11,7 @@ dependencies:
   - networkx=1.11
   - xgboost=0.6a2
   - lightgbm=2.0.4
+  - seaborn=0.8.1
   - pip:
     - hyperopt==0.1
     - pymongo==3.4.0
