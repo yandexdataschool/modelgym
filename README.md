@@ -5,11 +5,11 @@ Gym for predictive models
 
 ## What is this about?
 
-Modelgym is a place (a library?) to get your predictive models as meaningful in a smooth and effortless manner. Modelgym provides the unified interface for 
+Modelgym is a place (a library?) to get your predictive models as meaningful in a smooth and effortless manner. Modelgym provides the unified interface for
 - different kind of Models (XGBoost, CatBoost etc) that you can tune with
-- different kind of optimization strategies, or Trainers. 
-Usually it starts with a data sample that you can be evaluate with our Guru interface and maybe get a few hints on preprocessing it before starting the training. 
-In the end of the trials you get a report of the model performance on both cross-validation and hold-out samples. So you can pick the top model along the best hyperparameters for your case. 
+- different kind of optimization strategies, or Trainers.
+Usually it starts with a data sample that you can be evaluate with our Guru interface and maybe get a few hints on preprocessing it before starting the training.
+In the end of the trials you get a report of the model performance on both cross-validation and hold-out samples. So you can pick the top model along the best hyperparameters for your case.
 
 **Installation**
 1. [Starting Virtual Environment](#1-starting-virtual-environment)
@@ -38,9 +38,9 @@ Install required python3 packages by running following commands.
     ```sh
     pip3 install git+https://github.com/yandexdataschool/modelgym.git
     ```
-2. jupyter, yaml, hyperopt, skopt, pandas and networkx
+2. jupyter
     ```sh
-    pip3 install jupyter pyyaml hyperopt scikit-optimize pandas networkx==1.11
+    pip3 install jupyter
     ```
 3. LightGBM. **Note:** Modelgym works with LightGBM version 2.0.2
     ```sh
