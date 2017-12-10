@@ -18,6 +18,7 @@ class Guru:
     _CATEGORIAL = 'categorial'
     _CLASS_DISBALANCE = 'class disbalance'
     _CORRELATION = 'correlation'
+    _DEFAULT_CMAP = 'hot'
 
     _MESSAGE_DICT = {_SPARSE: 'Consider use hashing trick for ' +
                               'your sparse features, if you haven\'t ' +
@@ -156,13 +157,17 @@ class Guru:
 
         return candidates
 
-    def draw_correlation_heatmap(self, X, feature_indexes=None):
+    def draw_correlation_heatmap(self, X, feature_indexes=None, figsize=(15, 10), **heatmap_kwargs):
         """
         Arguments:
             X: array-like with shape (n_objects x n_features)
             feature_indexes: list
                 features which should be checked for correlation. If None all features will be checked
+            figsize: tuple of int
+                Size of figure with heatmap
         """
+        heatmap_kwargs.setdefault('cmap', Guru._DEFAULT_CMAP)
+
         if feature_indexes is None:
             feature_indexes = np.arange(np.shape(X)[1])
 
@@ -170,23 +175,29 @@ class Guru:
         if isinstance(X, np.ndarray):
             features = features.astype(np.float)
 
-        plt.figure(figsize=(15, 10))
+        plt.figure(figsize=figsize)
         seaborn.heatmap(np.corrcoef(features),
                         annot=True, ax=plt.axes(),
                         xticklabels=feature_indexes,
-                        yticklabels=feature_indexes)
+                        yticklabels=feature_indexes,
+                        **heatmap_kwargs)
         plt.show()
 
-    def check_correlation(self, X, feature_indexes=None):
+    def check_correlation(self, X, feature_indexes=None, figsize=(6, 4), **hist_kwargs):
         """
         Arguments:
             X: array-like with shape (n_objects x n_features)
             feature_indexes: list
                 features which should be checked for correlation. If None all features will be checked
+            figsize: tuple of int
+                Size of figures with hist2d plots
         Returns:
             out: list
                 pairs of features which are supposed to be correlated
         """
+        hist_kwargs.setdefault('cmap', Guru._DEFAULT_CMAP)
+        hist_kwargs.setdefault('bins', len(X) ** 0.5)
+
         if feature_indexes is None:
             feature_indexes = np.arange(np.shape(X)[1])
 
@@ -203,7 +214,8 @@ class Guru:
                     candidates.append((first_ind, second_ind))
 
                 if self._print_hints:
-                    plt.hist2d(first_feature, second_feature, bins=len(first_feature) ** 0.5)
+                    plt.figure(figsize=figsize)
+                    plt.hist2d(first_feature, second_feature, **hist_kwargs)
                     plt.title(str((first_ind, second_ind)))
                     plt.xlabel(str(first_ind))
                     plt.ylabel(str(second_ind))
