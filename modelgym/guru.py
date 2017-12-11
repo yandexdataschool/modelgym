@@ -2,6 +2,7 @@ from collections import Counter, defaultdict
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import seaborn
 import scipy.stats as ss
 
@@ -69,6 +70,34 @@ class Guru:
         self._class_disbalance_qoute = class_disbalance_qoute
         self._pvalue_boundary = pvalue_boundary
 
+    def _preproc_params(self, X, feature_indexes=None, cast_to=None):
+        has_names = isinstance(X, np.ndarray) and (X.dtype.names is not None)
+        if feature_indexes is None:
+            if has_names:
+                feature_indexes = list(X.dtype.names)
+            else:
+                feature_indexes = np.arange(np.shape(X)[1])
+        indexes_is_str = isinstance(feature_indexes[0], str)
+        if not has_names and indexes_is_str:
+            raise ValueError("If feature_indexes is a list of str " +
+                             "X should be a np.ndarray and X.dtype should contain fields")
+
+        if isinstance(X, np.ndarray):
+            if has_names:
+                if indexes_is_str:
+                    features = pd.DataFrame(X[feature_indexes]).values.T
+                else:
+                    features = pd.DataFrame(X).values.T[feature_indexes]
+            else:
+                features = X.T[feature_indexes]
+        else:
+            features = [[obj[ind] for obj in X] for ind in feature_indexes]
+
+        if cast_to is not None and isinstance(features, np.ndarray):
+            features = features.astype(cast_to)
+
+        return features, feature_indexes
+
     def check_categorial(self, X):
         """
         Arguments:
@@ -104,8 +133,8 @@ class Guru:
             raise ValueError('In _get_categorial_or_sparse to_find must be ' +
                              Guru._CATEGORIAL + ' or ' + Guru._SPARSE)
 
-        for i in range(np.shape(X)[1]):
-            feature = self._get_feature(X, i)
+        X, indexes = self._preproc_params(X)
+        for feature, i in zip(X, indexes):
             if not (isinstance(feature[0], float)
                     or isinstance(feature[0], int)):
                 if to_find == Guru._CATEGORIAL:
@@ -161,19 +190,14 @@ class Guru:
         """
         Arguments:
             X: array-like with shape (n_objects x n_features)
-            feature_indexes: list
-                features which should be checked for correlation. If None all features will be checked
+            feature_indexes: list of int or str
+                features which should be checked for correlation. If None all features will be checked.
+                If it is list of str X should be a np.ndarray and X.dtype should contain fields
             figsize: tuple of int
                 Size of figure with heatmap
         """
         heatmap_kwargs.setdefault('cmap', Guru._DEFAULT_CMAP)
-
-        if feature_indexes is None:
-            feature_indexes = np.arange(np.shape(X)[1])
-
-        features = self._get_feature(X, feature_indexes)
-        if isinstance(X, np.ndarray):
-            features = features.astype(np.float)
+        features, feature_indexe = self._preproc_params(X, feature_indexes, cast_to=np.float)
 
         plt.figure(figsize=figsize)
         seaborn.heatmap(np.corrcoef(features),
@@ -197,13 +221,7 @@ class Guru:
         """
         hist_kwargs.setdefault('cmap', Guru._DEFAULT_CMAP)
         hist_kwargs.setdefault('bins', len(X) ** 0.5)
-
-        if feature_indexes is None:
-            feature_indexes = np.arange(np.shape(X)[1])
-
-        features = self._get_feature(X, feature_indexes)
-        if isinstance(X, np.ndarray):
-            features = features.astype(np.float)
+        features, feature_indexes = self._preproc_params(X, feature_indexes, cast_to=np.float)
 
         candidates = []
         for i, (first_ind, first_feature) in enumerate(zip(feature_indexes[:-1], features[:-1])):
@@ -223,15 +241,6 @@ class Guru:
 
         self._print_warning(candidates, Guru._MESSAGE_DICT[Guru._CORRELATION])
         return candidates
-
-    @staticmethod
-    def _get_feature(X, feature_index):
-        if isinstance(X, np.ndarray):
-            return X.T[feature_index]
-        else:
-            if isinstance(feature_index, list):
-                return [[obj[ind] for obj in X] for ind in feature_index]
-            return [obj[feature_index] for obj in X]
 
     def _print_warning(self, elements, warning):
         if isinstance(elements, dict):
