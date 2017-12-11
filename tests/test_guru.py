@@ -4,6 +4,7 @@ from sklearn.datasets import load_breast_cancer
 import numpy as np
 
 
+np.random.seed(0)
 _TOY_X = [['joke', 1231, 0.12312, 1, True, 0, 0],
           ['lol', 123, 1231.1231, 1, False, 0, 0],
           ['not joke', 1313, 12.133, 1, False, 0, 0],
@@ -14,14 +15,29 @@ _TOY_X = [['joke', 1231, 0.12312, 1, True, 0, 0],
           ['silly joke', 21, 0.123, 1, True, 0, 0],
           ['joke', 1, 0.23, 1, False, 0, 0],
           ['silly joke', 1, 0.124, 1, True, 0, -2.73]]
+
+N = 100
+_NAMED_X = np.zeros((N,), dtype=[('str', 'U25'),
+                                 ('categorial', int),
+                                 ('sparse', float),
+                                 ('corr_1', float),
+                                 ('corr_2', float),
+                                 ('independent', float)])
+_NAMED_X['str'] = 'joke'
+_NAMED_X['categorial'] = np.random.binomial(3, 0.6, size=N)
+_NAMED_X['sparse'] = np.random.binomial(1, 0.05, size=N) * np.random.normal(size=N)
+_NAMED_X['corr_1'] = np.random.normal(size=N)
+_NAMED_X['corr_2'] = _NAMED_X['corr_1'] * 50 - 100
+_NAMED_X['independent'] = np.random.normal(size=N)
+
 _TOY_Y = [0]*8 + [1] + [3]*2
 _BREAST_X, _BREAST_Y = load_breast_cancer(True)
 
 
 def test_sparse():
-    guru_params = [{}, {}, {'sparse_qoute': 0.5}]
-    Xs = [[_BREAST_X]] + [[_TOY_X]] * 2
-    answers = [[], [5], [5, 6]]
+    guru_params = [{}, {}, {'sparse_qoute': 0.5}, {}]
+    Xs = [[_BREAST_X]] + [[_TOY_X]] * 2 + [[_NAMED_X]]
+    answers = [[], [5], [5, 6], ['sparse']]
 
     _iterate_method_test(Guru.check_sparse,
                          init_dicts=guru_params,
@@ -30,10 +46,11 @@ def test_sparse():
 
 
 def test_categorial():
-    guru_params = [{}, {}, {'category_qoute': 0.15}]
-    Xs = [[_BREAST_X]] + [[_TOY_X]] * 2
+    guru_params = [{}, {}, {'category_qoute': 0.15}, {}]
+    Xs = [[_BREAST_X]] + [[_TOY_X]] * 2 + [[_NAMED_X]]
     answers = [{}, {Guru._NOT_NUMERIC_KEY: [0], Guru._NOT_VARIABLE_KEY: [3, 4]},
-               {Guru._NOT_NUMERIC_KEY: [0], Guru._NOT_VARIABLE_KEY: [3]}]
+               {Guru._NOT_NUMERIC_KEY: [0], Guru._NOT_VARIABLE_KEY: [3]},
+               {Guru._NOT_NUMERIC_KEY: ['str'], Guru._NOT_VARIABLE_KEY: ['categorial']}]
     _iterate_method_test(Guru.check_categorial,
                          init_dicts=guru_params,
                          method_args=Xs,
@@ -57,15 +74,17 @@ def test_class_disbalance():
 def test_correlation():
     guru_params = [{}] * 3
 
-    N = 100
     corr_x = np.zeros((N, 3))
-    np.random.seed(0)
     corr_x[:, 0] = np.random.normal(size=N)
     corr_x[:, 1] = -corr_x[:, 0] + np.random.normal(0, 1e-10, size=N)
     corr_x[:, 2] = np.random.normal(size=N)
 
-    args_list = [[_BREAST_X, [0, 1, 2]], [_TOY_X, [2, 3, 5]], [corr_x]]
-    answers = [[(0, 1), (0, 2), (1, 2)], [(3, 5)], [(0, 1)]]
+    args_list = [[_BREAST_X, [0, 1, 2]],
+                 [_TOY_X, [2, 3, 5]],
+                 [corr_x],
+                 [_NAMED_X, ['corr_1', 'corr_2', 'independent']]]
+
+    answers = [[(0, 1), (0, 2), (1, 2)], [(3, 5)], [(0, 1)], [('corr_1', 'corr_2')]]
     _iterate_method_test(Guru.check_correlation,
                          init_dicts=guru_params,
                          method_args=args_list,
