@@ -2,9 +2,7 @@ import xgboost as xgb
 import numpy as np
 
 from modelgym.models import Model
-from modelgym.utils import DistributionWrapper
-import scipy.stats as sts
-
+import hyperopt as hp
 
 class XGBClassifier(Model):
     def __init__(self, params=None):
@@ -76,15 +74,15 @@ class XGBClassifier(Model):
         """
 
         return {
-            'eta':               DistributionWrapper(sts.uniform, {"loc": 0, "scale": 0.1}),
-            'max_depth':         DistributionWrapper(sts.randint, {"a": 1, "b": 7}),
-            'subsample':         DistributionWrapper(sts.uniform, {"loc": 0.5, "scale": 1}),
-            'colsample_bytree':  DistributionWrapper(sts.uniform, {"loc": 0.5, "scale": 1}),
-            'colsample_bylevel': DistributionWrapper(sts.uniform, {"loc": 0.5, "scale": 1}),
-            'min_child_weight':  DistributionWrapper(sts.uniform, {"loc": 0, "scale": 0.1}),
-             'gamma':            DistributionWrapper(sts.uniform, {"loc": 0, "scale": 1}),
-            'lambdax':           DistributionWrapper(sts.uniform, {"loc": 0, "scale": 1}),
-            'alpha':             DistributionWrapper(sts.uniform, {"loc": 0, "scale": 1}),
+            'eta':               hp.loguniform('eta', -7, 0),
+            'max_depth':         hp.quniform('max_depth', 2, 10, 1),
+            'subsample':         hp.uniform('subsample', 0.5, 1),
+            'colsample_bytree':  hp.uniform('colsample_bytree', 0.5, 1),
+            'colsample_bylevel': hp.uniform('colsample_bylevel', 0.5, 1),
+            'min_child_weight':  hp.loguniform('min_child_weight', -16, 5),
+            'gamma':             hp.loguniform('gamma', -16, 2),
+            'lambdax':           hp.loguniform('lambdax', -16, 2),
+            'alpha':             hp.loguniform('alpha', -16, 2)
         }
 
 
@@ -158,12 +156,13 @@ class XGBRegressor(Model):
         """
 
         return {
-          'learning_rate': DistributionWrapper(sts.uniform, {"loc": 0, "scale": 0.1}),
-          'num_leaves': DistributionWrapper(sts.randint, {"a": 1, "b": 7}),
-          'feature_fraction': DistributionWrapper(sts.uniform, {"loc": 0.5, "scale": 1}),
-          'bagging_fraction': DistributionWrapper(sts.uniform, {"loc": 0.5, "scale": 1}),
-          'min_data_in_leaf': DistributionWrapper(sts.randint, {"a": 1, "b": 7}),
-          'min_sum_hessian_in_leaf': DistributionWrapper(sts.uniform, {"loc": 0, "scale": 0.1}),
-          'lambda_l1': DistributionWrapper(sts.uniform, {"loc": 0, "scale": 1}),
-          'lambda_l2': DistributionWrapper(sts.uniform, {"loc": 0, "scale": 1}),
+            'eta':               hp.loguniform('eta', -7, 0),
+            'max_depth':         hp.quniform('max_depth', 2, 10, 1),
+            'subsample':         hp.uniform('subsample', 0.5, 1),
+            'colsample_bytree':  hp.uniform('colsample_bytree', 0.5, 1),
+            'colsample_bylevel': hp.uniform('colsample_bylevel', 0.5, 1),
+            'min_child_weight':  hp.loguniform('min_child_weight', -16, 5),
+            'gamma':             hp.loguniform('gamma', -16, 2),
+            'lambdax':           hp.loguniform('lambdax', -16, 2),
+            'alpha':             hp.loguniform('alpha', -16, 2)
         }

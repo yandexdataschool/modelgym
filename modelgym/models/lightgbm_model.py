@@ -2,8 +2,7 @@ import lightgbm as lgb
 import numpy as np
 
 from modelgym.models import Model
-from modelgym.utils import DistributionWrapper
-import scipy.stats as sts
+import hyperopt as hp
 
 
 class LGBMClassifier(Model):
@@ -72,16 +71,15 @@ class LGBMClassifier(Model):
         """
         :return: dict of DistributionWrappers
         """
-
         return {
-          'learning_rate':           DistributionWrapper(sts.uniform, {"loc": 0, "scale": 0.1}),
-          'num_leaves':              DistributionWrapper(sts.randint, {"a": 1, "b": 7}),
-          'feature_fraction':        DistributionWrapper(sts.uniform, {"loc": 0.5, "scale": 1}),
-          'bagging_fraction':        DistributionWrapper(sts.uniform, {"loc": 0.5, "scale": 1}),
-          'min_data_in_leaf':        DistributionWrapper(sts.randint, {"a": 1, "b": 7}),
-          'min_sum_hessian_in_leaf': DistributionWrapper(sts.uniform, {"loc": 0, "scale": 0.1}),
-          'lambda_l1':               DistributionWrapper(sts.uniform, {"loc": 0, "scale": 1}),
-          'lambda_l2':               DistributionWrapper(sts.uniform, {"loc": 0, "scale": 1}),
+          'learning_rate':           hp.loguniform('learning_rate', -7, 0),
+          'num_leaves':              hp.qloguniform('num_leaves', 0, 7, 1),
+          'feature_fraction':        hp.uniform('feature_fraction', 0.5, 1),
+          'bagging_fraction':        hp.uniform('bagging_fraction', 0.5, 1),
+          'min_data_in_leaf':        hp.qloguniform('min_data_in_leaf', 0, 6, 1),
+          'min_sum_hessian_in_leaf': hp.loguniform('min_sum_hessian_in_leaf', -16, 5),
+          'lambda_l1':               hp.loguniform('lambda_l1', -16, 2),
+          'lambda_l2':               hp.loguniform('lambda_l2', -16, 2),
         }
 
 
@@ -153,13 +151,13 @@ class LGBMRegressor(Model):
         """
 
         return {
-          'learning_rate': DistributionWrapper(sts.uniform, {"loc": 0, "scale": 0.1}),
-          'num_leaves': DistributionWrapper(sts.randint, {"a": 1, "b": 7}),
-          'feature_fraction': DistributionWrapper(sts.uniform, {"loc": 0.5, "scale": 1}),
-          'bagging_fraction': DistributionWrapper(sts.uniform, {"loc": 0.5, "scale": 1}),
-          'min_data_in_leaf': DistributionWrapper(sts.randint, {"a": 1, "b": 7}),
-          'min_sum_hessian_in_leaf': DistributionWrapper(sts.uniform, {"loc": 0, "scale": 0.1}),
-          'lambda_l1': DistributionWrapper(sts.uniform, {"loc": 0, "scale": 1}),
-          'lambda_l2': DistributionWrapper(sts.uniform, {"loc": 0, "scale": 1}),
+            'learning_rate': hp.loguniform('learning_rate', -7, 0),
+            'num_leaves': hp.qloguniform('num_leaves', 0, 7, 1),
+            'feature_fraction': hp.uniform('feature_fraction', 0.5, 1),
+            'bagging_fraction': hp.uniform('bagging_fraction', 0.5, 1),
+            'min_data_in_leaf': hp.qloguniform('min_data_in_leaf', 0, 6, 1),
+            'min_sum_hessian_in_leaf': hp.loguniform('min_sum_hessian_in_leaf', -16, 5),
+            'lambda_l1': hp.loguniform('lambda_l1', -16, 2),
+            'lambda_l2': hp.loguniform('lambda_l2', -16, 2),
         }
 
