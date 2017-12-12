@@ -8,16 +8,19 @@ from modelgym.model import TASK_CLASSIFICATION, TASK_REGRESSION
 from modelgym.compare_auc_delong_xu import delong_roc_test
 from modelgym.metric import Metric
 
+
 def merge_two_dicts(x, y):
     z = x.copy()   
     z.update(y)
     return z
+
 
 def calculate_custom_metrics(custom_metrics, model, bst, dtest, _dtest):
     resulting_dict = {}
     for metric in custom_metrics:
         resulting_dict[metric.name] = metric.calculate(model, bst, dtest, _dtest, sample_weight=None) # TODO weights
     return resulting_dict
+
 
 def check_custom_metrics(custom_metrics):
     if custom_metrics:
