@@ -2,7 +2,7 @@ from modelgym.trainers.trainer import Trainer
 
 from functools import partial
 from hyperopt import fmin, Trials, STATUS_OK
-
+import numpy as np
 
 class HyperoptTrainer(Trainer):
     def __init__(self, model_spaces, algo, tracker=None):
@@ -43,10 +43,10 @@ class HyperoptTrainer(Trainer):
                             max_evals=(i + current_evals),
                             trials=self.state[model_num])
                 if self.tracker is not None:
-                    tracker.save_state(self.state)
+                    self.tracker.save_state(self.state)
 
     def get_best_results():
-        return [trials.best_trial["result"] for trial in self.state]
+        return [trials.best_trial["result"] for trials in self.state]
 
     @staticmethod
     def crossval_fit_eval(model_type, params, cv, metrics, verbose):

@@ -88,7 +88,7 @@ class XGBClassifier(Model):
         }
 
 
-class LGBMRegressor(Model):
+class XGBRegressor(Model):
     def __init__(self, params=None):
         """
         :param params (dict or None): parameters for model.

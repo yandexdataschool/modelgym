@@ -1,2 +1,2 @@
-from distribution_wrapper import DistributionWrapper
-from util import XYCDataset
+from modelgym.utils.distribution_wrapper import DistributionWrapper
+from modelgym.utils.util import XYCDataset
