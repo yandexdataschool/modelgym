@@ -2,7 +2,8 @@ import xgboost as xgb
 import numpy as np
 
 from modelgym.models import Model
-import hyperopt as hp
+from hyperopt import hp
+from hyperopt.pyll.base import scope
 
 class XGBClassifier(Model):
     def __init__(self, params=None):
@@ -11,7 +12,7 @@ class XGBClassifier(Model):
                              If None default params are fetched.
         :param learning_task (str): set type of task(classification, regression, ...)
         """
-        self.params = {'objective': 'binary:logistic', 'eval_metric': 'logloss',}
+        self.params = {'objective': 'binary:logistic', 'eval_metric': 'logloss', 'silent': 1}
         self.params.update(params)
         self.n_estimators = self.params.pop('n_estimators', 1)
         self.model = None
@@ -52,7 +53,13 @@ class XGBClassifier(Model):
         :param X (np.array, shape (n_samples, n_features)): the input data
         :return: np.array, shape (n_samples, ) or (n_samples, n_outputs)
         """
-        return np.argmax(self.model.predict(dataset.X), axis=1)
+        # print(dataset.X.shape)
+        pred = self.model.predict(xgb.DMatrix(dataset.X))
+        # print(pred.shape)
+
+        print(pred)
+
+        return np.round(self.model.predict(xgb.DMatrix(dataset.X))).astype(int)
 
     def is_possible_predict_proba(self):
         """
@@ -75,7 +82,8 @@ class XGBClassifier(Model):
 
         return {
             'eta':               hp.loguniform('eta', -7, 0),
-            'max_depth':         hp.quniform('max_depth', 2, 10, 1),
+            'max_depth':         scope.int(hp.quniform('max_depth', 2, 10, 1)),
+            'n_estimators':      scope.int(hp.quniform('n_estimators', 100, 1000, 1)),
             'subsample':         hp.uniform('subsample', 0.5, 1),
             'colsample_bytree':  hp.uniform('colsample_bytree', 0.5, 1),
             'colsample_bylevel': hp.uniform('colsample_bylevel', 0.5, 1),

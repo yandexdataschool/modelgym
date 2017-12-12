@@ -3,7 +3,7 @@ from sklearn.ensemble import RandomForestClassifier as rfc
 
 from modelgym.models import Model
 from modelgym.utils import XYCDataset as xycd
-import hyperopt as hp
+from hyperopt import hp
 
 class RFClassifier(Model):
     def __init__(self, params=None):

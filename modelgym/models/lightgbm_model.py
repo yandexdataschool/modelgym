@@ -2,7 +2,7 @@ import lightgbm as lgb
 import numpy as np
 
 from modelgym.models import Model
-import hyperopt as hp
+from hyperopt import hp
 
 
 class LGBMClassifier(Model):

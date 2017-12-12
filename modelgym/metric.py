@@ -8,14 +8,7 @@ class Metric(object):
         self._requires_proba = requires_proba
         self._is_min_optimal = is_min_optimal
 
-    def get_predictions(self, model, bst, _dtest, dtest):
-        prediction_func = model.predict_proba if self._requires_proba else model.predict
-        prediction = prediction_func(bst, _dtest, dtest.X)
-        if not self._requires_proba:
-            prediction = np.round(prediction).astype(int)
-        return prediction
-
-    def calculate(self, model, bst, dtest, _dtest, sample_weight=None): # TODO: why 2 dtests??
+    def calculate(self, y, y_pred): # TODO: why 2 dtests??
         """Calculates required prediction from the model
 
         Depending on the metric we might need either of the following methods:
@@ -30,11 +23,7 @@ class Metric(object):
         Returns:
             score:  float, the result of the metric calculation 
         """
-
-        prediction = self.get_predictions(model, bst, _dtest, dtest)
-
-        score = self._scoring_function(_dtest.get_label(), prediction, 
-                                       sample_weight=sample_weight) # TODO weights
+        score = self._scoring_function(y, y_pred) # TODO weights
         return score
 
     @property

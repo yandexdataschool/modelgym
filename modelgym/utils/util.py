@@ -188,6 +188,20 @@ class XYCDataset:
 
         return [XYCDataset(self.features[indices_part], self.get_label()[indices_part], self.cat_cols) for indices_part in indices]
 
+def cv_split(dataset, n_splits):
+    cv = KFold(n_splits)
+    cv_pairs = []
+    for train_index, test_index in cv.split(dataset.X, dataset.y):
+        fold_X_train = dataset.X[train_index]
+        fold_X_test = dataset.X[test_index]
+        fold_y_train = dataset.y[train_index]
+        fold_y_test = dataset.y[test_index]
+        dtrain = XYCDataset(fold_X_train.astype(float), fold_y_train, None)
+        dtest = XYCDataset(fold_X_test.astype(float), fold_y_test, None)
+        cv_pairs.append((dtrain, dtest))
+    return cv_pairs
+
+
 def compare_models_different(first_model, second_model, data, alpha=0.05, metric='ROC_AUC'):
     """
     Hypothesis: two models are the same
