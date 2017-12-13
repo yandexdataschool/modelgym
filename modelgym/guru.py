@@ -102,13 +102,16 @@ class Guru:
         """
         Arguments:
             X: array-like with shape (n_objects x n_features)
+                features from your dataset
         Returns:
             out: dict
                 out['""" + Guru._NOT_NUMERIC_KEY + """']: list
                     indexes of features which aren't numeric
                 out['""" + Guru._NOT_VARIABLE_KEY + """']: list
                     indexes of features which are supposed to be not variable
+
         """
+
         to_find = Guru._CATEGORIAL
         return self._get_categorial_or_sparse(X, to_find)
 
@@ -116,9 +119,11 @@ class Guru:
         """
         Arguments:
             X: array-like with shape (n_objects x n_features)
+                features from your dataset
         Returns:
             out: list
                 features which are supposed to be sparse
+
         """
 
         to_find = Guru._SPARSE
@@ -163,14 +168,18 @@ class Guru:
 
     def check_class_disbalance(self, y):
         """
+        You should use this method only if you are soling classification task
         Arguments:
             y: array-like with shape (n_objects,)
+                target classes in your dataset.
         Returns:
             out['""" + Guru._TOO_COMMON_KEY + """']: list
                 too common classes
             out['""" + Guru._TOO_RARE_KEY + """']: list
                 too rare classes
+
         """
+
         candidates = defaultdict(list)
         counter = Counter(y)
         upper = len(y) / len(counter) / self._class_disbalance_qoute
@@ -190,12 +199,15 @@ class Guru:
         """
         Arguments:
             X: array-like with shape (n_objects x n_features)
+                features from your dataset
             feature_indexes: list of int or str
                 features which should be checked for correlation. If None all features will be checked.
                 If it is list of str X should be a np.ndarray and X.dtype should contain fields
             figsize: tuple of int
                 Size of figure with heatmap
+
         """
+
         heatmap_kwargs.setdefault('cmap', Guru._DEFAULT_CMAP)
         features, feature_indexe = self._preproc_params(X, feature_indexes, cast_to=np.float)
 
@@ -211,6 +223,7 @@ class Guru:
         """
         Arguments:
             X: array-like with shape (n_objects x n_features)
+                features from your dataset
             feature_indexes: list
                 features which should be checked for correlation. If None all features will be checked
             figsize: tuple of int
@@ -218,6 +231,7 @@ class Guru:
         Returns:
             out: list
                 pairs of features which are supposed to be correlated
+
         """
         hist_kwargs.setdefault('cmap', Guru._DEFAULT_CMAP)
         hist_kwargs.setdefault('bins', len(X) ** 0.5)
@@ -262,6 +276,7 @@ class Guru:
         """
         Arguments:
             data: XYCDataset-like
+                your dataset
         Returns:
             (categorials, sparse, disbalanced, correlated)
                 categorials: indexes of features which are supposed to be categorial
@@ -273,6 +288,7 @@ class Guru:
                 check_sparse
                 check_class_disbalance
                 check_correlation
+
         """
         self.no_warnings = True
 
