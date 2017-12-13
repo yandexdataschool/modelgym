@@ -46,7 +46,10 @@ class Model(object):
 
     def predict(self, bst, dtest, X_test):
         raise NotImplementedError('Method predict is not implemented.')
-
+    
+    def predict_proba(self, bst, dtest, X_test):
+        raise NotImplementedError('Method predict_proba is not implemented.')
+        
     def load_config(self, filepath):
         if os.path.exists(filepath):
             with open(filepath) as f:

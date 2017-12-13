@@ -101,3 +101,7 @@ class XGBModel(Model):
     def predict(self, bst, dtest, X_test):
         preds = bst.predict(dtest)
         return preds
+    
+    def predict_proba(self, bst, dtest, X_test):
+        return self.predict(bst, dtest, X_test)
+     
