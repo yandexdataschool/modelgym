@@ -11,10 +11,9 @@ Welcome to modelgym's documentation!
    :caption: Contents:
 
 
-
-Indices and tables
+Documentaion
 ==================
+.. toctree::
+   :maxdepth: 2
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   guru
