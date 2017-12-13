@@ -1,5 +1,4 @@
-.. modelgym documentation master file, created by
-   sphinx-quickstart on Wed Dec 13 16:54:42 2017.
+.. modelgym documentation master file
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
@@ -15,11 +14,6 @@ Modelgym is a place (a library?) to get your predictive models as meaningful in 
 * different kind of optimization strategies, or Trainers.
 Usually it starts with a data sample that you can be evaluate with our Guru interface and maybe get a few hints on preprocessing it before starting the training.
 In the end of the trials you get a report of the model performance on both cross-validation and hold-out samples. So you can pick the top model along the best hyperparameters for your case.
-
-
-.. toctree::
-    :maxdepth: 2
-    :caption: Contents:
 
 Installation
 ==================
