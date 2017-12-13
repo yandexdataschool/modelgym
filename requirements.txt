@@ -12,3 +12,4 @@ pyyaml==3.12
 pytest==3.2.1
 scikit-optimize==0.4
 lightgbm==2.0.4
+xgboost
