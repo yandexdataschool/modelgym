@@ -7,13 +7,19 @@ Welcome to modelgym's documentation!
 ====================================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+    :maxdepth: 2
+    :caption: Contents:
 
+Installation
+==================
+.. toctree::
+    :maxdepth: 3
+
+    install
 
 Documentaion
 ==================
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
 
-   guru
+    guru
