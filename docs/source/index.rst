@@ -40,3 +40,4 @@ Documentaion
    :maxdepth: 2
 
    guru
+   models
