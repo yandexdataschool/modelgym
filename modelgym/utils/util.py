@@ -162,7 +162,7 @@ def hyperopt2skopt_space(space):
 
 
 class XYCDataset:
-    def __init__(self, X, y, cat_cols):
+    def __init__(self, X, y=None, cat_cols=[]):
         self.X = X
         self.y = y
         self.cat_cols = cat_cols

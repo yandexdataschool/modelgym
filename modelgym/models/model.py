@@ -14,6 +14,13 @@ class Model(object):
         """
         raise NotImplementedError("Pure virtual class.")
 
+    def _set_model(self, model):
+        """
+        sets new model
+        :param model: internal model
+        """
+        raise NotImplementedError("Pure virtual class.")
+
     def fit(self, dataset, weights=None):
         """
         :param X (np.array, shape (n_samples, n_features)): the input data
@@ -30,6 +37,7 @@ class Model(object):
         """
         raise NotImplementedError("Pure virtual class.")
 
+    @staticmethod
     def load_from_snapshot(self, filename):
         """
         :snapshot serializable internal model state

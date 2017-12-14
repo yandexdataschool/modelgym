@@ -12,10 +12,22 @@ class LGBMClassifier(Model):
                              If None default params are fetched.
         :param learning_task (str): set type of task(classification, regression, ...)
         """
-        self.params = {'objective': 'binary', 'metric': 'binary_logloss'}
+        objective = 'binary'
+        if params.get('num_class', 2):
+            # change default objective
+            objective = 'multiclass'
+
+        self.params = {'objective': objective, 'metric': 'binary_logloss'}
         self.params.update(params)
         self.n_estimators = self.params.pop('n_estimators', 1)
         self.model = None
+
+    def _set_model(self, model):
+        """
+        sets new model, internal method, do not use
+        :param model: internal model
+        """
+        self.model = model
 
     def _convert_to_dataset(self, data, label, cat_cols=None):
         return lgb.Dataset(data, label)
@@ -39,19 +51,27 @@ class LGBMClassifier(Model):
         assert self.model, "model is not fitted"
         return self.model.save_binary(filename)
 
+    @staticmethod
     def load_from_snapshot(self, filename):
         """
         :snapshot serializable internal model state
         loads from serializable internal model state snapshot.
         """
-        return lgb.Booster(model_file=filename)
+        model = lgb.Booster(model_file=filename)
+        new_model = LGBMClassifier() # idk how to pass params yet
+        new_model._set_model(model)
+        return new_model
 
     def predict(self, dataset):
         """
         :param X (np.array, shape (n_samples, n_features)): the input data
         :return: np.array, shape (n_samples, ) or (n_samples, n_outputs)
         """
-        return np.argmax(self.model.predict(dataset.X), axis=1)
+        prediction = self.model.predict(dataset.X)
+        if self.params.get('num_class', 2) == 2:
+            return np.round(prediction).astype(int)
+
+        return np.argmax(prediction, axis=-1).astype(int)
 
     def is_possible_predict_proba(self):
         """
@@ -64,6 +84,7 @@ class LGBMClassifier(Model):
         :param X (np.array, shape (n_samples, n_features)): the input data
         :return: np.array, shape (n_samples, n_classes)
         """
+        assert self.is_possible_predict_proba(), "Model cannot predict probability distribution"
         return self.model.predict(dataset.X)
 
     @staticmethod
@@ -95,6 +116,13 @@ class LGBMRegressor(Model):
         self.n_estimators = self.params.pop('n_estimators', 1)
         self.model = None
 
+    def _set_model(self, model):
+        """
+        sets new model, internal method, do not use
+        :param model: internal model
+        """
+        self.model = model
+
     def _convert_to_dataset(self, data, label, cat_cols=None):
         return lgb.Dataset(data, label)
 
@@ -117,12 +145,16 @@ class LGBMRegressor(Model):
         assert self.model, "model is not fitted"
         return self.model.save_binary(filename)
 
+    @staticmethod
     def load_from_snapshot(self, filename):
         """
         :snapshot serializable internal model state
         loads from serializable internal model state snapshot.
         """
-        return lgb.Booster(model_file=filename)
+        model = lgb.Booster(model_file=filename)
+        new_model = LGBMRegressor() # idk how to pass params yet
+        new_model._set_model(model)
+        return new_model
 
     def predict(self, dataset):
         """

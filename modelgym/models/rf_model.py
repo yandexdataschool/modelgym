@@ -1,9 +1,12 @@
+import cPickle
+
 from hyperopt import hp
 from sklearn.ensemble import RandomForestClassifier as rfc
 
 from modelgym.models import Model
 from modelgym.utils import XYCDataset as xycd
 from hyperopt import hp
+
 
 class RFClassifier(Model):
     def __init__(self, params=None):
@@ -28,6 +31,13 @@ class RFClassifier(Model):
         self.n_estimators = self.params.pop('n_estimators', 1)
         self.model = None
 
+    def _set_model(self, model):
+        """
+        sets new model, internal method, do not use
+        :param model: internal model
+        """
+        self.model = model
+
     def convert_to_dataset(self, data, label, cat_cols=None):
         return xycd(data, label, cat_cols)
 
@@ -50,16 +60,21 @@ class RFClassifier(Model):
 
         """
         assert self.model, "model is not fitted"
-        return self.model.save_model(filename)
+        with open(filename, 'wb') as f:
+            cPickle.dump(self.model, f)
 
+    @staticmethod
     def load_from_snapshot(self, filename):
         """
         :snapshot serializable internal model state
         loads from serializable internal model state snapshot.
         """
-        booster = xgb.Booster()
-        booster.load_model(filename)
-        return booster
+        with open('path/to/file', 'rb') as f:
+            model = cPickle.load(f)
+
+        new_model = RFClassifier(model.get_params())
+        new_model._set_model(model)
+        return new_model
 
     def predict(self, dataset):
         """

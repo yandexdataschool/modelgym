@@ -5,6 +5,7 @@ from modelgym.models import Model
 from hyperopt import hp
 from hyperopt.pyll.base import scope
 
+
 class XGBClassifier(Model):
     def __init__(self, params=None):
         """
@@ -12,10 +13,22 @@ class XGBClassifier(Model):
                              If None default params are fetched.
         :param learning_task (str): set type of task(classification, regression, ...)
         """
-        self.params = {'objective': 'binary:logistic', 'eval_metric': 'logloss', 'silent': 1}
+        objective = 'binary:logistic'
+        if params.get('num_class', 2):
+            # change default objective
+            objective = 'multi:softprob'
+
+        self.params = {'objective': objective, 'eval_metric': 'logloss', 'silent': 1}
         self.params.update(params)
         self.n_estimators = self.params.pop('n_estimators', 1)
         self.model = None
+
+    def _set_model(self, model):
+        """
+        sets new model, internal method, do not use
+        :param model: internal model
+        """
+        self.model = model
 
     def _convert_to_dataset(self, data, label, cat_cols=None):
         return xgb.DMatrix(data, label)
@@ -39,6 +52,7 @@ class XGBClassifier(Model):
         assert self.model, "model is not fitted"
         return self.model.save_model(filename)
 
+    @staticmethod
     def load_from_snapshot(self, filename):
         """
         :snapshot serializable internal model state
@@ -46,25 +60,29 @@ class XGBClassifier(Model):
         """
         booster = xgb.Booster()
         booster.load_model(filename)
-        return booster
+        new_model = XGBClassifier() # idk how to pass paarameters yet
+        new_model._set_model(booster)
+        return new_model
 
     def predict(self, dataset):
         """
         :param X (np.array, shape (n_samples, n_features)): the input data
         :return: np.array, shape (n_samples, ) or (n_samples, n_outputs)
         """
-        # print(dataset.X.shape)
-        pred = self.model.predict(xgb.DMatrix(dataset.X))
-        # print(pred.shape)
-
-        print(pred)
-
-        return np.round(self.model.predict(xgb.DMatrix(dataset.X))).astype(int)
+        xgb_dataset = xgb.DMatrix(dataset.X)
+        if self.params['objective'] == 'multi:softmax':
+            return self.model.predict(xgb_dataset).astype(int)
+        prediction = np.round(self.model.predict(xgb_dataset)).astype(int)
+        if self.params.get('num_class', 2) == 2:
+            return prediction
+        return np.argmax(prediction, axis=-1)
 
     def is_possible_predict_proba(self):
         """
         :return: bool, whether model can predict proba
         """
+        if self.params['objective'] == 'multi:softmax':
+            return False
         return True
 
     def predict_proba(self, dataset):
@@ -72,6 +90,7 @@ class XGBClassifier(Model):
         :param X (np.array, shape (n_samples, n_features)): the input data
         :return: np.array, shape (n_samples, n_classes)
         """
+        assert self.is_possible_predict_proba(), "Model cannot predict probability distribution"
         return self.model.predict(dataset.X)
 
     @staticmethod
@@ -106,6 +125,13 @@ class XGBRegressor(Model):
         self.n_estimators = self.params.pop('n_estimators', 1)
         self.model = None
 
+    def _set_model(self, model):
+        """
+        sets new model, internal method, do not use
+        :param model: internal model
+        """
+        self.model = model
+
     def _convert_to_dataset(self, data, label, cat_cols=None):
         return xgb.DMatrix(data, label)
 
@@ -128,6 +154,7 @@ class XGBRegressor(Model):
         assert self.model, "model is not fitted"
         return self.model.save_model(filename)
 
+    @staticmethod
     def load_from_snapshot(self, filename):
         """
         :snapshot serializable internal model state
@@ -135,7 +162,9 @@ class XGBRegressor(Model):
         """
         booster = xgb.Booster()
         booster.load_model(filename)
-        return booster
+        new_model = XGBRegressor() # idk how to pass paarameters yet
+        new_model._set_model(booster)
+        return new_model
 
     def predict(self, dataset):
         """
