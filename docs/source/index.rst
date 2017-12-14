@@ -41,3 +41,5 @@ Documentaion
 
    guru
    models
+   trainer
+   tracker
