@@ -333,7 +333,7 @@ Compare
 
 
 
-.. image:: model_search_files/model_search_15_1.png
+.. image:: images/model_search_15_1.png
 
 
 Compare models with stat test

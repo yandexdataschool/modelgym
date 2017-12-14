@@ -93,15 +93,15 @@ Looking for correlated features
 
 
 
-.. image:: guru_example_files/guru_example_12_0.png
+.. image:: images/guru_example_12_0.png
 
 
 
-.. image:: guru_example_files/guru_example_12_1.png
+.. image:: images/guru_example_12_1.png
 
 
 
-.. image:: guru_example_files/guru_example_12_2.png
+.. image:: images/guru_example_12_2.png
 
 
 .. parsed-literal::
@@ -125,7 +125,7 @@ Drawing correlation heatmap for features above
 
 
 
-.. image:: guru_example_files/guru_example_14_0.png
+.. image:: images/guru_example_14_0.png
 
 
 Looking for disbalanced classes
@@ -175,5 +175,5 @@ Now we can draw heatmap like this
 
 
 
-.. image:: guru_example_files/guru_example_21_0.png
+.. image:: images/guru_example_21_0.png
 
