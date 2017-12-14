@@ -7,7 +7,7 @@ except ImportError:
 setup(name="modelgym",
       version='0.1.3',
       description='predictive model optimization toolbox.',
-      long_description=open('README.md').read(),
+      long_description=open('README.rst').read(),
       url='https://github.com/yandexdataschool/modelgym/',
       license='BSD',
       author='The modelgym contributors',
