@@ -1,8 +1,9 @@
 import lightgbm as lgb
 import numpy as np
 
-from modelgym.models import Model
+from modelgym.models import Model, LearningTask
 from hyperopt import hp
+from hyperopt.pyll.base import scope
 
 
 class LGBMClassifier(Model):
@@ -12,12 +13,18 @@ class LGBMClassifier(Model):
                              If None default params are fetched.
         :param learning_task (str): set type of task(classification, regression, ...)
         """
+
+        if params is None:
+            params = {}
+
         objective = 'binary'
-        if params.get('num_class', 2):
+        metric = 'binary_logloss'
+        if params.get('num_class', 2) > 2:
             # change default objective
             objective = 'multiclass'
+            metric = 'multi_logloss'            
 
-        self.params = {'objective': objective, 'metric': 'binary_logloss'}
+        self.params = {'objective': objective, 'metric': metric}
         self.params.update(params)
         self.n_estimators = self.params.pop('n_estimators', 1)
         self.model = None
@@ -29,8 +36,10 @@ class LGBMClassifier(Model):
         """
         self.model = model
 
-    def _convert_to_dataset(self, data, label, cat_cols=None):
-        return lgb.Dataset(data, label)
+    def _convert_to_dataset(self, dataset):
+        return lgb.Dataset(data=dataset.X,
+                           label=dataset.y,
+                           categorical_feature=dataset.cat_cols)
 
     def fit(self, dataset, weights=None):
         """
@@ -39,8 +48,10 @@ class LGBMClassifier(Model):
         :param weights (np.array, shape (n_samples, ) or (n_samples, n_outputs) or None): weights of the data
         :return: self
         """
-        dtrain = self._convert_to_dataset(dataset.X, dataset.y)
-        self.model = lgb.train(self.params, dtrain, num_boost_round=self.n_estimators, verbose_eval=False)
+        dtrain = self._convert_to_dataset(dataset)
+        self.model = lgb.train(self.params, dtrain,
+                               num_boost_round=self.n_estimators,
+                               verbose_eval=False)
         return self
 
     def save_snapshot(self, filename):
@@ -94,15 +105,18 @@ class LGBMClassifier(Model):
         """
         return {
           'learning_rate':           hp.loguniform('learning_rate', -7, 0),
-          'num_leaves':              hp.qloguniform('num_leaves', 0, 7, 1),
+          'num_leaves':              scope.int(hp.qloguniform('num_leaves', 1, 7, 1)),
           'feature_fraction':        hp.uniform('feature_fraction', 0.5, 1),
           'bagging_fraction':        hp.uniform('bagging_fraction', 0.5, 1),
-          'min_data_in_leaf':        hp.qloguniform('min_data_in_leaf', 0, 6, 1),
+          'min_data_in_leaf':        scope.int(hp.qloguniform('min_data_in_leaf', 0, 6, 1)),
           'min_sum_hessian_in_leaf': hp.loguniform('min_sum_hessian_in_leaf', -16, 5),
           'lambda_l1':               hp.loguniform('lambda_l1', -16, 2),
           'lambda_l2':               hp.loguniform('lambda_l2', -16, 2),
         }
 
+    @staticmethod
+    def get_learning_task():
+        return LearningTask.CLASSIFICATION
 
 class LGBMRegressor(Model):
     def __init__(self, params=None):
@@ -111,6 +125,10 @@ class LGBMRegressor(Model):
                              If None default params are fetched.
         :param learning_task (str): set type of task(classification, regression, ...)
         """
+
+        if params is None:
+            params = {}
+
         self.params = {'objective': 'mean_squared_error', 'metric': 'l2'}
         self.params.update(params)
         self.n_estimators = self.params.pop('n_estimators', 1)
@@ -123,8 +141,10 @@ class LGBMRegressor(Model):
         """
         self.model = model
 
-    def _convert_to_dataset(self, data, label, cat_cols=None):
-        return lgb.Dataset(data, label)
+    def _convert_to_dataset(self, dataset):
+        return lgb.Dataset(data=dataset.X,
+                           label=dataset.y,
+                           categorical_feature=dataset.cat_cols)
 
     def fit(self, dataset, weights=None):
         """
@@ -133,7 +153,7 @@ class LGBMRegressor(Model):
         :param weights (np.array, shape (n_samples, ) or (n_samples, n_outputs) or None): weights of the data
         :return: self
         """
-        dtrain = self._convert_to_dataset(dataset.X, dataset.y)
+        dtrain = self._convert_to_dataset(dataset)
         self.model = lgb.train(self.params, dtrain, num_boost_round=self.n_estimators, verbose_eval=False)
         return self
 
@@ -183,13 +203,16 @@ class LGBMRegressor(Model):
         """
 
         return {
-            'learning_rate': hp.loguniform('learning_rate', -7, 0),
-            'num_leaves': hp.qloguniform('num_leaves', 0, 7, 1),
-            'feature_fraction': hp.uniform('feature_fraction', 0.5, 1),
-            'bagging_fraction': hp.uniform('bagging_fraction', 0.5, 1),
-            'min_data_in_leaf': hp.qloguniform('min_data_in_leaf', 0, 6, 1),
-            'min_sum_hessian_in_leaf': hp.loguniform('min_sum_hessian_in_leaf', -16, 5),
-            'lambda_l1': hp.loguniform('lambda_l1', -16, 2),
-            'lambda_l2': hp.loguniform('lambda_l2', -16, 2),
+          'learning_rate':           hp.loguniform('learning_rate', -7, 0),
+          'num_leaves':              scope.int(hp.qloguniform('num_leaves', 1, 7, 1)),
+          'feature_fraction':        hp.uniform('feature_fraction', 0.5, 1),
+          'bagging_fraction':        hp.uniform('bagging_fraction', 0.5, 1),
+          'min_data_in_leaf':        scope.int(hp.qloguniform('min_data_in_leaf', 0, 6, 1)),
+          'min_sum_hessian_in_leaf': hp.loguniform('min_sum_hessian_in_leaf', -16, 5),
+          'lambda_l1':               hp.loguniform('lambda_l1', -16, 2),
+          'lambda_l2':               hp.loguniform('lambda_l2', -16, 2),
         }
 
+    @staticmethod
+    def get_learning_task():
+        return LearningTask.REGRESSION

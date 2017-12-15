@@ -1,7 +1,7 @@
+from modelgym.models import LearningTask
 from collections import defaultdict
 
 import numpy as np
-
 
 class CatCounter(object):
     def __init__(self, learning_task, sort_values=None, seed=0):
@@ -17,12 +17,12 @@ class CatCounter(object):
 
     def counter(self, key, col):
         num, den = self.sum_dicts[col][key], self.count_dicts[col][key]
-        if self.learning_task == 'classification':
+        if self.learning_task == LearningTask.CLASSIFICATION:
             return (num + 1.) / (den + 2.)
-        elif self.learning_task == 'regression':
+        elif self.learning_task == LearningTask.REGRESSION:
             return num / den if den > 0 else 0
         else:
-            raise ValueError('Task type must be "classification" or "regression"')
+            raise ValueError('Task type must be classification or regression')
 
     def fit(self, X, y):
         self.sum_dicts = defaultdict(lambda: defaultdict(float))
@@ -55,3 +55,16 @@ class CatCounter(object):
                 result[index] = self.counter(key, col)
             results.append(result.reshape(-1, 1))
         return np.concatenate(results, axis=1)
+
+def preprocess_cat_cols(X_train, y_train, cat_cols, X_test=None, cc=None,
+                        counters_sort_col=None,
+                        learning_task=LearningTask.CLASSIFICATION):
+   if cc is None:
+       sort_values = None if counters_sort_col is None else X_train[:, counters_sort_col]
+       cc = CatCounter(learning_task, sort_values)
+       X_train[:,cat_cols] = cc.fit(X_train[:,cat_cols], y_train)
+   else:
+       X_train[:,cat_cols] = cc.transform(X_train[:,cat_cols])
+   if not X_test is None:
+       X_test[:,cat_cols] = cc.transform(X_test[:,cat_cols])
+   return cc

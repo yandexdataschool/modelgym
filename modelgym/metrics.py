@@ -1,5 +1,7 @@
 import numpy as np
-from sklearn.metrics import roc_auc_score, accuracy_score, f1_score, recall_score, precision_score, log_loss
+from sklearn.metrics import roc_auc_score, accuracy_score, \
+                            f1_score, recall_score, precision_score, log_loss, \
+                            mean_squared_error
 
 class Metric(object):
     def __init__(self, scoring_function, requires_proba=False, is_min_optimal=False, name="default_name"):
@@ -62,3 +64,6 @@ class Logloss(Metric):
     def __init__(self, name='logloss'):
         super(Logloss, self).__init__(scoring_function=log_loss, requires_proba=True, 
                                       is_min_optimal=True, name=name)
+class Mse(Metric):
+    def __init__(self, name='mse'):
+        super(Mse, self).__init__(scoring_function=mean_squared_error, name=name)

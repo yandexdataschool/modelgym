@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as pyplot
 import pandas as pd
 
-from modelgym.metric import Metric
+from modelgym.metrics import Metric
 from modelgym.util import calculate_custom_metrics
 
 

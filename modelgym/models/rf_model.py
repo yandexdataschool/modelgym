@@ -1,10 +1,10 @@
-import cPickle
+import pickle
 
 from hyperopt import hp
 from sklearn.ensemble import RandomForestClassifier as rfc
 
-from modelgym.models import Model
-from modelgym.utils import XYCDataset as xycd
+from modelgym.models import Model, LearningTask
+from modelgym.utils import XYCDataset
 from hyperopt import hp
 
 
@@ -15,6 +15,10 @@ class RFClassifier(Model):
                              If None default params are fetched.
         :param learning_task (str): set type of task(classification, regression, ...)
         """
+
+        if params is None:
+            params = {}
+
         self.params = {
             'max_depth': 1,
             'max_features': 4,
@@ -26,7 +30,8 @@ class RFClassifier(Model):
             'min_weight_fraction_leaf': 0.,
             'min_impurity_split': 1e-7
         }
-        self.params.update(params)
+        if params:
+            self.params.update(params)
 
         self.n_estimators = self.params.pop('n_estimators', 1)
         self.model = None
@@ -38,8 +43,8 @@ class RFClassifier(Model):
         """
         self.model = model
 
-    def convert_to_dataset(self, data, label, cat_cols=None):
-        return xycd(data, label, cat_cols)
+    def _convert_to_dataset(self, data, label, cat_cols=None):
+        return XYCDataset(data, label, cat_cols)
 
     def fit(self, dataset, weights=None):
         """
@@ -59,9 +64,9 @@ class RFClassifier(Model):
         :return: serializable internal model state snapshot.
 
         """
-        assert self.model, "model is not fitted"
+        assert self.model is not None, "model is not fitted"
         with open(filename, 'wb') as f:
-            cPickle.dump(self.model, f)
+            pickle.dump(self.model, f)
 
     @staticmethod
     def load_from_snapshot(self, filename):
@@ -69,8 +74,8 @@ class RFClassifier(Model):
         :snapshot serializable internal model state
         loads from serializable internal model state snapshot.
         """
-        with open('path/to/file', 'rb') as f:
-            model = cPickle.load(f)
+        with open(filename, 'rb') as f:
+            model = pickle.load(f)
 
         new_model = RFClassifier(model.get_params())
         new_model._set_model(model)
@@ -109,6 +114,9 @@ class RFClassifier(Model):
             'criterion':         hp.choice('criterion', ["gini", "entropy"]),
             'min_samples_split': hp.quniform('min_samples_split', 2, 20, 1),
             'min_samples_leaf':  hp.quniform('min_samples_leaf', 1, 20, 1),
-
         }
+
+    @staticmethod
+    def get_learning_task():
+        return LearningTask.CLASSIFICATION
 

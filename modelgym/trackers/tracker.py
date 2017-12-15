@@ -36,7 +36,8 @@ class LocalTracker(Tracker):
         if not os.path.exists(directory) or not os.path.isdir(directory):
             os.mkdir(directory)
 
-    def save_state(self):
+    def save_state(self, state):
+        self.state = state
         LocalTracker.check_exists(self._save_dir)
         with open(self._save_file, 'wb') as f:
             pickle.dump(self.state, f)
@@ -51,7 +52,7 @@ class LocalTracker(Tracker):
                 print ('no saved state found: {}'.format(self._save_file))
             else:
                 print (e)
-            self.state = {}
+            self.state = None
             return self.state
 
 

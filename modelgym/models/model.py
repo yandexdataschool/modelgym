@@ -9,8 +9,6 @@ class Model(object):
     def __init__(self, params=None):
         """
         :param params (dict or None): parameters for model.
-                             If None default params are fetched.
-        :param learning_task (str): set type of task(classification, regression, ...)
         """
         raise NotImplementedError("Pure virtual class.")
 
@@ -47,8 +45,9 @@ class Model(object):
 
     def predict(self, dataset):
         """
-        :param dataset (np.array, shape (n_samples, n_features)): the input data
-        :return: np.array, shape (n_samples, ) or (n_samples, n_outputs)
+        :param dataset (modelgym.utils.XYCDataset): the input data, 
+            dataset.y may be None
+        :return: np.array, shape (n_samples, ) -- predictions
         """
         raise NotImplementedError("Pure virtual class.")
 
@@ -61,13 +60,20 @@ class Model(object):
     def predict_proba(self, X):
         """
         :param dataset (np.array, shape (n_samples, n_features)): the input data
-        :return: np.array, shape (n_samples, n_classes)
+        :return np.array, shape (n_samples, n_classes): predicted probabilities
         """
         raise NotImplementedError("Pure virtual class.")
 
     @staticmethod
     def get_default_parameter_space():
         """
-        :return: dict of DistributionWrappers
+        :return dict from parameter name to hyperopt distribution: default
+            parameter space
+        """
+        raise NotImplementedError("Pure virtual class.")
+
+    def get_learning_task(self):
+        """
+        :return modelgym.models.LearningTask: task
         """
         raise NotImplementedError("Pure virtual class.")

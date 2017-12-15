@@ -1,7 +1,7 @@
 import xgboost as xgb
 import numpy as np
 
-from modelgym.models import Model
+from modelgym.models import Model, LearningTask
 from hyperopt import hp
 from hyperopt.pyll.base import scope
 
@@ -9,16 +9,22 @@ from hyperopt.pyll.base import scope
 class XGBClassifier(Model):
     def __init__(self, params=None):
         """
-        :param params (dict or None): parameters for model.
-                             If None default params are fetched.
-        :param learning_task (str): set type of task(classification, regression, ...)
+        :param params (dict): parameters for model.
         """
+
+        if params is None:
+            params = {}
+
         objective = 'binary:logistic'
-        if params.get('num_class', 2):
+        metric = 'logloss'
+        if params.get('num_class', 2) > 2:
             # change default objective
             objective = 'multi:softprob'
+            metric = 'mlogloss'
 
-        self.params = {'objective': objective, 'eval_metric': 'logloss', 'silent': 1}
+        self.params = {'objective': objective, 'eval_metric': 'logloss',
+                       'silent': 1}
+
         self.params.update(params)
         self.n_estimators = self.params.pop('n_estimators', 1)
         self.model = None
@@ -70,7 +76,7 @@ class XGBClassifier(Model):
         :return: np.array, shape (n_samples, ) or (n_samples, n_outputs)
         """
         xgb_dataset = xgb.DMatrix(dataset.X)
-        if self.params['objective'] == 'multi:softmax':
+        if self.params['objective'] == 'multi:softprob':
             return self.model.predict(xgb_dataset).astype(int)
         prediction = np.round(self.model.predict(xgb_dataset)).astype(int)
         if self.params.get('num_class', 2) == 2:
@@ -81,7 +87,7 @@ class XGBClassifier(Model):
         """
         :return: bool, whether model can predict proba
         """
-        if self.params['objective'] == 'multi:softmax':
+        if self.params['objective'] == 'multi:softprob':
             return False
         return True
 
@@ -90,8 +96,9 @@ class XGBClassifier(Model):
         :param X (np.array, shape (n_samples, n_features)): the input data
         :return: np.array, shape (n_samples, n_classes)
         """
+        xgb_dataset = xgb.DMatrix(dataset.X)
         assert self.is_possible_predict_proba(), "Model cannot predict probability distribution"
-        return self.model.predict(dataset.X)
+        return self.model.predict(xgb_dataset)
 
     @staticmethod
     def get_default_parameter_space():
@@ -112,6 +119,9 @@ class XGBClassifier(Model):
             'alpha':             hp.loguniform('alpha', -16, 2)
         }
 
+    @staticmethod
+    def get_learning_task(self):
+        return LearningTask.CLASSIFICATION
 
 class XGBRegressor(Model):
     def __init__(self, params=None):
@@ -120,7 +130,12 @@ class XGBRegressor(Model):
                              If None default params are fetched.
         :param learning_task (str): set type of task(classification, regression, ...)
         """
-        self.params = {'objective': 'reg:linear', 'eval_metric': 'rmse'}
+
+        if params is None:
+            params = {}
+
+        self.params = {'objective': 'reg:linear', 'eval_metric': 'rmse', 
+                       'silent' : 1}
         self.params.update(params)
         self.n_estimators = self.params.pop('n_estimators', 1)
         self.model = None
@@ -194,7 +209,8 @@ class XGBRegressor(Model):
 
         return {
             'eta':               hp.loguniform('eta', -7, 0),
-            'max_depth':         hp.quniform('max_depth', 2, 10, 1),
+            'max_depth':         scope.int(hp.quniform('max_depth', 2, 10, 1)),
+            'n_estimators':      scope.int(hp.quniform('n_estimators', 100, 1000, 1)),
             'subsample':         hp.uniform('subsample', 0.5, 1),
             'colsample_bytree':  hp.uniform('colsample_bytree', 0.5, 1),
             'colsample_bylevel': hp.uniform('colsample_bylevel', 0.5, 1),
@@ -203,3 +219,7 @@ class XGBRegressor(Model):
             'lambdax':           hp.loguniform('lambdax', -16, 2),
             'alpha':             hp.loguniform('alpha', -16, 2)
         }
+
+    @staticmethod
+    def get_learning_task(self):
+        return LearningTask.REGRESSION
