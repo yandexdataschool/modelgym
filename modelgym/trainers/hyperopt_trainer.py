@@ -52,7 +52,8 @@ class HyperoptTrainer(Trainer):
                     self.tracker.save_state(self.state)
 
     def get_best_results(self):
-        return {name: trials.best_trial["result"] 
+        return {name: {"result" : trials.best_trial["result"],
+                       "model_space" : self.model_space}
                 for (name, trials) in self.state.items()}
 
     @staticmethod

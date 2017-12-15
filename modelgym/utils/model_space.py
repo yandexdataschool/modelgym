@@ -12,7 +12,6 @@ class ModelSpace(object):
         """
         if not issubclass(model_class, Model):
             raise ValueError("model_class should be subclass of Model")
-
         self.model_class = model_class
         self.space = space
         if self.space is None:
