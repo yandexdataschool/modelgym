@@ -2,7 +2,7 @@ import pytest
 
 from modelgym.models import XGBClassifier, RFClassifier, LGBMClassifier, \
                             XGBRegressor, LGBMRegressor
-from modelgym.trainers import HyperoptTrainer
+from modelgym.trainers import HyperoptTrainer, TpeTrainer, RandomTrainer
 from modelgym.metrics import RocAuc, Accuracy, Mse
 from modelgym.utils import XYCDataset
 from modelgym.trackers import LocalTracker
@@ -12,30 +12,34 @@ import shutil
 
 from sklearn.datasets import make_classification, make_regression
 
+TRAINER_CLASS = [TpeTrainer, RandomTrainer]
 
-def test_basic_pipeline_biclass():
+@pytest.mark.parametrize("trainer_class", TRAINER_CLASS)
+def test_basic_pipeline_biclass(trainer_class):
     X, y = make_classification(n_samples=200, n_features=20,
                                n_informative=10, n_classes=2)
-    trainer = HyperoptTrainer([XGBClassifier, LGBMClassifier, RFClassifier])
+    trainer = trainer_class([XGBClassifier, LGBMClassifier, RFClassifier])
     dataset = XYCDataset(X, y)
     trainer.crossval_optimize_params(Accuracy(), dataset, opt_evals=3)
     trainer.get_best_results()
 
-def test_basic_pipeline_regression():
+@pytest.mark.parametrize("trainer_class", TRAINER_CLASS)
+def test_basic_pipeline_regression(trainer_class):
     X, y = make_regression(n_samples=200, n_features=20,
                            n_informative=10, n_targets=1)
-    trainer = HyperoptTrainer([LGBMRegressor])
+    trainer = trainer_class([LGBMRegressor])
     dataset = XYCDataset(X, y)
     trainer.crossval_optimize_params(Mse(), dataset, opt_evals=3)
     trainer.get_best_results()
 
-def test_advanced_pipeline_biclass():
+@pytest.mark.parametrize("trainer_class", TRAINER_CLASS)
+def test_advanced_pipeline_biclass(trainer_class):
     X, y = make_classification(n_samples=200, n_features=20,
                                n_informative=10, n_classes=2)
     DIR = '/tmp/local_dir'
     tracker = LocalTracker(DIR)
-    trainer = HyperoptTrainer([XGBClassifier, LGBMClassifier, RFClassifier],
-                              tracker=tracker)
+    trainer = trainer_class([XGBClassifier, LGBMClassifier, RFClassifier],
+                            tracker=tracker)
     dataset = XYCDataset(X, y)
     trainer.crossval_optimize_params(Accuracy(), dataset, opt_evals=3,
                                      metrics=[RocAuc()])

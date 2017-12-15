@@ -6,7 +6,9 @@ from hyperopt import fmin, Trials, STATUS_OK, tpe
 import numpy as np
 
 class HyperoptTrainer(Trainer):
-    def __init__(self, model_spaces, algo=tpe.suggest, tracker=None):
+    def __init__(self, model_spaces, algo, tracker=None):
+        if algo is None:
+            raise ValueError("algo should not be None")
         self.model_spaces = process_model_spaces(model_spaces)
         self.tracker = tracker
         self.state = None
@@ -53,7 +55,7 @@ class HyperoptTrainer(Trainer):
 
     def get_best_results(self):
         return {name: {"result" : trials.best_trial["result"],
-                       "model_space" : self.model_space}
+                       "model_space" : self.model_spaces[name]}
                 for (name, trials) in self.state.items()}
 
     @staticmethod
@@ -78,3 +80,11 @@ class HyperoptTrainer(Trainer):
             "params": params.copy(),
             "status": STATUS_OK
         }
+
+class TpeTrainer(HyperoptTrainer):
+    def __init__(self, model_spaces, tracker=None):
+        super().__init__(model_spaces, algo=tpe.suggest, tracker=tracker)
+
+class RandomTrainer(HyperoptTrainer):
+    def __init__(self, model_spaces, tracker=None):
+        super().__init__(model_spaces, algo=tpe.suggest, tracker=tracker)        
