@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -ex
 
 function throw_error {
   echo -e $*
@@ -29,7 +29,7 @@ if ! conda env list|grep  $ENV_NAME ; then
     conda env create -q --file $ENV_FILE -n $ENV_NAME
     conda clean -tipsy
 else
-    conda env update -f $ENV_FILE -n $ENV_NAME
+    conda env update -q -f $ENV_FILE -n $ENV_NAME
 fi
 conda env list
 cat >> ~/.profile << EOT  
