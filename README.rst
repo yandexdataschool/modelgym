@@ -4,12 +4,12 @@ Model Gym
 Gym for predictive models
 
 .. image:: https://img.shields.io/badge/run%20me-@everware-blue.svg?style=flat
-:target: https://everware.ysda.yandex.net/hub/oauth_login?repourl=https://github.com/yandexdataschool/modelgym
-:alt: run at everware
+  :target: https://everware.ysda.yandex.net/hub/oauth_login?repourl=https://github.com/yandexdataschool/modelgym
+  :alt: run at everware
 
 .. image:: https://readthedocs.org/projects/modelgym/badge/?version=latest
-:target: http://modelgym.readthedocs.io/en/latest/?badge=latest
-:alt: Documentation Status
+  :target: http://modelgym.readthedocs.io/en/latest/?badge=latest
+  :alt: Documentation Status
 
 What is this about?
 -------------------
