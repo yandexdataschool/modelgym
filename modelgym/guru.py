@@ -102,11 +102,12 @@ class Guru:
         """
         Arguments:
             X: array-like with shape (n_objects x n_features)
+                features from your dataset
         Returns:
             out: dict
-                out['""" + Guru._NOT_NUMERIC_KEY + """']: list
+                out['not numeric']: list
                     indexes of features which aren't numeric
-                out['""" + Guru._NOT_VARIABLE_KEY + """']: list
+                out['not variable']: list
                     indexes of features which are supposed to be not variable
         """
         to_find = Guru._CATEGORIAL
@@ -116,11 +117,11 @@ class Guru:
         """
         Arguments:
             X: array-like with shape (n_objects x n_features)
+                features from your dataset
         Returns:
             out: list
                 features which are supposed to be sparse
         """
-
         to_find = Guru._SPARSE
         return self._get_categorial_or_sparse(X, to_find)
 
@@ -163,12 +164,15 @@ class Guru:
 
     def check_class_disbalance(self, y):
         """
+        You should use this method only if you are soling classification task
+
         Arguments:
             y: array-like with shape (n_objects,)
+                target classes in your dataset.
         Returns:
-            out['""" + Guru._TOO_COMMON_KEY + """']: list
+            out['too common']: list
                 too common classes
-            out['""" + Guru._TOO_RARE_KEY + """']: list
+            out['too rare']: list
                 too rare classes
         """
         candidates = defaultdict(list)
@@ -190,6 +194,7 @@ class Guru:
         """
         Arguments:
             X: array-like with shape (n_objects x n_features)
+                features from your dataset
             feature_indexes: list of int or str
                 features which should be checked for correlation. If None all features will be checked.
                 If it is list of str X should be a np.ndarray and X.dtype should contain fields
@@ -211,6 +216,7 @@ class Guru:
         """
         Arguments:
             X: array-like with shape (n_objects x n_features)
+                features from your dataset
             feature_indexes: list
                 features which should be checked for correlation. If None all features will be checked
             figsize: tuple of int
@@ -262,6 +268,7 @@ class Guru:
         """
         Arguments:
             data: XYCDataset-like
+                your dataset
         Returns:
             (categorials, sparse, disbalanced, correlated)
                 categorials: indexes of features which are supposed to be categorial
