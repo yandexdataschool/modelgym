@@ -5,13 +5,32 @@ tags:
   - decision-tree based models
 authors:
  - name: Andrey Ustyuzhanin
-   orcid: 0000-0000-0000-1234
+   orcid: 0000-0001-7865-2357
    affiliation: "1, 2"
+
+ - name: Sergey Miller
+   orcid: 0000-0003-4613-1199
+   affiliation: "3"
+
+ - name: Fedor Minkin
+   orcid: 0000-0002-3353-6560
+   affiliation: "1, 3"
+
+ - name: Alexander Boymel
+   orcid: 0000-0003-0759-6831
+   affiliation: "1, 3"
+ 
+ - name: Alexey Zabelin
+   orcid: 0000-0003-4654-4495
+   affiliation: "3"
+   
 affiliations:
  - name: Yandex
    index: 1
  - name: Yandex Data Factory
    index: 2
+ - name: Moscow Institute of Physics and Technology
+   index: 3
 date: 17 December 2017
 ---
 
