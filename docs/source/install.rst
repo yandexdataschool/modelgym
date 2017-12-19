@@ -27,20 +27,13 @@ Install required python3 packages by running following commands.
 
     pip3 install jupyter
 
-3. LightGBM. Modelgym works with LightGBM version 2.0.2::
+3. LightGBM. Modelgym works with LightGBM version 2.0.4::
 
-    git clone ^^recursive https://github.com/Microsoft/LightGBM
-    cd LightGBM
-    git checkout 80c641cd17727bebea613af3cbfe3b985dbd3313
-    mkdir build && cd build && cmake -DUSE_MPI=ON ..
-    make -j
-    cd ../python-package/ && python3 setup.py install
-    cd ../../
-    rm -rf LightGBM
+    pip3 intstall lightgbm==2.0.4
 
 4. XGBoost. Modelgym works with XGBoost version 0.6::
 
-    git clone ^^recursive https://github.com/dmlc/xgboost
+    git clone --recursive https://github.com/dmlc/xgboost
     cd xgboost
     git checkout 14fba01b5ac42506741e702d3fde68344a82f9f0
     make -j
@@ -78,8 +71,13 @@ Running Model Gym In A Container Using DockerHub Image
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 To run docker container with official image ``modelgym/jupyter:latest`` from DockerHub repo for using model gym via jupyter you simply run the command::
 
-    $ docker run -ti ^^rm  -v "$(pwd)":/src  -p 7777:8888 \
-    modelgym/jupyter:latest  bash ^^login -ci 'jupyter notebook'
+    $ docker run -ti --rm  -v "$(pwd)":/src  -p 7777:8888 \
+    modelgym/jupyter:latest  bash --login -ci 'jupyter notebook'
+
+If you are using Windows you need to run this instead::
+
+    $ docker run -ti --rm  -v %cd%:/src  -p 7777:8888 \
+    modelgym/jupyter:latest  bash --login -ci "jupyter notebook"
 
 At first time it downloads container.
 

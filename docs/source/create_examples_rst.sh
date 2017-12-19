@@ -1,11 +1,12 @@
-ipynb_names=(model_search guru_example)
-rst_names=(train_example guru_example)
-
-for i in 0 1
+for file in ../../example/*.ipynb
 do
-ipython nbconvert ../../example/${ipynb_names[$i]}.ipynb --to rst
-mv ../../example/${ipynb_names[$i]}.rst ./${rst_names[$i]}.rst
-mv ../../example/${ipynb_names[$i]}_files/* ./images
-rm -d ../../example/${ipynb_names[$i]}_files
-sed -i -- "s/${ipynb_names[$i]}_files/images/g" ${rst_names[$i]}.rst
+    echo "making rst from $file"
+    name_with_path=${file%.*}
+    name=${file##*/}
+    name=${name%.*}
+    ipython nbconvert $file --to rst
+    mv $name_with_path.rst ./$name.rst
+    mv ${name_with_path}_files/* ./images
+    rm -d ${name_with_path}_files
+    sed -i -- "s/${name}_files/images/g" ${name}.rst
 done
