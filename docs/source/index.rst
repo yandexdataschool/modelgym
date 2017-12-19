@@ -20,7 +20,7 @@ Examples
 .. toctree::
    :maxdepth: 3
 
-   train_example
+   model_search
    guru_example
 
 Documentaion
