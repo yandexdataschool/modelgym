@@ -91,7 +91,7 @@ class OneHotEncoder:
                             )
 
 
-def preprocess_cat_cols(X_train, y_train, cat_cols, X_test=None,
+def preprocess_cat_cols(X_train, y_train, cat_cols=[], X_test=None,
                         one_hot_max_size=1, learning_task=LearningTask.CLASSIFICATION):
     """
         one-hot or cat-count preprocessing, depends on one_hot_max_size
@@ -101,8 +101,6 @@ def preprocess_cat_cols(X_train, y_train, cat_cols, X_test=None,
         if len(np.unique(X_train[:, col])) <= one_hot_max_size]
 
     cat_count_cols = list(set(cat_cols) - set(one_hot_cols))
-
-    print(cat_count_cols, one_hot_cols)
 
     preprocess_counter_cols(X_train, y_train, cat_count_cols,
             X_test, learning_task=learning_task)
@@ -116,21 +114,23 @@ def preprocess_cat_cols(X_train, y_train, cat_cols, X_test=None,
 
 
 
-def preprocess_counter_cols(X_train, y_train, cat_cols, X_test=None, cc=None,
+def preprocess_counter_cols(X_train, y_train, cat_cols=None, X_test=None, cc=None,
                         counters_sort_col=None,
                         learning_task=LearningTask.CLASSIFICATION):
-   if cc is None:
+    if cat_cols is None or len(cat_cols) == 0:
+        return cc
+    if cc is None:
        sort_values = None if counters_sort_col is None else X_train[:, counters_sort_col]
        cc = CatCounter(learning_task, sort_values)
        X_train[:,cat_cols] = cc.fit(X_train[:,cat_cols], y_train)
-   else:
+    else:
        X_train[:,cat_cols] = cc.transform(X_train[:,cat_cols])
-   if not X_test is None:
+    if not X_test is None:
        X_test[:,cat_cols] = cc.transform(X_test[:,cat_cols])
-   return cc
+    return cc
 
 
-def preprocess_one_hot_cols(X_train, cat_cols, X_test=None):
+def preprocess_one_hot_cols(X_train, cat_cols=None, X_test=None):
     add_one_hot = lambda X_old, X_one_hot: np.concatenate(
                             (np.delete(X_old, cat_cols, 1), X_one_hot), 1)
 

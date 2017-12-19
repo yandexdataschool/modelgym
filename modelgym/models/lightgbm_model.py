@@ -22,7 +22,7 @@ class LGBMClassifier(Model):
         if params.get('num_class', 2) > 2:
             # change default objective
             objective = 'multiclass'
-            metric = 'multi_logloss'            
+            metric = 'multi_logloss'
 
         self.params = {'objective': objective, 'metric': metric}
         self.params.update(params)

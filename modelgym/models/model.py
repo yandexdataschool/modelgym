@@ -1,4 +1,6 @@
 from modelgym.models.learning_task import LearningTask
+from modelgym.cat_utils import preprocess_cat_cols
+
 
 class Model(object):
     """
@@ -72,6 +74,7 @@ class Model(object):
         """
         raise NotImplementedError("Pure virtual class.")
 
+    @staticmethod
     def get_learning_task(self):
         """
         :return modelgym.models.LearningTask: task
@@ -91,6 +94,6 @@ class Model(object):
         for dtrain, dtest in cv_pairs:
             preprocess_cat_cols(dtrain.X, dtrain.y,
                 dtrain.cat_cols, dtest.X, one_hot_max_size, learning_task)
-            cv_pairs.append((dtrain, dtest))
+            cv_prepared.append((dtrain, dtest))
 
         return cv_prepared

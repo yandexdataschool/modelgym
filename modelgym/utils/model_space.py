@@ -5,7 +5,7 @@ class ModelSpace(object):
         """
         Args:
             model_class(type): class of model
-            space (dict string -> hyperopt distribution or None): 
+            space (dict string -> hyperopt distribution or None):
                 space of model parameters. If None than default is used
             name (string or None): name of ModelSpace. If None, model
                 class name is used
@@ -22,12 +22,12 @@ class ModelSpace(object):
 
 def process_model_spaces(model_spaces):
     """Process model spaces list (or one model space),
-        
+
     changing converting Model's to ModelSpaces
     and checking name uniqueness
 
     Args:
-        model_spaces ([list of] Model classes or 
+        model_spaces ([list of] Model classes or
             ModelSpaces): list to process
     Returns:
         dict name (str) -> ModelSpace
@@ -39,13 +39,13 @@ def process_model_spaces(model_spaces):
     for model_space in model_spaces:
         if isinstance(model_space, type):
             if not issubclass(model_space, Model):
-                raise ValueError("model_spaces should be either Models " + 
+                raise ValueError("model_spaces should be either Models " +
                                  "classes or ModelSpaces")
             model_space = ModelSpace(model_space)
         elif not isinstance(model_space, ModelSpace):
-            raise ValueError("model_spaces should be either Models " + 
+            raise ValueError("model_spaces should be either Models " +
                              "classes or ModelSpaces")
         if model_space.name in result:
             raise ValueError("Dublicate name: %s" % str(model_space.name))
         result[model_space.name] = model_space
-    return result 
+    return result

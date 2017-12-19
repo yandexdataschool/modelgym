@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from modelgym.utils import XYCDataset
-from modelgym.utils import preprocess_cat_cols
+from modelgym.cat_utils import preprocess_cat_cols
 
 
 def test_model_cat_preprocess():
@@ -13,6 +13,12 @@ def test_model_cat_preprocess():
     y = np.arange(objects)
 
     X = np.arange(objects * features).reshape((objects, features)).astype(float)
+
+    A = preprocess_cat_cols(X, y, one_hot_max_size=1)
+
+    print(A)
+
+    assert np.array_equal(A, X)
 
     X = preprocess_cat_cols(X, y, cat_cols, one_hot_max_size=1)
 

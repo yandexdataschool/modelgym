@@ -15,9 +15,9 @@ class HyperoptTrainer(Trainer):
         self.algo = algo
 
     # TODO: consider different batch_size for different models
-    def crossval_optimize_params(self, opt_metric, dataset, cv=3, 
+    def crossval_optimize_params(self, opt_metric, dataset, cv=3,
                                  opt_evals=50, metrics=None, batch_size=10,
-                                 verbose=False):
+                                 verbose=False, one_hot_max_size=10):
         if metrics is None:
             metrics = []
 
@@ -34,6 +34,12 @@ class HyperoptTrainer(Trainer):
 
         for name, state in self.state.items():
             model_space = self.model_spaces[name]
+
+            learning_task =  model_space.model_class.get_learning_task()
+
+            model_space.model_class.cat_preprocess(
+                    cv, one_hot_max_size, learning_task)
+
             if len(state) == opt_evals:
                 continue
 
@@ -87,4 +93,4 @@ class TpeTrainer(HyperoptTrainer):
 
 class RandomTrainer(HyperoptTrainer):
     def __init__(self, model_spaces, tracker=None):
-        super().__init__(model_spaces, algo=tpe.suggest, tracker=tracker)        
+        super().__init__(model_spaces, algo=tpe.suggest, tracker=tracker)

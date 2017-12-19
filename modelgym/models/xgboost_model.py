@@ -120,8 +120,9 @@ class XGBClassifier(Model):
         }
 
     @staticmethod
-    def get_learning_task(self):
+    def get_learning_task():
         return LearningTask.CLASSIFICATION
+
 
 class XGBRegressor(Model):
     def __init__(self, params=None):
@@ -134,7 +135,7 @@ class XGBRegressor(Model):
         if params is None:
             params = {}
 
-        self.params = {'objective': 'reg:linear', 'eval_metric': 'rmse', 
+        self.params = {'objective': 'reg:linear', 'eval_metric': 'rmse',
                        'silent' : 1}
         self.params.update(params)
         self.n_estimators = self.params.pop('n_estimators', 1)
@@ -221,5 +222,5 @@ class XGBRegressor(Model):
         }
 
     @staticmethod
-    def get_learning_task(self):
+    def get_learning_task():
         return LearningTask.REGRESSION
