@@ -2,13 +2,13 @@ Models
 ===========
 
 In order to use our Trainer you need the wrapper on your model.
-You can find the required interface below.
+You can find the required `Model interface`_ below.
 
 Also, we implement wrappers for several models:
 
-* XGBoost
-* LightGBM
-* RandomForestClassifier
+* `XGBoost`_
+* `LightGBM`_
+* `RandomForestClassifier`_
 
 Model interface
 ---------------

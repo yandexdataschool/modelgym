@@ -9,7 +9,7 @@ do
 
     echo -e "\nMaking rst from ${name}\n"
 
-    ipython nbconvert $file --to rst
+    jupyter nbconvert $file --to rst
     mv $name_with_path.rst ./$name.rst
     mv ${name_with_path}_files/* ./images
     rm -d ${name_with_path}_files

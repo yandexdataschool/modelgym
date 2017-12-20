@@ -1,4 +1,7 @@
 
+Training example
+================
+
 .. code:: ipython3
 
     import functools
@@ -344,7 +347,7 @@ Plots
 
 
 
-.. image:: images/model_search_15_1.png
+.. image:: images/model_search_16_1.png
 
 
 .. parsed-literal::
@@ -355,7 +358,7 @@ Plots
 
 
 
-.. image:: images/model_search_15_3.png
+.. image:: images/model_search_16_3.png
 
 
 Check quality differences
@@ -400,7 +403,7 @@ Check correlation maps
 
 
 
-.. image:: images/model_search_19_1.png
+.. image:: images/model_search_20_1.png
 
 
 .. parsed-literal::
@@ -411,7 +414,7 @@ Check correlation maps
 
 
 
-.. image:: images/model_search_19_3.png
+.. image:: images/model_search_20_3.png
 
 
 .. code:: ipython3
