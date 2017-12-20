@@ -1,7 +1,7 @@
-Tracker
-=======
+Trackers
+========
 
-.. automodule:: modelgym.tracker
-    :members:
+.. automodule:: modelgym.trackers.tracker
+    :members: LocalTracker, TrackerMongo
     :undoc-members:
     :show-inheritance:

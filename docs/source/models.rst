@@ -12,13 +12,13 @@ Also, we implement wrappers for several models:
 
 Model interface
 ---------------
-.. automodule:: modelgym.model
+.. automodule:: modelgym.models.model
     :members:
     :undoc-members:
 
 XGBoost
 ---------------
-.. automodule:: modelgym.xgboost_model
+.. automodule:: modelgym.models.xgboost_model
     :members:
     :undoc-members:
     :show-inheritance:
@@ -26,14 +26,14 @@ XGBoost
 
 LightGBM
 ---------------
-.. automodule:: modelgym.lightgbm_model
+.. automodule:: modelgym.models.lightgbm_model
     :members:
     :undoc-members:
     :show-inheritance:
 
 RandomForestClassifier
 ------------------------------
-.. automodule:: modelgym.rf_model
+.. automodule:: modelgym.models.rf_model
     :members:
     :undoc-members:
     :show-inheritance:
