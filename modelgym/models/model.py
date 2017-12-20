@@ -74,7 +74,7 @@ class Model(object):
         raise NotImplementedError("Pure virtual class.")
 
     @staticmethod
-    def get_learning_task(self):
+    def get_learning_task():
         """
         :return modelgym.models.LearningTask: task
         """

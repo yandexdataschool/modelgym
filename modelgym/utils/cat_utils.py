@@ -103,6 +103,7 @@ def cat_preprocess_cv(cv_pairs, one_hot_max_size=1,
     for dtrain, dtest in cv_pairs:
         preprocess_cat_cols(dtrain.X, dtrain.y,
             dtrain.cat_cols, dtest.X, one_hot_max_size, learning_task)
+        dtrain.cat_cols = dtest.cat_cols = []
         cv_prepared.append((dtrain, dtest))
 
     return cv_prepared

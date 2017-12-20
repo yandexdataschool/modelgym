@@ -119,4 +119,3 @@ class RFClassifier(Model):
     @staticmethod
     def get_learning_task():
         return LearningTask.CLASSIFICATION
-

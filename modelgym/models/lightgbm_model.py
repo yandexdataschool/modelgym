@@ -118,6 +118,7 @@ class LGBMClassifier(Model):
     def get_learning_task():
         return LearningTask.CLASSIFICATION
 
+
 class LGBMRegressor(Model):
     def __init__(self, params=None):
         """

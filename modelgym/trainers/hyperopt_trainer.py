@@ -7,19 +7,19 @@ from hyperopt import fmin, Trials, STATUS_OK, tpe
 import numpy as np
 
 class HyperoptTrainer(Trainer):
-    def __init__(self, model_spaces, algo, tracker=None, cat_preprocess=True):
+    def __init__(self, model_spaces, algo, tracker=None):
         if algo is None:
             raise ValueError("algo should not be None")
         self.model_spaces = process_model_spaces(model_spaces)
         self.tracker = tracker
         self.state = None
         self.algo = algo
-        self.cat_preprocess = cat_preprocess
 
     # TODO: consider different batch_size for different models
     def crossval_optimize_params(self, opt_metric, dataset, cv=3,
                                  opt_evals=50, metrics=None, batch_size=10,
-                                 verbose=False, one_hot_max_size=10):
+                                 verbose=False,
+                                 one_hot_max_size=10, cat_preprocess=True):
         if metrics is None:
             metrics = []
 
@@ -37,9 +37,11 @@ class HyperoptTrainer(Trainer):
         for name, state in self.state.items():
             model_space = self.model_spaces[name]
 
+            print(model_space.model_class)
+
             learning_task =  model_space.model_class.get_learning_task()
 
-            if self.cat_preprocess:
+            if cat_preprocess:
                 cat_preprocess_cv(
                         cv, one_hot_max_size, learning_task)
 

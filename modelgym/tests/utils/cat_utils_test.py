@@ -1,6 +1,19 @@
 import pytest
 import numpy as np
-from modelgym.utils import XYCDataset, preprocess_cat_cols
+from modelgym.utils import XYCDataset, preprocess_cat_cols, cat_preprocess_cv
+
+from sklearn.datasets import make_classification, make_regression
+
+
+def test_cat_preprocess_cv():
+    X, y = make_classification(n_samples=200, n_features=20,
+                            n_informative=10, n_classes=2)
+    dataset = XYCDataset(X, y)
+    cv = dataset.cv_split(4)
+    cv = cat_preprocess_cv(cv, one_hot_max_size=5)
+
+    assert len(cv) == 4
+    assert len(cv[0][0].cat_cols) == 0 and len(cv[0][1].cat_cols) == 0
 
 
 def test_model_cat_preprocess():
