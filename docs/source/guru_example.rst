@@ -92,18 +92,6 @@ Looking for correlated features
     guru.check_correlation(X, [3, 4, 5])
 
 
-
-.. image:: images/guru_example_12_0.png
-
-
-
-.. image:: images/guru_example_12_1.png
-
-
-
-.. image:: images/guru_example_12_2.png
-
-
 .. parsed-literal::
 
     There are several correlated features. Consider dimention reduction, for example you can use PCA. Following pairs of features are supposed to be correlated:  [(3, 4)]
@@ -117,7 +105,7 @@ Looking for correlated features
 
 
 
-Drawing correlation heatmap for features above
+Drawing correlation heatmap for features
 
 .. code:: ipython3
 
@@ -126,6 +114,25 @@ Drawing correlation heatmap for features above
 
 
 .. image:: images/guru_example_14_0.png
+
+
+Drawing 2d histograms for features
+
+.. code:: ipython3
+
+    guru.draw_2dhist(X, [3, 4, 5])
+
+
+
+.. image:: images/guru_example_16_0.png
+
+
+
+.. image:: images/guru_example_16_1.png
+
+
+
+.. image:: images/guru_example_16_2.png
 
 
 Looking for disbalanced classes
@@ -175,5 +182,5 @@ Now we can draw heatmap like this
 
 
 
-.. image:: images/guru_example_21_0.png
+.. image:: images/guru_example_23_0.png
 

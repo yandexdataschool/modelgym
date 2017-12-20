@@ -1,30 +1,27 @@
 
-Training example
-================
-
 .. code:: ipython3
 
+    import functools
+    import itertools
+    import modelgym
+    import numpy as np
     import os
     import pickle
-    import itertools
-    import pandas as pd
-    import numpy as np
-    #from modelgym import model
-    import functools
-    import modelgym
-    from modelgym.util import TASK_CLASSIFICATION
-    from modelgym.trainer import Trainer
-    from modelgym.tracker import ProgressTrackerFile, ProgressTrackerMongo
-    from sklearn.metrics import roc_auc_score
-    from hyperopt.mongoexp import MongoTrials
-    from modelgym.util import split_and_preprocess
-    from sklearn.model_selection import train_test_split
+    
     from collections import OrderedDict
+    from hyperopt.mongoexp import MongoTrials
+    from sklearn.metrics import roc_auc_score
+    from sklearn.model_selection import train_test_split
+    
+    from modelgym.metric import RocAuc, Accuracy
+    from modelgym.tracker import ProgressTrackerFile, ProgressTrackerMongo
+    from modelgym.trainer import Trainer
+    from modelgym.util import TASK_CLASSIFICATION, split_and_preprocess
 
 
 .. parsed-literal::
 
-    /home/alexander/venv/my_modelgym/lib/python3.5/site-packages/sklearn/cross_validation.py:41: DeprecationWarning: This module was deprecated in version 0.18 in favor of the model_selection module into which all the refactored classes and functions are moved. Also note that the interface of the new CV iterators are different from that of this module. This module will be removed in 0.20.
+    /Users/f-minkin/.pyenv/versions/3.6.2/lib/python3.6/site-packages/sklearn/cross_validation.py:41: DeprecationWarning: This module was deprecated in version 0.18 in favor of the model_selection module into which all the refactored classes and functions are moved. Also note that the interface of the new CV iterators are different from that of this module. This module will be removed in 0.20.
       "This module will be removed in 0.20.", DeprecationWarning)
 
 
@@ -42,7 +39,7 @@ Training example
     CANDIDATES = OrderedDict([
         ('XGBoost', modelgym.XGBModel), 
         ('LightGBM', modelgym.LGBModel),
-        ('RandomForestClassifier',modelgym.RFModel)
+        ('RandomForestClassifier', modelgym.RFModel)
     ])
     RESULTS_DIR = "results"
     LOAD_CACHE = False
@@ -82,8 +79,8 @@ Download & read data file
 
 .. parsed-literal::
 
-    total 133112
-    -rw-rw-r-- 1 alexander alexander 136304022 окт 12 01:22 XY2d.pickle
+    total 266224
+    -rw-r--r--  1 f-minkin  LD\Domain Users  136304022 Nov 13 02:57 XY2d.pickle
 
 
 .. code:: ipython3
@@ -126,7 +123,7 @@ Run them all
     
     
     trackers = {}
-    custom_metric = {'roc_auc': roc_auc_score}
+    custom_metrics = [RocAuc(), Accuracy()]
     all_metrics = init_keys_dict()
     trainer = Trainer(opt_evals=N_PROBES, n_estimators=N_ESTIMATORS)
 
@@ -140,31 +137,36 @@ Run them all
         test_key = mode + "_test"
         if metrics[cv_key] is None:
             if mode == "default":
-                metrics[cv_key] = trainer.crossval_fit_eval(model, cv_pairs)
+                metrics[cv_key] = trainer.crossval_fit_eval(model, cv_pairs,
+                                                            custom_metrics=custom_metrics)
             elif mode == "tuned":
                 print('Hyperopt iterations:\n\n')
                 metrics[cv_key] = trainer.crossval_optimize_params(model, cv_pairs, algo_name=OPTIMIZER,
                                                                    trials=metrics['trials'],
-                                                                   tracker=tracker)
+                                                                   tracker=tracker, 
+                                                                   custom_metrics=custom_metrics)
             else:
                 raise ValueError("{0} not expected".format(mode))
-            tracker._update_state(metrics)
-        trainer.print_result(metrics[cv_key], '{0} {1} result on CV'.format(mode, name))
+            tracker._update_state(metrics[cv_key])
+        trainer.print_result(metrics[cv_key], '{0} {1} result on CV'.format(mode, name),
+                             extra_keys=[metric.name for metric in custom_metrics])
     
         if metrics[test_key] is None:
             metrics[test_key] = trainer.fit_eval(model, dtrain, dtest,
                                                  metrics[cv_key]['params'],
                                                  metrics[cv_key]['best_n_estimators'],
-                                                 custom_metric=custom_metric)
+                                                 custom_metrics=custom_metrics,
+                                                 compute_additional_statistics=True)
             tracker._update_state(metrics)
-        trainer.print_result(metrics[test_key], '{0} {1} result on TEST'.format(mode, name), extra_keys=['roc_auc'])
+        trainer.print_result(metrics[test_key], '{0} {1} result on TEST'.format(mode, name),
+                             extra_keys=[metric.name for metric in custom_metrics])
 
 .. code:: ipython3
 
     for model_class in CANDIDATES.values():
         model = model_class(TASK_CLASSIFICATION)
         name = model.get_name()
-        print("~" * 20, name, "~" * 20)
+        print("\n" + "~" * 20, name, "~" * 20)
         trackers[name] = tracker_factory(model_name=name)
         if LOAD_CACHE:
             all_metrics[name] = trackers[name].load_state()
@@ -177,95 +179,128 @@ Run them all
 
 .. parsed-literal::
 
+    
     ~~~~~~~~~~~~~~~~~~~~ XGBoost ~~~~~~~~~~~~~~~~~~~~
+    
     default XGBoost result on CV:
     
-    loss = 0.42284588
-    best_n_estimators = 2
-    params = {'gamma': 0, 'reg_alpha': 0, 'min_child_weight': 1, 'max_delta_step': 0, 'base_score': 0.5, 'silent': 1, 'reg_lambda': 1, 'seed': 0, 'nthread': -1, 'learning_rate': 0.1, 'scale_pos_weight': 1, 'objective': 'binary:logistic', 'colsample_bylevel': 1, 'eval_metric': 'logloss', 'missing': None, 'subsample': 1, 'n_estimators': 100, 'colsample_bytree': 1, 'max_depth': 3}
+    loss = 0.37413947
+    best_n_estimators = 1
+    roc_auc = 0.766874
+    accuracy = 0.880000
+    params = {'base_score': 0.5, 'colsample_bylevel': 1, 'colsample_bytree': 1, 'gamma': 0, 'learning_rate': 0.1, 'max_delta_step': 0, 'max_depth': 3, 'min_child_weight': 1, 'missing': None, 'n_estimators': 100, 'nthread': -1, 'reg_alpha': 0, 'reg_lambda': 1, 'scale_pos_weight': 1, 'seed': 0, 'subsample': 1, 'objective': 'binary:logistic', 'eval_metric': 'logloss', 'silent': 1}
+    
     default XGBoost result on TEST:
     
-    loss = 0.614406
-    n_estimators = 2
-    params = {'gamma': 0, 'reg_alpha': 0, 'min_child_weight': 1, 'max_delta_step': 0, 'base_score': 0.5, 'silent': 1, 'reg_lambda': 1, 'seed': 0, 'nthread': -1, 'learning_rate': 0.1, 'scale_pos_weight': 1, 'objective': 'binary:logistic', 'colsample_bylevel': 1, 'eval_metric': 'logloss', 'missing': None, 'subsample': 1, 'n_estimators': 100, 'colsample_bytree': 1, 'max_depth': 3}
-    roc_auc = 0.663240
+    loss = 0.642897
+    n_estimators = 1
+    roc_auc = 0.633497
+    accuracy = 0.832000
+    params = {'base_score': 0.5, 'colsample_bylevel': 1, 'colsample_bytree': 1, 'gamma': 0, 'learning_rate': 0.1, 'max_delta_step': 0, 'max_depth': 3, 'min_child_weight': 1, 'missing': None, 'n_estimators': 100, 'nthread': -1, 'reg_alpha': 0, 'reg_lambda': 1, 'scale_pos_weight': 1, 'seed': 0, 'subsample': 1, 'objective': 'binary:logistic', 'eval_metric': 'logloss', 'silent': 1}
     Hyperopt iterations:
     
     
-    [1/2]	eval_time=0.20 sec	current_logloss=0.654924	min_logloss=0.654924
-    [2/2]	eval_time=0.10 sec	current_logloss=0.444354	min_logloss=0.444354
+    [1/2]	eval_time=0.18 sec	current_logloss=0.645989	min_logloss=0.645989
+    [2/2]	eval_time=0.10 sec	current_logloss=0.517816	min_logloss=0.517816
     saved state to results/tracker_test_XGBoost.pickle
+    
     tuned XGBoost result on CV:
     
-    loss = 0.4443543
-    best_n_estimators = 2
-    params = {'gamma': 0.0008064719242845735, 'lambdax': 1.5481980017877143e-06, 'min_child_weight': 4.1073662953607967e-07, 'objective': 'binary:logistic', 'eta': 0.45954327406619383, 'colsample_bylevel': 0.6278474089136892, 'alpha': 0.000624361142368818, 'eval_metric': 'logloss', 'subsample': 0.8513224962221795, 'silent': 1, 'colsample_bytree': 0.5292435929542255, 'max_depth': 5}
+    loss = 0.51781561
+    best_n_estimators = 1
+    roc_auc = 0.771158
+    accuracy = 0.864000
+    params = {'alpha': 0.000624361142368818, 'colsample_bylevel': 0.6278474089136892, 'colsample_bytree': 0.5292435929542255, 'eta': 0.45954327406619383, 'gamma': 0.0008064719242845735, 'lambdax': 1.5481980017877143e-06, 'max_depth': 5, 'min_child_weight': 4.1073662953607967e-07, 'subsample': 0.8513224962221795, 'objective': 'binary:logistic', 'eval_metric': 'logloss', 'silent': 1}
+    
     tuned XGBoost result on TEST:
     
-    loss = 0.44609
-    n_estimators = 2
-    params = {'gamma': 0.0008064719242845735, 'lambdax': 1.5481980017877143e-06, 'min_child_weight': 4.1073662953607967e-07, 'objective': 'binary:logistic', 'eta': 0.45954327406619383, 'colsample_bylevel': 0.6278474089136892, 'alpha': 0.000624361142368818, 'eval_metric': 'logloss', 'subsample': 0.8513224962221795, 'silent': 1, 'colsample_bytree': 0.5292435929542255, 'max_depth': 5}
-    roc_auc = 0.751615
+    loss = 0.519781
+    n_estimators = 1
+    roc_auc = 0.595521
+    accuracy = 0.806000
+    params = {'alpha': 0.000624361142368818, 'colsample_bylevel': 0.6278474089136892, 'colsample_bytree': 0.5292435929542255, 'eta': 0.45954327406619383, 'gamma': 0.0008064719242845735, 'lambdax': 1.5481980017877143e-06, 'max_depth': 5, 'min_child_weight': 4.1073662953607967e-07, 'subsample': 0.8513224962221795, 'objective': 'binary:logistic', 'eval_metric': 'logloss', 'silent': 1}
     saved state to results/tracker_test_XGBoost.pickle
+    
     ~~~~~~~~~~~~~~~~~~~~ LightGBM ~~~~~~~~~~~~~~~~~~~~
+    
     default LightGBM result on CV:
     
-    loss = 0.46476010839
-    best_n_estimators = 2
-    params = {'drop_rate': 0.1, 'metric': 'binary_logloss', 'skip_drop': 0.5, 'num_threads': 4, 'num_leaves': 31, 'uniform_drop': False, 'lambda_l1': 0, 'reg_lambda': 0, 'seed': 0, 'boosting_type': 'gbdt', 'is_unbalance': False, 'objective': 'binary', 'min_child_samples': 10, 'max_drop': 50, 'nthread': 4, 'subsample': 1, 'verbose': -1, 'xgboost_dart_mode': False, 'subsample_freq': 1, 'lambda_l2': 0, 'max_depth': -1, 'reg_alpha': 0, 'min_child_weight': 5, 'max_bin': 255, 'bagging_freq': 1, 'sigmoid': 1.0, 'min_split_gain': 0, 'learning_rate': 0.1, 'min_sum_hessian_in_leaf': 0.001, 'scale_pos_weight': 1, 'min_data_in_leaf': 20, 'subsample_for_bin': 50000, 'colsample_bytree': 1}
+    loss = 0.432559717355
+    best_n_estimators = 1
+    roc_auc = 0.732477
+    accuracy = 0.860000
+    params = {'boosting_type': 'gbdt', 'colsample_bytree': 1, 'drop_rate': 0.1, 'is_unbalance': False, 'learning_rate': 0.1, 'max_bin': 255, 'min_data_in_leaf': 20, 'max_depth': -1, 'max_drop': 50, 'min_child_samples': 10, 'min_child_weight': 5, 'min_split_gain': 0, 'min_sum_hessian_in_leaf': 0.001, 'lambda_l1': 0, 'lambda_l2': 0, 'nthread': 4, 'num_threads': 4, 'num_leaves': 31, 'reg_alpha': 0, 'reg_lambda': 0, 'scale_pos_weight': 1, 'seed': 0, 'sigmoid': 1.0, 'skip_drop': 0.5, 'subsample': 1, 'subsample_for_bin': 50000, 'subsample_freq': 1, 'uniform_drop': False, 'xgboost_dart_mode': False, 'objective': 'binary', 'metric': 'binary_logloss', 'bagging_freq': 1, 'verbose': -1}
+    
     default LightGBM result on TEST:
     
-    loss = 0.605745205496
-    n_estimators = 2
-    params = {'drop_rate': 0.1, 'metric': 'binary_logloss', 'skip_drop': 0.5, 'num_threads': 4, 'num_leaves': 31, 'uniform_drop': False, 'lambda_l1': 0, 'reg_lambda': 0, 'seed': 0, 'boosting_type': 'gbdt', 'is_unbalance': False, 'objective': 'binary', 'min_child_samples': 10, 'max_drop': 50, 'nthread': 4, 'subsample': 1, 'verbose': -1, 'xgboost_dart_mode': False, 'subsample_freq': 1, 'lambda_l2': 0, 'max_depth': -1, 'reg_alpha': 0, 'min_child_weight': 5, 'max_bin': 255, 'bagging_freq': 1, 'sigmoid': 1.0, 'min_split_gain': 0, 'learning_rate': 0.1, 'min_sum_hessian_in_leaf': 0.001, 'scale_pos_weight': 1, 'min_data_in_leaf': 20, 'subsample_for_bin': 50000, 'colsample_bytree': 1}
-    roc_auc = 0.777722
+    loss = 0.642003341637
+    n_estimators = 1
+    roc_auc = 0.637366
+    accuracy = 0.812000
+    params = {'boosting_type': 'gbdt', 'colsample_bytree': 1, 'drop_rate': 0.1, 'is_unbalance': False, 'learning_rate': 0.1, 'max_bin': 255, 'min_data_in_leaf': 20, 'max_depth': -1, 'max_drop': 50, 'min_child_samples': 10, 'min_child_weight': 5, 'min_split_gain': 0, 'min_sum_hessian_in_leaf': 0.001, 'lambda_l1': 0, 'lambda_l2': 0, 'nthread': 4, 'num_threads': 4, 'num_leaves': 31, 'reg_alpha': 0, 'reg_lambda': 0, 'scale_pos_weight': 1, 'seed': 0, 'sigmoid': 1.0, 'skip_drop': 0.5, 'subsample': 1, 'subsample_for_bin': 50000, 'subsample_freq': 1, 'uniform_drop': False, 'xgboost_dart_mode': False, 'objective': 'binary', 'metric': 'binary_logloss', 'bagging_freq': 1, 'verbose': -1}
     Hyperopt iterations:
     
     
-    [1/2]	eval_time=0.08 sec	current_logloss=0.693147	min_logloss=0.693147
-    [2/2]	eval_time=0.05 sec	current_logloss=0.646200	min_logloss=0.646200
+    [1/2]	eval_time=0.04 sec	current_logloss=0.693147	min_logloss=0.693147
+    [2/2]	eval_time=0.20 sec	current_logloss=0.633345	min_logloss=0.633345
     saved state to results/tracker_test_LightGBM.pickle
+    
     tuned LightGBM result on CV:
     
-    loss = 0.6461996172860381
-    best_n_estimators = 2
-    params = {'objective': 'binary', 'metric': 'binary_logloss', 'min_data_in_leaf': 10, 'max_bin': 255, 'min_sum_hessian_in_leaf': 4.1073662953607967e-07, 'bagging_freq': 1, 'num_leaves': 137, 'feature_fraction': 0.5292435929542255, 'verbose': -1, 'lambda_l1': 1.000657505552681, 'lambda_l2': 0.0008064719242845735, 'bagging_fraction': 0.6278474089136892, 'learning_rate': 0.0025275717184566064}
+    loss = 0.6333449333363612
+    best_n_estimators = 1
+    roc_auc = 0.766745
+    accuracy = 0.856000
+    params = {'bagging_fraction': 0.6278474089136892, 'feature_fraction': 0.5292435929542255, 'lambda_l1': 1.000657505552681, 'lambda_l2': 0.0008064719242845735, 'learning_rate': 0.0025275717184566064, 'min_data_in_leaf': 10, 'min_sum_hessian_in_leaf': 4.1073662953607967e-07, 'num_leaves': 137, 'objective': 'binary', 'metric': 'binary_logloss', 'bagging_freq': 1, 'verbose': -1, 'max_bin': 255}
+    
     tuned LightGBM result on TEST:
     
-    loss = 0.69068277841
-    n_estimators = 2
-    params = {'objective': 'binary', 'metric': 'binary_logloss', 'min_data_in_leaf': 10, 'max_bin': 255, 'min_sum_hessian_in_leaf': 4.1073662953607967e-07, 'bagging_freq': 1, 'num_leaves': 137, 'feature_fraction': 0.5292435929542255, 'verbose': -1, 'lambda_l1': 1.000657505552681, 'lambda_l2': 0.0008064719242845735, 'bagging_fraction': 0.6278474089136892, 'learning_rate': 0.0025275717184566064}
-    roc_auc = 0.754185
+    loss = 0.69175461912
+    n_estimators = 1
+    roc_auc = 0.662470
+    accuracy = 0.824000
+    params = {'bagging_fraction': 0.6278474089136892, 'feature_fraction': 0.5292435929542255, 'lambda_l1': 1.000657505552681, 'lambda_l2': 0.0008064719242845735, 'learning_rate': 0.0025275717184566064, 'min_data_in_leaf': 10, 'min_sum_hessian_in_leaf': 4.1073662953607967e-07, 'num_leaves': 137, 'objective': 'binary', 'metric': 'binary_logloss', 'bagging_freq': 1, 'verbose': -1, 'max_bin': 255}
     saved state to results/tracker_test_LightGBM.pickle
+    
     ~~~~~~~~~~~~~~~~~~~~ RandomForestClassifier ~~~~~~~~~~~~~~~~~~~~
+    
     default RandomForestClassifier result on CV:
     
-    loss = 1.0
-    best_n_estimators = 1
-    params = {'min_samples_split': 2, 'min_samples_leaf': 1, 'min_impurity_split': 1e-07, 'verbose': 0, 'n_estimators': 10, 'max_features': 4, 'criterion': 'gini', 'min_weight_fraction_leaf': 0.0, 'max_depth': 1}
+    loss = 0.854259117188
+    best_n_estimators = 2
+    roc_auc = 0.780504
+    accuracy = 0.856000
+    params = {'max_depth': 1, 'max_features': 4, 'n_estimators': 10, 'criterion': 'gini', 'verbose': 0, 'min_samples_split': 2, 'min_samples_leaf': 1, 'min_weight_fraction_leaf': 0.0, 'min_impurity_split': 1e-07}
+    
     default RandomForestClassifier result on TEST:
     
-    loss = 1
-    n_estimators = 1
-    params = {'min_samples_split': 2, 'min_samples_leaf': 1, 'min_impurity_split': 1e-07, 'verbose': 0, 'n_estimators': 10, 'max_features': 4, 'min_weight_fraction_leaf': 0.0, 'criterion': 'gini', 'max_depth': 1}
-    roc_auc = 0.500983
+    loss = 0.892441576471
+    n_estimators = 2
+    roc_auc = 0.573571
+    accuracy = 0.836000
+    params = {'max_depth': 1, 'max_features': 4, 'n_estimators': 10, 'criterion': 'gini', 'verbose': 0, 'min_samples_split': 2, 'min_samples_leaf': 1, 'min_weight_fraction_leaf': 0.0, 'min_impurity_split': 1e-07}
     Hyperopt iterations:
     
     
-    [1/2]	eval_time=0.32 sec	current_logloss=0.971888	min_logloss=0.971888
-    [2/2]	eval_time=0.37 sec	current_logloss=0.971888	min_logloss=0.971888
+    [1/2]	eval_time=0.33 sec	current_logloss=0.854930	min_logloss=0.854930
+    [2/2]	eval_time=0.34 sec	current_logloss=0.854200	min_logloss=0.854200
     saved state to results/tracker_test_RandomForestClassifier.pickle
+    
     tuned RandomForestClassifier result on CV:
     
-    loss = 0.9718875502008032
+    loss = 0.8542
     best_n_estimators = 2
-    params = {'verbose': 0, 'n_estimators': 5, 'max_features': 3, 'criterion': 'entropy', 'min_samples_split': 19.0, 'max_depth': 13, 'min_samples_leaf': 19.0}
+    roc_auc = 0.814901
+    accuracy = 0.844000
+    params = {'criterion': 'entropy', 'max_depth': 17, 'max_features': 3, 'min_samples_leaf': 4.0, 'min_samples_split': 9.0, 'n_estimators': 2, 'verbose': 0}
+    
     tuned RandomForestClassifier result on TEST:
     
-    loss = 1
+    loss = 0.0
     n_estimators = 2
-    params = {'verbose': 0, 'n_estimators': 5, 'max_features': 3, 'criterion': 'entropy', 'min_samples_split': 19.0, 'max_depth': 13, 'min_samples_leaf': 19.0}
-    roc_auc = 0.590046
+    roc_auc = 0.601146
+    accuracy = 0.714000
+    params = {'criterion': 'entropy', 'max_depth': 17, 'max_features': 3, 'min_samples_leaf': 4.0, 'min_samples_split': 9.0, 'n_estimators': 2, 'verbose': 0}
     saved state to results/tracker_test_RandomForestClassifier.pickle
 
 
@@ -274,7 +309,6 @@ Compare
 
 .. code:: ipython3
 
-    metric, mes_min = 'roc_auc', False
     full_results = {}
     for i in CANDIDATES.keys():
         if i in trackers:
@@ -283,58 +317,107 @@ Compare
             tracker = tracker_factory(model_name=i)
             tracker.load_state()
         full_results.update({i:{'tuned': tracker.state['tuned_test'], 'default': tracker.state['default_test']}})
-    #print(full_results)
 
 .. code:: ipython3
 
-    def plot_metric_results(full_results, index, metric, is_min_better=True):
-        test_results_list = []
-        for i in index:
-            test_results_list.append([full_results[i]['default'][metric], full_results[i]['tuned'][metric]])
-            
-        test_results = np.array(test_results_list)
-        if is_min_better:
-            baseline = test_results.min()
-        else:
-            baseline = test_results.max()
-        diff = 100 * test_results / baseline - 100
-        test_results_formatted = [['{:.6f} ({:+.2f}%)'.format(test_results[i, j], diff[i, j]) for j in range(2)] for i in range(len(index))]
     
-        print (pd.DataFrame(test_results_formatted, columns=['default', 'tuned'], index=index))
-        
-        full_names = [" ".join(i) for i in itertools.product(index, ['default', 'tuned'])]
+    from modelgym.report import Report
     
-        named_results = zip(full_names, test_results.flatten())
-    
-        sorted_results = sorted(named_results, key=lambda x: x[1], reverse=not is_min_better)
-        xticks = ['%s\n%.5f' % (name, loss) for name, loss in sorted_results]
-    
-        pyplot.figure(figsize=(20, 7))
-        pyplot.scatter(range(len(full_names)), list(zip(*sorted_results))[1], s=150)
-        pyplot.xticks(range(len(full_names)), xticks, fontsize=15)
-        pyplot.yticks(fontsize=12)
-        pyplot.title('Comparison', fontsize=20)
-        pyplot.ylabel(metric, fontsize=16)
+    rep = Report(results=full_results, models_dict=CANDIDATES,
+                 models_holder=trackers,
+                 test_set=dtest, metrics=custom_metrics,
+                 task_type=TASK_CLASSIFICATION)
+
+Plots
+~~~~~
 
 .. code:: ipython3
 
-    %pylab inline --no-import-all
-    metric, is_min_better = 'roc_auc', False
-    plot_metric_results(full_results, CANDIDATES.keys(), metric, is_min_better=is_min_better)
+    rep.plot_all_metrics()
 
 
 .. parsed-literal::
 
-    Populating the interactive namespace from numpy and matplotlib
-                                       default               tuned
-    XGBoost                 0.663240 (-14.72%)   0.751615 (-3.36%)
-    LightGBM                 0.777722 (+0.00%)   0.754185 (-3.03%)
-    RandomForestClassifier  0.500983 (-35.58%)  0.590046 (-24.13%)
+    
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    roc_auc    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
 
 
 
 .. image:: images/model_search_15_1.png
 
+
+.. parsed-literal::
+
+    
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    accuracy    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+
+
+
+.. image:: images/model_search_15_3.png
+
+
+Check quality differences
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code:: ipython3
+
+    rep.print_all_metric_results()
+
+
+.. parsed-literal::
+
+    
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    roc_auc    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+                                       default               tuned
+    XGBoost                 0.633497 (+10.45%)   0.595521 (+3.83%)
+    LightGBM                0.637366 (+11.12%)  0.662470 (+15.50%)
+    RandomForestClassifier   0.573571 (+0.00%)   0.601146 (+4.81%)
+    
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    accuracy    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+                                       default               tuned
+    XGBoost                 0.832000 (+16.53%)  0.806000 (+12.89%)
+    LightGBM                0.812000 (+13.73%)  0.824000 (+15.41%)
+    RandomForestClassifier  0.836000 (+17.09%)   0.714000 (-0.00%)
+
+
+Check correlation maps
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code:: ipython3
+
+    rep.plot_heatmaps()
+
+
+.. parsed-literal::
+
+    
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    roc_auc    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+
+
+
+.. image:: images/model_search_19_1.png
+
+
+.. parsed-literal::
+
+    
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    accuracy    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+
+
+
+.. image:: images/model_search_19_3.png
+
+
+.. code:: ipython3
+
+    # You can glance at everything at once using the following:
+    # rep.summary()
 
 Compare models with stat test
 =============================
@@ -357,7 +440,7 @@ Compare that out tuned RF model is statistically better than default
 
 .. parsed-literal::
 
-    Two models are different: False, p-value [[ 0.07928851]]
+    Two models are different: False, p-value [[ 0.99343407]]
 
 
 Compare default LightGBM and default RF
@@ -376,5 +459,5 @@ Compare default LightGBM and default RF
 
 .. parsed-literal::
 
-    Two models are different: True, p-value [[ 0.00351561]]
+    Two models are different: True, p-value [[  5.99814530e-06]]
 

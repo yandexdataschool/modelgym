@@ -1,9 +1,14 @@
+echo -e "Deleting old images"
+rm images/*
+
 for file in ../../example/*.ipynb
 do
-    echo "making rst from $file"
     name_with_path=${file%.*}
     name=${file##*/}
     name=${name%.*}
+
+    echo -e "\nMaking rst from ${name}\n"
+
     ipython nbconvert $file --to rst
     mv $name_with_path.rst ./$name.rst
     mv ${name_with_path}_files/* ./images
