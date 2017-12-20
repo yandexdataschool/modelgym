@@ -1,18 +1,20 @@
 from modelgym.trainers.trainer import Trainer, eval_metrics
 from modelgym.utils.model_space import process_model_spaces
+from modelgym.utils import cat_preprocess_cv
 
 from functools import partial
 from hyperopt import fmin, Trials, STATUS_OK, tpe
 import numpy as np
 
 class HyperoptTrainer(Trainer):
-    def __init__(self, model_spaces, algo, tracker=None):
+    def __init__(self, model_spaces, algo, tracker=None, cat_preprocess=True):
         if algo is None:
             raise ValueError("algo should not be None")
         self.model_spaces = process_model_spaces(model_spaces)
         self.tracker = tracker
         self.state = None
         self.algo = algo
+        self.cat_preprocess = cat_preprocess
 
     # TODO: consider different batch_size for different models
     def crossval_optimize_params(self, opt_metric, dataset, cv=3,
@@ -37,8 +39,9 @@ class HyperoptTrainer(Trainer):
 
             learning_task =  model_space.model_class.get_learning_task()
 
-            model_space.model_class.cat_preprocess(
-                    cv, one_hot_max_size, learning_task)
+            if self.cat_preprocess:
+                cat_preprocess_cv(
+                        cv, one_hot_max_size, learning_task)
 
             if len(state) == opt_evals:
                 continue

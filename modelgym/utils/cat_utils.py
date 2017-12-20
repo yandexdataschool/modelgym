@@ -91,6 +91,23 @@ class OneHotEncoder:
                             )
 
 
+def cat_preprocess_cv(cv_pairs, one_hot_max_size=1,
+        learning_task=LearningTask.CLASSIFICATION):
+    """default categorical features preprocessing
+    :param cv_pairs list of tuples of 2 XYCDataset's: cross validation folds
+        for preparation
+    :return list of tuples of 2 XYCDataset's: cross validation folds
+    """
+    cv_prepared = []
+
+    for dtrain, dtest in cv_pairs:
+        preprocess_cat_cols(dtrain.X, dtrain.y,
+            dtrain.cat_cols, dtest.X, one_hot_max_size, learning_task)
+        cv_prepared.append((dtrain, dtest))
+
+    return cv_prepared
+
+
 def preprocess_cat_cols(X_train, y_train, cat_cols=[], X_test=None,
                         one_hot_max_size=1, learning_task=LearningTask.CLASSIFICATION):
     """

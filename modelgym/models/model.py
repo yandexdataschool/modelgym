@@ -1,5 +1,4 @@
 from modelgym.models.learning_task import LearningTask
-from modelgym.cat_utils import preprocess_cat_cols
 
 
 class Model(object):
@@ -80,20 +79,3 @@ class Model(object):
         :return modelgym.models.LearningTask: task
         """
         raise NotImplementedError("Pure virtual class.")
-
-    @staticmethod
-    def cat_preprocess(cv_pairs, one_hot_max_size=1,
-            learning_task=LearningTask.CLASSIFICATION):
-        """default categorical features preprocessing
-        :param cv_pairs list of tuples of 2 XYCDataset's: cross validation folds
-            for preparation
-        :return list of tuples of 2 XYCDataset's: cross validation folds
-        """
-        cv_prepared = []
-
-        for dtrain, dtest in cv_pairs:
-            preprocess_cat_cols(dtrain.X, dtrain.y,
-                dtrain.cat_cols, dtest.X, one_hot_max_size, learning_task)
-            cv_prepared.append((dtrain, dtest))
-
-        return cv_prepared

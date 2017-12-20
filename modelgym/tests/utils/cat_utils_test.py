@@ -1,7 +1,6 @@
 import pytest
 import numpy as np
-from modelgym.utils import XYCDataset
-from modelgym.cat_utils import preprocess_cat_cols
+from modelgym.utils import XYCDataset, preprocess_cat_cols
 
 
 def test_model_cat_preprocess():
