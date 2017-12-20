@@ -37,6 +37,7 @@ autoclass_content = 'both'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinx.ext.autodoc',
+              'sphinx.ext.napoleon',
               # 'm2r',
               ]
 

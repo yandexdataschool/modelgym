@@ -9,7 +9,8 @@ from hyperopt.pyll.base import scope
 class XGBClassifier(Model):
     def __init__(self, params=None):
         """
-        :param params (dict): parameters for model.
+        Args:
+            params (dict): parameters for model.
         """
 
         if params is None:
@@ -32,7 +33,8 @@ class XGBClassifier(Model):
     def _set_model(self, model):
         """
         sets new model, internal method, do not use
-        :param model: internal model
+        Args:
+            model: internal model
         """
         self.model = model
 
@@ -41,10 +43,12 @@ class XGBClassifier(Model):
 
     def fit(self, dataset, weights=None):
         """
-        :param X (np.array, shape (n_samples, n_features)): the input data
-        :param y (np.array, shape (n_samples, ) or (n_samples, n_outputs)): the target data
-        :param weights (np.array, shape (n_samples, ) or (n_samples, n_outputs) or None): weights of the data
-        :return: self
+        Args:
+            X (np.array, shape (n_samples, n_features)): the input data
+            y (np.array, shape (n_samples, ) or (n_samples, n_outputs)): the target data
+            weights (np.array, shape (n_samples, ) or (n_samples, n_outputs) or None): weights of the data
+        Return:
+            self
         """
         dtrain = self._convert_to_dataset(dataset.X, dataset.y)
         self.model = xgb.train(self.params, dtrain, num_boost_round=self.n_estimators, verbose_eval=False)
@@ -52,7 +56,8 @@ class XGBClassifier(Model):
 
     def save_snapshot(self, filename):
         """
-        :return: serializable internal model state snapshot.
+        Return:
+            serializable internal model state snapshot.
 
         """
         assert self.model, "model is not fitted"
@@ -66,14 +71,16 @@ class XGBClassifier(Model):
         """
         booster = xgb.Booster()
         booster.load_model(filename)
-        new_model = XGBClassifier() # idk how to pass paarameters yet
+        new_model = XGBClassifier()  # idk how to pass paarameters yet
         new_model._set_model(booster)
         return new_model
 
     def predict(self, dataset):
         """
-        :param X (np.array, shape (n_samples, n_features)): the input data
-        :return: np.array, shape (n_samples, ) or (n_samples, n_outputs)
+        Args:
+            X (np.array, shape (n_samples, n_features)): the input data
+        Return:
+            np.array, shape (n_samples, ) or (n_samples, n_outputs)
         """
         xgb_dataset = xgb.DMatrix(dataset.X)
         if self.params['objective'] == 'multi:softprob':
@@ -85,7 +92,8 @@ class XGBClassifier(Model):
 
     def is_possible_predict_proba(self):
         """
-        :return: bool, whether model can predict proba
+        Return:
+            bool, whether model can predict proba
         """
         if self.params['objective'] == 'multi:softprob':
             return False
@@ -93,8 +101,10 @@ class XGBClassifier(Model):
 
     def predict_proba(self, dataset):
         """
-        :param X (np.array, shape (n_samples, n_features)): the input data
-        :return: np.array, shape (n_samples, n_classes)
+        Args:
+            X (np.array, shape (n_samples, n_features)): the input data
+        Return:
+            np.array, shape (n_samples, n_classes)
         """
         xgb_dataset = xgb.DMatrix(dataset.X)
         assert self.is_possible_predict_proba(), "Model cannot predict probability distribution"
@@ -103,7 +113,8 @@ class XGBClassifier(Model):
     @staticmethod
     def get_default_parameter_space():
         """
-        :return: dict of DistributionWrappers
+        Return:
+            dict of DistributionWrappers
         """
 
         return {
@@ -127,16 +138,17 @@ class XGBClassifier(Model):
 class XGBRegressor(Model):
     def __init__(self, params=None):
         """
-        :param params (dict or None): parameters for model.
+        Args:
+            params (dict or None): parameters for model.
                              If None default params are fetched.
-        :param learning_task (str): set type of task(classification, regression, ...)
+            learning_task (str): set type of task(classification, regression, ...)
         """
 
         if params is None:
             params = {}
 
         self.params = {'objective': 'reg:linear', 'eval_metric': 'rmse',
-                       'silent' : 1}
+                       'silent': 1}
         self.params.update(params)
         self.n_estimators = self.params.pop('n_estimators', 1)
         self.model = None
@@ -144,7 +156,8 @@ class XGBRegressor(Model):
     def _set_model(self, model):
         """
         sets new model, internal method, do not use
-        :param model: internal model
+        Args:
+            model: internal model
         """
         self.model = model
 
@@ -153,10 +166,12 @@ class XGBRegressor(Model):
 
     def fit(self, dataset, weights=None):
         """
-        :param X (np.array, shape (n_samples, n_features)): the input data
-        :param y (np.array, shape (n_samples, ) or (n_samples, n_outputs)): the target data
-        :param weights (np.array, shape (n_samples, ) or (n_samples, n_outputs) or None): weights of the data
-        :return: self
+        Args:
+            X (np.array, shape (n_samples, n_features)): the input data
+            y (np.array, shape (n_samples, ) or (n_samples, n_outputs)): the target data
+            weights (np.array, shape (n_samples, ) or (n_samples, n_outputs) or None): weights of the data
+        Return:
+            self
         """
         dtrain = self._convert_to_dataset(dataset.X, dataset.y)
         self.model = xgb.train(self.params, dtrain, num_boost_round=self.n_estimators, verbose_eval=False)
@@ -164,7 +179,8 @@ class XGBRegressor(Model):
 
     def save_snapshot(self, filename):
         """
-        :return: serializable internal model state snapshot.
+        Return:
+            serializable internal model state snapshot.
 
         """
         assert self.model, "model is not fitted"
@@ -178,34 +194,40 @@ class XGBRegressor(Model):
         """
         booster = xgb.Booster()
         booster.load_model(filename)
-        new_model = XGBRegressor() # idk how to pass paarameters yet
+        new_model = XGBRegressor()  # idk how to pass paarameters yet
         new_model._set_model(booster)
         return new_model
 
     def predict(self, dataset):
         """
-        :param X (np.array, shape (n_samples, n_features)): the input data
-        :return: np.array, shape (n_samples, ) or (n_samples, n_outputs)
+        Args:
+            X (np.array, shape (n_samples, n_features)): the input data
+        Return:
+            np.array, shape (n_samples, ) or (n_samples, n_outputs)
         """
         return self.model.predict(dataset.X)
 
     def is_possible_predict_proba(self):
         """
-        :return: bool, whether model can predict proba
+        Return:
+            bool, whether model can predict proba
         """
         return False
 
     def predict_proba(self, dataset):
         """
-        :param X (np.array, shape (n_samples, n_features)): the input data
-        :return: np.array, shape (n_samples, n_classes)
+        Args:
+            X (np.array, shape (n_samples, n_features)): the input data
+        Return:
+            np.array, shape (n_samples, n_classes)
         """
         raise ValueError("Regressor can't predict proba")
 
     @staticmethod
     def get_default_parameter_space():
         """
-        :return: dict of DistributionWrappers
+        Return:
+            dict of DistributionWrappers
         """
 
         return {

@@ -9,9 +9,10 @@ from hyperopt.pyll.base import scope
 class LGBMClassifier(Model):
     def __init__(self, params=None):
         """
-        :param params (dict or None): parameters for model.
+        Args:
+            params (dict or None): parameters for model.
                              If None default params are fetched.
-        :param learning_task (str): set type of task(classification, regression, ...)
+            learning_task (str): set type of task(classification, regression, ...)
         """
 
         if params is None:
@@ -32,7 +33,8 @@ class LGBMClassifier(Model):
     def _set_model(self, model):
         """
         sets new model, internal method, do not use
-        :param model: internal model
+        Args:
+            model: internal model
         """
         self.model = model
 
@@ -43,10 +45,12 @@ class LGBMClassifier(Model):
 
     def fit(self, dataset, weights=None):
         """
-        :param X (np.array, shape (n_samples, n_features)): the input data
-        :param y (np.array, shape (n_samples, ) or (n_samples, n_outputs)): the target data
-        :param weights (np.array, shape (n_samples, ) or (n_samples, n_outputs) or None): weights of the data
-        :return: self
+        Args:
+            X (np.array, shape (n_samples, n_features)): the input data
+            y (np.array, shape (n_samples, ) or (n_samples, n_outputs)): the target data
+            weights (np.array, shape (n_samples, ) or (n_samples, n_outputs) or None): weights of the data
+        Return:
+            self
         """
         dtrain = self._convert_to_dataset(dataset)
         self.model = lgb.train(self.params, dtrain,
@@ -56,7 +60,8 @@ class LGBMClassifier(Model):
 
     def save_snapshot(self, filename):
         """
-        :return: serializable internal model state snapshot.
+        Return:
+            serializable internal model state snapshot.
 
         """
         assert self.model, "model is not fitted"
@@ -69,14 +74,16 @@ class LGBMClassifier(Model):
         loads from serializable internal model state snapshot.
         """
         model = lgb.Booster(model_file=filename)
-        new_model = LGBMClassifier() # idk how to pass params yet
+        new_model = LGBMClassifier()  # idk how to pass params yet
         new_model._set_model(model)
         return new_model
 
     def predict(self, dataset):
         """
-        :param X (np.array, shape (n_samples, n_features)): the input data
-        :return: np.array, shape (n_samples, ) or (n_samples, n_outputs)
+        Args:
+            X (np.array, shape (n_samples, n_features)): the input data
+        Return:
+            np.array, shape (n_samples, ) or (n_samples, n_outputs)
         """
         prediction = self.model.predict(dataset.X)
         if self.params.get('num_class', 2) == 2:
@@ -86,14 +93,17 @@ class LGBMClassifier(Model):
 
     def is_possible_predict_proba(self):
         """
-        :return: bool, whether model can predict proba
+        Return:
+            bool, whether model can predict proba
         """
         return True
 
     def predict_proba(self, dataset):
         """
-        :param X (np.array, shape (n_samples, n_features)): the input data
-        :return: np.array, shape (n_samples, n_classes)
+        Args:
+            X (np.array, shape (n_samples, n_features)): the input data
+        Return:
+            np.array, shape (n_samples, n_classes)
         """
         assert self.is_possible_predict_proba(), "Model cannot predict probability distribution"
         return self.model.predict(dataset.X)
@@ -101,7 +111,8 @@ class LGBMClassifier(Model):
     @staticmethod
     def get_default_parameter_space():
         """
-        :return: dict of DistributionWrappers
+        Return:
+            dict of DistributionWrappers
         """
         return {
           'learning_rate':           hp.loguniform('learning_rate', -7, 0),
@@ -122,9 +133,10 @@ class LGBMClassifier(Model):
 class LGBMRegressor(Model):
     def __init__(self, params=None):
         """
-        :param params (dict or None): parameters for model.
+        Args:
+            params (dict or None): parameters for model.
                              If None default params are fetched.
-        :param learning_task (str): set type of task(classification, regression, ...)
+            learning_task (str): set type of task(classification, regression, ...)
         """
 
         if params is None:
@@ -138,7 +150,8 @@ class LGBMRegressor(Model):
     def _set_model(self, model):
         """
         sets new model, internal method, do not use
-        :param model: internal model
+        Args:
+            model: internal model
         """
         self.model = model
 
@@ -149,10 +162,12 @@ class LGBMRegressor(Model):
 
     def fit(self, dataset, weights=None):
         """
-        :param X (np.array, shape (n_samples, n_features)): the input data
-        :param y (np.array, shape (n_samples, ) or (n_samples, n_outputs)): the target data
-        :param weights (np.array, shape (n_samples, ) or (n_samples, n_outputs) or None): weights of the data
-        :return: self
+        Args:
+            X (np.array, shape (n_samples, n_features)): the input data
+            y (np.array, shape (n_samples, ) or (n_samples, n_outputs)): the target data
+            weights (np.array, shape (n_samples, ) or (n_samples, n_outputs) or None): weights of the data
+        Return:
+            self
         """
         dtrain = self._convert_to_dataset(dataset)
         self.model = lgb.train(self.params, dtrain, num_boost_round=self.n_estimators, verbose_eval=False)
@@ -160,7 +175,7 @@ class LGBMRegressor(Model):
 
     def save_snapshot(self, filename):
         """
-        :return: serializable internal model state snapshot.
+        Return:    serializable internal model state snapshot.
 
         """
         assert self.model, "model is not fitted"
@@ -173,34 +188,40 @@ class LGBMRegressor(Model):
         loads from serializable internal model state snapshot.
         """
         model = lgb.Booster(model_file=filename)
-        new_model = LGBMRegressor() # idk how to pass params yet
+        new_model = LGBMRegressor()  # idk how to pass params yet
         new_model._set_model(model)
         return new_model
 
     def predict(self, dataset):
         """
-        :param X (np.array, shape (n_samples, n_features)): the input data
-        :return: np.array, shape (n_samples, ) or (n_samples, n_outputs)
+        Args:
+            X (np.array, shape (n_samples, n_features)): the input data
+        Return:
+            np.array, shape (n_samples, ) or (n_samples, n_outputs)
         """
         return self.model.predict(dataset.X)
 
     def is_possible_predict_proba(self):
         """
-        :return: bool, whether model can predict proba
+        Return:
+            bool, whether model can predict proba
         """
         return False
 
     def predict_proba(self, dataset):
         """
-        :param X (np.array, shape (n_samples, n_features)): the input data
-        :return: np.array, shape (n_samples, n_classes)
+        Args:
+            X (np.array, shape (n_samples, n_features)): the input data
+        Return:
+            np.array, shape (n_samples, n_classes)
         """
         raise ValueError("Regressor can't predict proba")
 
     @staticmethod
     def get_default_parameter_space():
         """
-        :return: dict of DistributionWrappers
+        Return:
+            dict of DistributionWrappers
         """
 
         return {

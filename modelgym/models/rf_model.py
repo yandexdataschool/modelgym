@@ -11,9 +11,10 @@ from hyperopt import hp
 class RFClassifier(Model):
     def __init__(self, params=None):
         """
-        :param params (dict or None): parameters for model.
+        Args:
+            params (dict or None): parameters for model.
                              If None default params are fetched.
-        :param learning_task (str): set type of task(classification, regression, ...)
+            learning_task (str): set type of task(classification, regression, ...)
         """
 
         if params is None:
@@ -39,7 +40,8 @@ class RFClassifier(Model):
     def _set_model(self, model):
         """
         sets new model, internal method, do not use
-        :param model: internal model
+        Args:
+            model: internal model
         """
         self.model = model
 
@@ -48,10 +50,12 @@ class RFClassifier(Model):
 
     def fit(self, dataset, weights=None):
         """
-        :param X (np.array, shape (n_samples, n_features)): the input data
-        :param y (np.array, shape (n_samples, ) or (n_samples, n_outputs)): the target data
-        :param weights (np.array, shape (n_samples, ) or (n_samples, n_outputs) or None): weights of the data
-        :return: self
+        Args:
+            X (np.array, shape (n_samples, n_features)): the input data
+            y (np.array, shape (n_samples, ) or (n_samples, n_outputs)): the target data
+            weights (np.array, shape (n_samples, ) or (n_samples, n_outputs) or None): weights of the data
+        Return:
+            self
         """
         dtrain = self._convert_to_dataset(dataset.X, dataset.y)
         self.model = rfc(n_estimators=self.n_estimators, max_depth=self.params['max_depth'],
@@ -61,7 +65,8 @@ class RFClassifier(Model):
 
     def save_snapshot(self, filename):
         """
-        :return: serializable internal model state snapshot.
+        Return:
+            serializable internal model state snapshot.
 
         """
         assert self.model is not None, "model is not fitted"
@@ -83,28 +88,34 @@ class RFClassifier(Model):
 
     def predict(self, dataset):
         """
-        :param X (np.array, shape (n_samples, n_features)): the input data
-        :return: np.array, shape (n_samples, ) or (n_samples, n_outputs)
+        Args:
+            X (np.array, shape (n_samples, n_features)): the input data
+        Return:
+            np.array, shape (n_samples, ) or (n_samples, n_outputs)
         """
         return self.model.predict(dataset.X)
 
     def is_possible_predict_proba(self):
         """
-        :return: bool, whether model can predict proba
+        Return:
+            bool, whether model can predict proba
         """
         return True
 
     def predict_proba(self, dataset):
         """
-        :param X (np.array, shape (n_samples, n_features)): the input data
-        :return: np.array, shape (n_samples, n_classes)
+        Args:
+            X (np.array, shape (n_samples, n_features)): the input data
+        Return:
+            np.array, shape (n_samples, n_classes)
         """
         return self.model.predict_proba(dataset.X)[:, 1]
 
     @staticmethod
     def get_default_parameter_space():
         """
-        :return: dict of DistributionWrappers
+        Return:
+            dict of DistributionWrappers
         """
 
         return {
