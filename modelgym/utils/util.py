@@ -7,7 +7,6 @@ from skopt.space import Real
 from modelgym.utils.compare_auc_delong_xu import delong_roc_test
 from modelgym.metrics import Metric
 
-
 def compare_models_different(first_model, second_model, data, alpha=0.05, metric='ROC_AUC'):
     """
     Hypothesis: two models are the same

@@ -19,7 +19,6 @@ class XYCDataset:
         """
         
         indices = np.array_split(np.arange(self.y.shape[0]), n_splits)
-        print(indices)
 
         return [XYCDataset(self.X[indices_part], self.y[indices_part], 
                            copy(self.cat_cols)) for indices_part in indices]

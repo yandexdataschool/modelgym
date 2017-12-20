@@ -2,21 +2,18 @@ from modelgym.trainers.trainer import Trainer, eval_metrics
 from modelgym.utils.model_space import process_model_spaces
 from modelgym.utils import cat_preprocess_cv
 
-from functools import partial
-from hyperopt import fmin, Trials, STATUS_OK, tpe
+from hyperopt import fmin, Trials, STATUS_OK, tpe, rand
 import numpy as np
 
 class HyperoptTrainer(Trainer):
     def __init__(self, model_spaces, algo, tracker=None):
-        if algo is None:
-            raise ValueError("algo should not be None")
         self.model_spaces = process_model_spaces(model_spaces)
         self.tracker = tracker
         self.state = None
         self.algo = algo
 
-    # TODO: consider different batch_size for different models
-    def crossval_optimize_params(self, opt_metric, dataset, cv=3,
+
+    def crossval_optimize_params(self, opt_metric, dataset, cv=3, 
                                  opt_evals=50, metrics=None, batch_size=10,
                                  verbose=False,
                                  one_hot_max_size=10, cat_preprocess=True):
@@ -56,11 +53,11 @@ class HyperoptTrainer(Trainer):
 
             for i in range(0, opt_evals, batch_size):
                 current_evals = min(batch_size, opt_evals - i)
-                best = fmin(fn=fn,
-                            space=model_space.space,
-                            algo=self.algo,
-                            max_evals=(i + current_evals),
-                            trials=state)
+                fmin(fn=fn,
+                     space=model_space.space,
+                     algo=self.algo,
+                     max_evals=(i + current_evals),
+                     trials=state)
                 if self.tracker is not None:
                     self.tracker.save_state(self.state)
 
@@ -71,26 +68,16 @@ class HyperoptTrainer(Trainer):
 
     @staticmethod
     def crossval_fit_eval(model_type, params, cv, metrics, verbose):
-        metric_cv_results = []
-        losses = []
-        for dtrain, dtest in cv:
-            eval_result = \
-                eval_metrics(model_type, params, dtrain, dtest, metrics)
-            metric_cv_results.append(eval_result)
+        result = Trainer.crossval_fit_eval(model_type, params, cv, 
+                                           metrics, verbose)
+        result["status"] = STATUS_OK
+        losses = [cv_result[metrics[-1].name]
+                  for cv_result in result["metric_cv_results"]]
+        result["loss_variance"] = np.std(losses)
 
-            if metrics[-1].is_min_optimal:
-                loss = eval_result[metrics[-1].name]
-            else:
-                loss = -eval_result[metrics[-1].name]
-            losses.append(loss)
+        print(result)
 
-        return {
-            "loss": np.mean(losses),
-            "loss_variance": np.std(losses),
-            "metric_cv_results": metric_cv_results,
-            "params": params.copy(),
-            "status": STATUS_OK
-        }
+        return result
 
 class TpeTrainer(HyperoptTrainer):
     def __init__(self, model_spaces, tracker=None):
@@ -98,4 +85,4 @@ class TpeTrainer(HyperoptTrainer):
 
 class RandomTrainer(HyperoptTrainer):
     def __init__(self, model_spaces, tracker=None):
-        super().__init__(model_spaces, algo=tpe.suggest, tracker=tracker)
+        super().__init__(model_spaces, algo=rand.suggest, tracker=tracker)        

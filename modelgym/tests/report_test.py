@@ -1,4 +1,5 @@
 import pytest
+
 from modelgym.models.xgboost_model import XGBClassifier
 from modelgym.models.rf_model import RFClassifier
 from modelgym.report import Report
@@ -10,6 +11,7 @@ from modelgym.utils.model_space import ModelSpace
 
 from sklearn.datasets import make_classification
 
+@pytest.mark.skip(reason="need to test without calling plt.show() method")
 def test_basic_pipeline_biclass():
     results = {'XGBClassifier':
                {'result':
