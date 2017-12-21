@@ -12,7 +12,6 @@ class HyperoptTrainer(Trainer):
         self.state = None
         self.algo = algo
 
-
     def crossval_optimize_params(self, opt_metric, dataset, cv=3, 
                                  opt_evals=50, metrics=None, batch_size=10,
                                  verbose=False,
@@ -73,13 +72,13 @@ class HyperoptTrainer(Trainer):
                   for cv_result in result["metric_cv_results"]]
         result["loss_variance"] = np.std(losses)
 
-        print(result)
-
         return result
+
 
 class TpeTrainer(HyperoptTrainer):
     def __init__(self, model_spaces, tracker=None):
         super().__init__(model_spaces, algo=tpe.suggest, tracker=tracker)
+
 
 class RandomTrainer(HyperoptTrainer):
     def __init__(self, model_spaces, tracker=None):

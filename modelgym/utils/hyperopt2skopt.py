@@ -1,16 +1,22 @@
 from hyperopt.pyll.stochastic import recursive_set_rng_kwarg
+from hyperopt.pyll import Apply
+
 import numpy as np
 from skopt.space import Integer, Real, Categorical
 from numbers import Number
 
+
 def is_string(obj):
     return isinstance(obj, str)
+
 
 def is_number(obj):
     return isinstance(obj, Number)
 
+
 def is_int(obj):
     return isinstance(obj, int)
+
 
 class NodeParser(object):
     def parse(self, node):
@@ -19,11 +25,13 @@ class NodeParser(object):
     def get_skopt_dimention(self):
         raise NotImplemented()
 
+
 class LiteralNodeParser(NodeParser):
     def __init__(self, obj_checker=lambda obj: True,
                  obj_parser=lambda obj: obj):
         self._obj_checker = obj_checker
         self._obj_parser = obj_parser
+        self.obj = None
 
     def parse(self, node):
         if node.name != 'literal':
@@ -34,6 +42,7 @@ class LiteralNodeParser(NodeParser):
             return False
         self.obj = self._obj_parser(node.obj)
         return True
+
 
 class DistributionParser(NodeParser):
     def __init__(self, name, param_names, param_checkers):
@@ -70,13 +79,16 @@ class DistributionParser(NodeParser):
                 return False
         return True
 
+
 class UniformParser(DistributionParser):
     def __init__(self):
         super().__init__('uniform', ['low', 'high'], [is_number, is_number])
 
+
 class RandintParser(DistributionParser):
     def __init__(self):
         super().__init__('randint', ['upper'], [is_int])
+
 
 def node2distribution_parser(distribution_node):
     name = distribution_node.name
@@ -85,6 +97,7 @@ def node2distribution_parser(distribution_node):
     if name == 'randint':
         return RandintParser()
     return None
+
 
 class HyperoptParamParser(NodeParser):
     def __init__(self):
@@ -117,6 +130,7 @@ class HyperoptParamParser(NodeParser):
             return Integer(0, self.params['upper'])
         return None
 
+
 class FloatParser(NodeParser):
     def __init__(self):
         self.name = None
@@ -136,6 +150,7 @@ class FloatParser(NodeParser):
     def get_skopt_dimention(self):
         return Real(self.params['low'], self.params['high'])
 
+
 class IntParser(NodeParser):
     def __init__(self):
         self.name = None
@@ -153,7 +168,7 @@ class IntParser(NodeParser):
             self.name = float_parser.name
             self.params = float_parser.params
             return True
-        
+
         hyperopt_param_parser = HyperoptParamParser()
         if not hyperopt_param_parser.parse(node.pos_args[0]):
             return False
@@ -169,6 +184,7 @@ class IntParser(NodeParser):
         if self.params['distr_name'] == 'randint':
             return Integer(0, self.params['upper'])
 
+
 class SwitchParser(NodeParser):
     def __init__(self):
         self.name = None
@@ -180,7 +196,7 @@ class SwitchParser(NodeParser):
             return False
         hyperopt_param_parser = HyperoptParamParser()
         if not hyperopt_param_parser.parse(node.pos_args[0]):
-            return False    
+            return False
         params = hyperopt_param_parser.params
         if params['distr_name'] != 'randint' or \
            params['upper'] != len(node.pos_args) - 1:
@@ -198,13 +214,15 @@ class SwitchParser(NodeParser):
     def get_skopt_dimention(self):
         return Categorical(self.options, transform="identity")
 
+
 def node2sampled_dimention(node, rng, sample_size):
     recursive_set_rng_kwarg(node, rng)
     samples = [node.eval() for _ in range(sample_size)]
     return Categorical(samples, transform="identity")
 
+
 def node2supported_dimention(node):
-    for name, parser_class in [('int', IntParser), 
+    for name, parser_class in [('int', IntParser),
                                ('float', FloatParser),
                                ('switch', SwitchParser),
                                ('hyperopt_param', HyperoptParamParser)]:
@@ -217,12 +235,16 @@ def node2supported_dimention(node):
             return dimention
     return None
 
+
 def hyperopt2skopt_space(hyperopt_space, sample_size=1000):
     skopt_space = []
     ind2names = []
     rng = np.random.RandomState()
     for node_name, node in hyperopt_space.items():
         ind2names.append(node_name)
+        if not isinstance(node, Apply):
+            skopt_space.append(Categorical([node], transform='identity'))
+            continue
         dimention = node2supported_dimention(node)
         if dimention is None:
             dimention = node2sampled_dimention(node, rng, sample_size)

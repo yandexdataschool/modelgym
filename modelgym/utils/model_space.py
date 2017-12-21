@@ -1,7 +1,7 @@
 from modelgym.models import Model
 
 class ModelSpace(object):
-    def __init__(self, model_class, space=None, name=None):
+    def __init__(self, model_class, space=None, name=None, space_update=True):
         """
         Args:
             model_class(type): class of model
@@ -9,13 +9,18 @@ class ModelSpace(object):
                 space of model parameters. If None than default is used
             name (string or None): name of ModelSpace. If None, model
                 class name is used
+            space_update (bool): whether space param changes default
+                model space or replaces it completely
         """
         if not issubclass(model_class, Model):
             raise ValueError("model_class should be subclass of Model")
         self.model_class = model_class
-        self.space = space
-        if self.space is None:
-            self.space = model_class.get_default_parameter_space()
+        self.space = model_class.get_default_parameter_space()
+        if space is not None:
+            if space_update:
+                self.space.update(space)
+            else:
+                self.space = space
         self.name = name
         if self.name is None:
             self.name = model_class.__name__

@@ -13,7 +13,7 @@ class Trainer(object):
                                  verbose=False):
         raise NotImplementedError()
 
-    def get_best_results():
+    def get_best_results(self):
         raise NotImplementedError()
 
     @staticmethod

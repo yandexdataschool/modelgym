@@ -3,6 +3,7 @@ from modelgym.utils.model_space import process_model_spaces
 from modelgym.utils import hyperopt2skopt_space
 from skopt.optimizer import forest_minimize, gp_minimize
 
+
 class SkoptTrainer(Trainer):
     def __init__(self, model_spaces, optimizer, tracker=None):
         self.model_spaces = process_model_spaces(model_spaces)
@@ -43,7 +44,9 @@ class SkoptTrainer(Trainer):
                     model_space.model_class, best.x, cv, metrics, verbose)
 
     def get_best_results(self):
-        return self.best_results
+        return {name: {"result" : result,
+                       "model_space" : self.model_spaces[name]}
+                for (name, result) in self.best_results.items()}
 
     def crossval_fit_eval(self, model_type, params, cv, metrics, verbose,
                           space_name):
@@ -57,9 +60,11 @@ class SkoptTrainer(Trainer):
             self.best_results[space_name] = result
         return best["loss"]
 
+
 class RFTrainer(SkoptTrainer):
     def __init__(self, model_spaces, tracker=None):
         super().__init__(model_spaces, forest_minimize, tracker)
+
 
 class GPTrainer(SkoptTrainer):
     def __init__(self, model_spaces, tracker=None):

@@ -10,17 +10,19 @@ from hyperopt.pyll.base import scope
 
 def test_hyperopt2skopt_space():
     hyperopt_space = {
-      'int_uniform': scope.int(hp.uniform('l_int_uniform', 1, 7)),
-      'randint': hp.randint('l_randint', 7),
-      'uniform': hp.uniform('l_uniform', -3, 3),
-      'uniform_named': hp.uniform('l_uniform_named', low=1, high=10),
-      'uniform_part_named': hp.uniform('l_uniform_part_named', 1, high=10),
-      'unsupported': hp.loguniform('l_unsupported', -1, 5),
-      'choice': hp.choice('choice', ['a', 'b', 4])
+        'int_uniform': scope.int(hp.uniform('l_int_uniform', 1, 7)),
+        'randint': hp.randint('l_randint', 7),
+        'uniform': hp.uniform('l_uniform', -3, 3),
+        'uniform_named': hp.uniform('l_uniform_named', low=1, high=10),
+        'uniform_part_named': hp.uniform('l_uniform_part_named', 1, high=10),
+        'unsupported': hp.loguniform('l_unsupported', -1, 5),
+        'choice': hp.choice('choice', ['a', 'b', 4]),
+        'random_param': 'just_one_val',
     }
+
     space, ind2names = hyperopt2skopt_space(hyperopt_space, sample_size=100)
     assert len(space) == len(ind2names)
-    named_space = {ind2names[i] : space[i] for i in range(len(space))}
+    named_space = {ind2names[i]: space[i] for i in range(len(space))}
 
     int_uniform = named_space['int_uniform']
     assert isinstance(int_uniform, Integer)
@@ -54,4 +56,8 @@ def test_hyperopt2skopt_space():
 
     choice = named_space['choice']
     assert isinstance(choice, Categorical)
-    assert set(choice.categories) == set(['a', 'b', 4])
+    assert set(choice.categories) == {'a', 'b', 4}
+
+    random_param = named_space['random_param']
+    assert isinstance(random_param, Categorical)
+    assert set(random_param.categories) == {'just_one_val'}
