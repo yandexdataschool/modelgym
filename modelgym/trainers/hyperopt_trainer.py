@@ -34,6 +34,7 @@ class HyperoptTrainer(Trainer):
             if len(cat_preprocess) != len(self.state):
                 raise ValueError('cat_preprocess must be True or False' +
                     'or bit-mask with len={}'.format(len(self.state)))
+        else:
             cat_preprocess = np.zeros(len(self.state)) + cat_preprocess
 
         for model_index, name, state in enumerate(self.state.items()):
