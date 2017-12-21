@@ -12,10 +12,10 @@ class HyperoptTrainer(Trainer):
         self.state = None
         self.algo = algo
 
-    def crossval_optimize_params(self, opt_metric, dataset, cv=3, 
+    def crossval_optimize_params(self, opt_metric, dataset, cv=3,
                                  opt_evals=50, metrics=None, batch_size=10,
                                  verbose=False,
-                                 one_hot_max_size=10, cat_preprocess=True):
+                                 one_hot_max_size=10, cat_preprocess=False):
         if metrics is None:
             metrics = []
 
@@ -30,12 +30,18 @@ class HyperoptTrainer(Trainer):
         if isinstance(cv, int):
             cv = dataset.cv_split(cv)
 
-        for name, state in self.state.items():
+        if cat_preprocess not in [False, True]:
+            if len(cat_preprocess) != len(self.state):
+                raise ValueError('cat_preprocess must be True or False' +
+                    'or bit-mask with len={}'.format(len(self.state)))
+            cat_preprocess = np.zeros(len(self.state)) + cat_preprocess
+
+        for model_index, name, state in enumerate(self.state.items()):
             model_space = self.model_spaces[name]
 
             learning_task = model_space.model_class.get_learning_task()
 
-            if cat_preprocess:
+            if cat_preprocess[model_index]:
                 cat_preprocess_cv(
                         cv, one_hot_max_size, learning_task)
 
@@ -65,7 +71,7 @@ class HyperoptTrainer(Trainer):
 
     @staticmethod
     def crossval_fit_eval(model_type, params, cv, metrics, verbose):
-        result = Trainer.crossval_fit_eval(model_type, params, cv, 
+        result = Trainer.crossval_fit_eval(model_type, params, cv,
                                            metrics, verbose)
         result["status"] = STATUS_OK
         losses = [cv_result[metrics[-1].name]
@@ -82,4 +88,4 @@ class TpeTrainer(HyperoptTrainer):
 
 class RandomTrainer(HyperoptTrainer):
     def __init__(self, model_spaces, tracker=None):
-        super().__init__(model_spaces, algo=rand.suggest, tracker=tracker)        
+        super().__init__(model_spaces, algo=rand.suggest, tracker=tracker)
