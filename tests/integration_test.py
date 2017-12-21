@@ -29,7 +29,7 @@ def test_basic_pipeline_biclass(trainer_class):
 def test_basic_pipeline_regression(trainer_class):
     X, y = make_regression(n_samples=200, n_features=20,
                            n_informative=10, n_targets=1)
-    trainer = trainer_class([LGBMRegressor])
+    trainer = trainer_class([LGBMRegressor, XGBRegressor])
     dataset = XYCDataset(X, y)
     trainer.crossval_optimize_params(Mse(), dataset, opt_evals=3)
     trainer.get_best_results()

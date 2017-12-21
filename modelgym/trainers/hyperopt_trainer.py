@@ -34,9 +34,7 @@ class HyperoptTrainer(Trainer):
         for name, state in self.state.items():
             model_space = self.model_spaces[name]
 
-            print(model_space.model_class)
-
-            learning_task =  model_space.model_class.get_learning_task()
+            learning_task = model_space.model_class.get_learning_task()
 
             if cat_preprocess:
                 cat_preprocess_cv(

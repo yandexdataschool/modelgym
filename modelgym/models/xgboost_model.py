@@ -23,7 +23,7 @@ class XGBClassifier(Model):
             objective = 'multi:softprob'
             metric = 'mlogloss'
 
-        self.params = {'objective': objective, 'eval_metric': 'logloss',
+        self.params = {'objective': objective, 'eval_metric': metric,
                        'silent': 1}
 
         self.params.update(params)
@@ -173,7 +173,7 @@ class XGBRegressor(Model):
         Return:
             self
         """
-        dtrain = self._convert_to_dataset(dataset.X, dataset.y)
+        dtrain = self._convert_to_dataset(dataset.X, dataset.y, cat_cols=dataset.cat_cols)
         self.model = xgb.train(self.params, dtrain, num_boost_round=self.n_estimators, verbose_eval=False)
         return self
 
@@ -205,7 +205,8 @@ class XGBRegressor(Model):
         Return:
             np.array, shape (n_samples, ) or (n_samples, n_outputs)
         """
-        return self.model.predict(dataset.X)
+        xgb_dataset = xgb.DMatrix(dataset.X)
+        return self.model.predict(xgb_dataset)
 
     def is_possible_predict_proba(self):
         """
