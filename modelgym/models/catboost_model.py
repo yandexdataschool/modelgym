@@ -21,7 +21,8 @@ class CtBClassifier(Model):
         if params is None:
             params = {}
 
-        self.params = params
+        self.params = {'logging_level': 'Silent'}
+        self.params.update(params)
         self.model = None
 
     def _set_model(self, model):
@@ -266,7 +267,7 @@ class CtBRegressor(Model):
             dict of DistributionWrappers
         """
         return {
-            'iterations': scope.int(hp.quniform('iterations', 100, 500, 100)),
+            'iterations': scope.int(hp.quniform('iterations', 5, 10, 5)),
             'depth': scope.int(hp.quniform('depth', 1, 11, 1)),
             'learning_rate': hp.loguniform('learning_rate', -5, -1),
             'rsm': hp.uniform('rsm', 0, 1),
