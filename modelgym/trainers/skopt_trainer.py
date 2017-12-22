@@ -2,6 +2,9 @@ from modelgym.trainers.trainer import Trainer, eval_metrics
 from modelgym.utils.model_space import process_model_spaces
 from modelgym.utils import hyperopt2skopt_space
 from skopt.optimizer import forest_minimize, gp_minimize
+from modelgym.utils import cat_preprocess_cv
+
+import numpy as np
 
 
 class SkoptTrainer(Trainer):
@@ -11,9 +14,10 @@ class SkoptTrainer(Trainer):
         self.best_results = {}
         self.ind2names = {}
 
-    def crossval_optimize_params(self, opt_metric, dataset, cv=3, 
+    def crossval_optimize_params(self, opt_metric, dataset, cv=3,
                                  opt_evals=50, metrics=None, batch_size=10,
-                                 verbose=False):
+                                 verbose=False,
+                                 one_hot_max_size=10, cat_preprocess=False):
         for name, model_space in self.model_spaces.items():
             skopt_space, ind2names = hyperopt2skopt_space(model_space.space)
             model_space.space = skopt_space
@@ -27,7 +31,23 @@ class SkoptTrainer(Trainer):
         if isinstance(cv, int):
             cv = dataset.cv_split(cv)
 
-        for name, model_space in self.model_spaces.items():
+        if cat_preprocess not in [False, True]:
+            if len(cat_preprocess) != len(self.model_spaces):
+                raise ValueError('cat_preprocess must be True or False' +
+                    'or bit-mask with len={}'.format(len(self.model_spaces)))
+        else:
+            cat_preprocess = np.zeros(len(self.model_spaces)) + cat_preprocess
+
+        for model_index,[name, model_space] in \
+                                enumerate(self.model_spaces.items()):
+
+            model_space = self.model_spaces[name]
+
+            learning_task = model_space.model_class.get_learning_task()
+
+            if cat_preprocess[model_index]:
+                cat_preprocess_cv(
+                        cv, one_hot_max_size, learning_task)
 
             fn = lambda params: self.crossval_fit_eval(
                 model_type=model_space.model_class,

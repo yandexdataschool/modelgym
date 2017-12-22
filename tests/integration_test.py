@@ -49,6 +49,17 @@ def test_basic_pipeline_regression(trainer_class):
     assert results['XGB']['result']['params']['n_estimators'] == 15
 
 
+@pytest.mark.parametrize("trainer_class", TRAINER_CLASS)
+def test_basic_pipeline_biclass_with_cat_preprocess_mask(trainer_class):
+    X, y = make_classification(n_samples=200, n_features=20,
+                               n_informative=10, n_classes=2)
+    trainer = trainer_class([XGBClassifier, LGBMClassifier, RFClassifier])
+    dataset = XYCDataset(X, y)
+    trainer.crossval_optimize_params(Accuracy(), dataset, opt_evals=3,
+        cat_preprocess=[False, False, True])
+    trainer.get_best_results()
+
+
 @pytest.mark.parametrize("trainer_class", TRACKABLE_TRAINER_CLASS)
 def test_advanced_pipeline_biclass(trainer_class):
     try:
