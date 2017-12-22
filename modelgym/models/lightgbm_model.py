@@ -225,6 +225,7 @@ class LGBMRegressor(Model):
         """
 
         return {
+          'n_estimators':            scope.int(hp.quniform('n_estimators', 100, 500, 100)),
           'learning_rate':           hp.loguniform('learning_rate', -7, 0),
           'num_leaves':              scope.int(hp.qloguniform('num_leaves', 1, 7, 1)),
           'feature_fraction':        hp.uniform('feature_fraction', 0.5, 1),

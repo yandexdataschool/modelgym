@@ -232,9 +232,9 @@ class XGBRegressor(Model):
         """
 
         return {
+            'n_estimators':      scope.int(hp.quniform('n_estimators', 100, 500, 100)),
             'eta':               hp.loguniform('eta', -7, 0),
             'max_depth':         scope.int(hp.quniform('max_depth', 2, 10, 1)),
-            'n_estimators':      scope.int(hp.quniform('n_estimators', 100, 1000, 1)),
             'subsample':         hp.uniform('subsample', 0.5, 1),
             'colsample_bytree':  hp.uniform('colsample_bytree', 0.5, 1),
             'colsample_bylevel': hp.uniform('colsample_bylevel', 0.5, 1),

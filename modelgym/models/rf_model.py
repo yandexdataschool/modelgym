@@ -119,7 +119,8 @@ class RFClassifier(Model):
         """
 
         return {
-            'max_depth':        hp.choice('max_depth', range(1, 20)),
+            'n_estimators':      hp.choice('n_estimators', range(100, 500)),
+            'max_depth':         hp.choice('max_depth', range(1, 20)),
             'max_features':      hp.choice('max_features', range(1, 5)),
             'n_estimators':      hp.choice('n_estimators', range(1, 20)),
             'criterion':         hp.choice('criterion', ["gini", "entropy"]),
