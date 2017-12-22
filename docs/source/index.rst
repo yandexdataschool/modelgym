@@ -30,6 +30,7 @@ Documentaion
 
    guru
    models
+   metrics
    trainer
    tracker
    compare

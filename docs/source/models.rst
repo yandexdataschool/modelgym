@@ -9,6 +9,7 @@ Also, we implement wrappers for several models:
 * `XGBoost`_
 * `LightGBM`_
 * `RandomForestClassifier`_
+* `Catboost`_
 
 Model interface
 ---------------
@@ -34,6 +35,13 @@ LightGBM
 RandomForestClassifier
 ------------------------------
 .. automodule:: modelgym.models.rf_model
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Catboost
+--------
+.. automodule:: modelgym.models.catboost_model
     :members:
     :undoc-members:
     :show-inheritance:
