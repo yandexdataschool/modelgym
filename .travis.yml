@@ -1,0 +1,14 @@
+
+language: python
+
+before_install:
+  - mkdir test
+  - cd test
+
+install:
+  - git clone -b make_modelgym_great_again https://github.com/fminkin/modelgym.git
+  - cd ./modelgym
+  - docker pull modelgym/dockers
+
+script:
+  - docker run -ti --rm  -v "$(pwd)":/src  -p 7777:8888    modelgym/dockers:latest bash --login -ci "cd src/ && pip install catboost networkx==1.11 && pytest"
