@@ -38,13 +38,12 @@ class EnsembleClassifier(Model):
     def fit(self, dataset, weights=None, **kwargs):
         """
         Args:
-            dataset: XYCDataset train
+            dataset (XYCDataset): train
             y (np.array, shape (n_samples, ) or (n_samples, n_outputs)): the target data
-            weights (np.array, shape (n_samples, ) or
-                (n_samples, n_outputs) or None): weights of the data
+            weights (np.array, shape (n_samples, ) or (n_samples, n_outputs) or None): weights of the data
             eval_dataset: same as dataset
             kwargs: CatBoost.Pool kwargs if eval_dataset == None or
-                {'train': train_kwargs, 'eval': eval_kwargs} otherwise
+                ``{'train': train_kwargs, 'eval': eval_kwargs}`` otherwise
         Return:
             self
         """
@@ -163,7 +162,8 @@ class EnsembleClassifier(Model):
 class EnsembleRegressor(Model):
     def __init__(self, params=None):
         """
-        :param params (dict): parameters for model.
+        Args:
+            params (dict): parameters for model
         """
 
         if params is None:
@@ -185,13 +185,12 @@ class EnsembleRegressor(Model):
     def fit(self, dataset, weights=None, **kwargs):
         """
         Args:
-            dataset: XYCDataset train
+            dataset (XYCDataset): train
             y (np.array, shape (n_samples, ) or (n_samples, n_outputs)): the target data
-            weights (np.array, shape (n_samples, ) or
-                (n_samples, n_outputs) or None): weights of the data
+            weights (np.array, shape (n_samples, ) or (n_samples, n_outputs) or None): weights of the data
             eval_dataset: same as dataset
             kwargs: CatBoost.Pool kwargs if eval_dataset == None or
-                {'train': train_kwargs, 'eval': eval_kwargs} otherwise
+                ``{'train': train_kwargs, 'eval': eval_kwargs}`` otherwise
         Return:
             self
         """

@@ -202,9 +202,8 @@ class CtBRegressor(Model):
     def fit(self, dataset, weights=None, eval_dataset=None, **kwargs):
         """
         Args:
-            dataset: XYCDataset train
-            weights: (np.array, shape (n_samples, ) or
-                (n_samples, n_outputs) or None): weights of the data
+            dataset (XYCDataset) train
+            weights (np.array, shape (n_samples, ) or (n_samples, n_outputs) or None): weights of the data
             eval_dataset: same as dataset
             kwargs: CatBoost.Pool kwargs if eval_dataset is None or
                 ``{'train': train_kwargs, 'eval': eval_kwargs}`` otherwise
