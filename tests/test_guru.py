@@ -1,7 +1,7 @@
+import numpy as np
+
 from modelgym import Guru
 from sklearn.datasets import load_breast_cancer
-
-import numpy as np
 
 
 np.random.seed(0)
@@ -36,24 +36,24 @@ _BREAST_X, _BREAST_Y = load_breast_cancer(True)
 
 def test_sparse():
     guru_params = [{}, {}, {'sparse_qoute': 0.5}, {}]
-    Xs = [[_BREAST_X]] + [[_TOY_X]] * 2 + [[_NAMED_X]]
+    xs = [[_BREAST_X]] + [[_TOY_X]] * 2 + [[_NAMED_X]]
     answers = [[], [5], [5, 6], ['sparse']]
 
     _iterate_method_test(Guru.check_sparse,
                          init_dicts=guru_params,
-                         method_args=Xs,
+                         method_args=xs,
                          expected_results=answers)
 
 
 def test_categorial():
     guru_params = [{}, {}, {'category_qoute': 0.15}, {}]
-    Xs = [[_BREAST_X]] + [[_TOY_X]] * 2 + [[_NAMED_X]]
+    xs = [[_BREAST_X]] + [[_TOY_X]] * 2 + [[_NAMED_X]]
     answers = [{}, {Guru._NOT_NUMERIC_KEY: [0], Guru._NOT_VARIABLE_KEY: [3, 4]},
                {Guru._NOT_NUMERIC_KEY: [0], Guru._NOT_VARIABLE_KEY: [3]},
                {Guru._NOT_NUMERIC_KEY: ['str'], Guru._NOT_VARIABLE_KEY: ['categorial']}]
     _iterate_method_test(Guru.check_categorial,
                          init_dicts=guru_params,
-                         method_args=Xs,
+                         method_args=xs,
                          expected_results=answers)
 
 

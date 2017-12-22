@@ -2,23 +2,26 @@ Models
 ===========
 
 In order to use our Trainer you need the wrapper on your model.
-You can find the required interface below.
+You can find the required `Model interface`_ below.
 
-Also, we implement wrappers for several models:
+We implement wrappers for several models:
 
-* XGBoost
-* LightGBM
-* RandomForestClassifier
+* `XGBoost`_
+* `LightGBM`_
+* `RandomForestClassifier`_
+* `Catboost`_
+
+Also, we implement an `Ensemble Model`_.
 
 Model interface
 ---------------
-.. automodule:: modelgym.model
+.. automodule:: modelgym.models.model
     :members:
     :undoc-members:
 
 XGBoost
 ---------------
-.. automodule:: modelgym.xgboost_model
+.. automodule:: modelgym.models.xgboost_model
     :members:
     :undoc-members:
     :show-inheritance:
@@ -26,14 +29,28 @@ XGBoost
 
 LightGBM
 ---------------
-.. automodule:: modelgym.lightgbm_model
+.. automodule:: modelgym.models.lightgbm_model
     :members:
     :undoc-members:
     :show-inheritance:
 
 RandomForestClassifier
 ------------------------------
-.. automodule:: modelgym.rf_model
+.. automodule:: modelgym.models.rf_model
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Catboost
+--------
+.. automodule:: modelgym.models.catboost_model
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Ensemble Model
+--------------
+.. automodule:: modelgym.models.ensemble_model
     :members:
     :undoc-members:
     :show-inheritance:

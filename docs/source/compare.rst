@@ -1,5 +1,5 @@
 Compare models
 ==============
 
-.. automodule:: modelgym.util
+.. automodule:: modelgym.utils.util
     :members:

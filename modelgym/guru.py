@@ -49,18 +49,14 @@ class Guru:
                  class_disbalance_qoute=0.5,
                  pvalue_boundary=0.05):
         """
-        Arguments:
-            sample_size: int
-                number of objects to be used for category
+        Args:
+            sample_size (int): number of objects to be used for category
                 and sparsity diagnostic. If None, whole data will be used.
-            category_qoute: 0 < float < 1
-                max number of distinct feature values in sample
+            category_qoute (0 < float < 1): max number of distinct feature values in sample
                 to assume this feature categorial
-            sparse_qoute: 0 < float < 1
-                zeros portion in sample required to assume this
+            sparse_qoute (0 < float < 1): zeros portion in sample required to assume this
                 feature sparse
-            class_disbalance_qoute: 0 < float < 1
-                class portion should be distant from the mean
+            class_disbalance_qoute (0 < float < 1): class portion should be distant from the mean
                 to assume this class disbalanced
         """
         self._print_hints = print_hints
@@ -100,27 +96,30 @@ class Guru:
 
     def check_categorial(self, X):
         """
-        Arguments:
-            X: array-like with shape (n_objects x n_features)
-                features from your dataset
-        Returns:
-            out: dict
-                out['not numeric']: list
-                    indexes of features which aren't numeric
-                out['not variable']: list
-                    indexes of features which are supposed to be not variable
+        Find category features in X
+
+        Args:
+            X (array-like with shape (n_objects, n_features)): features from your dataset
+        Return:
+            dict of shape::
+
+                {
+                    'not numeric': list of feature indexes,
+                    'not variable': list of feature indexes
+                }
+
         """
         to_find = Guru._CATEGORIAL
         return self._get_categorial_or_sparse(X, to_find)
 
     def check_sparse(self, X):
         """
-        Arguments:
-            X: array-like with shape (n_objects x n_features)
-                features from your dataset
-        Returns:
-            out: list
-                features which are supposed to be sparse
+        Find sparse features in X
+
+        Args:
+            X (array-like with shape (n_objects, n_features)): features from your dataset
+        Return:
+            list of features which are supposed to be sparse
         """
         to_find = Guru._SPARSE
         return self._get_categorial_or_sparse(X, to_find)
@@ -164,16 +163,19 @@ class Guru:
 
     def check_class_disbalance(self, y):
         """
-        You should use this method only if you are soling classification task
+        Find disbalanced classes in y.
+        You should use this method only if you are solving classification task
 
-        Arguments:
-            y: array-like with shape (n_objects,)
-                target classes in your dataset.
-        Returns:
-            out['too common']: list
-                too common classes
-            out['too rare']: list
-                too rare classes
+        Args:
+            y (array-like with shape (n_objects,)): target classes in your dataset
+        Return:
+            dict of shape::
+
+                {
+                    'too common': list of classes,
+                    'too rare': list of classes
+                }
+
         """
         candidates = defaultdict(list)
         counter = Counter(y)
@@ -192,14 +194,15 @@ class Guru:
 
     def draw_correlation_heatmap(self, X, feature_indexes=None, figsize=(15, 10), **heatmap_kwargs):
         """
-        Arguments:
-            X: array-like with shape (n_objects x n_features)
-                features from your dataset
-            feature_indexes: list of int or str
-                features which should be checked for correlation. If None all features will be checked.
+        Draw correlation heatmap between features with specified indexes from X
+
+        Args:
+            X (array-like with shape (n_objects x n_features)): features from your dataset
+            feature_indexes (list of int or str): features which should be checked for correlation.
+                If None all features will be checked.
                 If it is list of str X should be a np.ndarray and X.dtype should contain fields
-            figsize: tuple of int
-                Size of figure with heatmap
+            figsize (tuple of int): Size of figure with heatmap
+
         """
         heatmap_kwargs.setdefault('cmap', Guru._DEFAULT_CMAP)
         features, feature_indexe = self._preproc_params(X, feature_indexes, cast_to=np.float)
@@ -212,21 +215,42 @@ class Guru:
                         **heatmap_kwargs)
         plt.show()
 
-    def check_correlation(self, X, feature_indexes=None, figsize=(6, 4), **hist_kwargs):
+    def draw_2dhist(self, X, feature_indexes=None, figsize=(6, 4), **hist_kwargs):
         """
-        Arguments:
-            X: array-like with shape (n_objects x n_features)
-                features from your dataset
-            feature_indexes: list
-                features which should be checked for correlation. If None all features will be checked
-            figsize: tuple of int
-                Size of figures with hist2d plots
-        Returns:
-            out: list
-                pairs of features which are supposed to be correlated
+        Draw 2dhist for each pair of features with specified indexes
+
+        Args:
+            X (array-like with shape (n_objects x n_features)): features from your dataset
+            feature_indexes (list of int or str): features which should be checked for correlation.
+                If None all features will be checked.
+                If it is list of str X should be a np.ndarray and X.dtype should contain fields
+            figsize (tuple of int): Size of figure with hist2d
+
         """
+        features, feature_indexes = self._preproc_params(X, feature_indexes, cast_to=np.float)
         hist_kwargs.setdefault('cmap', Guru._DEFAULT_CMAP)
         hist_kwargs.setdefault('bins', len(X) ** 0.5)
+        for i, (first_ind, first_feature) in enumerate(zip(feature_indexes[:-1], features[:-1])):
+            for second_ind, second_feature in zip(feature_indexes[i + 1:],
+                                                  features[i + 1:]):
+                plt.figure(figsize=figsize)
+                plt.hist2d(first_feature, second_feature, **hist_kwargs)
+                plt.title(str((first_ind, second_ind)))
+                plt.xlabel(str(first_ind))
+                plt.ylabel(str(second_ind))
+                plt.show()
+
+    def check_correlation(self, X, feature_indexes=None):
+        """
+        Find correlated features among features with specified indexes from X
+
+        Args:
+            X (array-like with shape (n_objects x n_features)): features from your dataset
+            feature_indexes: list of features which should be checked for correlation.
+                If None all features will be checked
+        Return:
+            list of pairs of features which are supposed to be correlated
+        """
         features, feature_indexes = self._preproc_params(X, feature_indexes, cast_to=np.float)
 
         candidates = []
@@ -236,14 +260,6 @@ class Guru:
                 pvalue = ss.spearmanr(first_feature, second_feature)[1]
                 if pvalue < self._pvalue_boundary:
                     candidates.append((first_ind, second_ind))
-
-                if self._print_hints:
-                    plt.figure(figsize=figsize)
-                    plt.hist2d(first_feature, second_feature, **hist_kwargs)
-                    plt.title(str((first_ind, second_ind)))
-                    plt.xlabel(str(first_ind))
-                    plt.ylabel(str(second_ind))
-                    plt.show()
 
         self._print_warning(candidates, Guru._MESSAGE_DICT[Guru._CORRELATION])
         return candidates
@@ -266,20 +282,25 @@ class Guru:
 
     def check_everything(self, data):
         """
-        Arguments:
-            data: XYCDataset-like
-                your dataset
-        Returns:
+        Full data check. Find category features, sparse features, correlated features and disbalanced classes.
+
+        Args:
+            data (XYCDataset-like): your dataset
+        Return:
             (categorials, sparse, disbalanced, correlated)
-                categorials: indexes of features which are supposed to be categorial
-                sparse: indexes of features which are supposed to be sparse
-                disbalanced: disbalanced classes
-                correlated: indexes of features which are supposed to be correlated
-            For more detailes see methods:
-                check_categorials
-                check_sparse
-                check_class_disbalance
-                check_correlation
+
+            * categorials: indexes of features which are supposed to be categorial
+            * sparse: indexes of features which are supposed to be sparse
+            * disbalanced: disbalanced classes
+            * correlated: indexes of features which are supposed to be correlated
+
+        For more detailes see methods:
+
+            * check_categorials
+            * check_sparse
+            * check_class_disbalance
+            * check_correlation
+
         """
         self.no_warnings = True
 

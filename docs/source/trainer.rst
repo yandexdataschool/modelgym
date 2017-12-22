@@ -1,15 +1,16 @@
-Trainer
-=======
+Trainers
+========
 
-TPE Trainer
------------
-.. automodule:: modelgym.trainer
+Hyperopt trainers
+-----------------
+.. automodule:: modelgym.trainers.hyperopt_trainer
     :members:
     :undoc-members:
+    :show-inheritance:
 
-GP Trainer
------------
-.. automodule:: modelgym.gp_trainer
+Skopt trainers
+-----------------
+.. automodule:: modelgym.trainers.skopt_trainer
     :members:
     :undoc-members:
     :show-inheritance:

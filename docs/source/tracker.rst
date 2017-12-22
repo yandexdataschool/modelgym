@@ -1,7 +1,7 @@
-Tracker
-=======
+Trackers
+========
 
-.. automodule:: modelgym.tracker
+.. automodule:: modelgym.trackers.tracker
     :members:
     :undoc-members:
-    :show-inheritance:
+    :exclude-members: Tracker
