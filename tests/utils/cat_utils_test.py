@@ -60,7 +60,7 @@ def test_cat_preprocess_exceptions():
     # check that numeric strs '0'...'9' can be transformed
     try:
         A = preprocess_cat_cols(X, y, cat_cols=[0,1], one_hot_max_size=2)
-    except TypeError:
+    except ValueError or TypeError:
         assert False
 
 
@@ -70,7 +70,7 @@ def test_cat_preprocess_exceptions():
 
     try:
         A = preprocess_cat_cols(X, y, cat_cols=[0,1], one_hot_max_size=3)
-    except TypeError:
+    except ValueError or TypeError:
         isExc = True
 
     assert isExc
