@@ -1,68 +1,55 @@
-from modelgym.models import Model
-from modelgym.utils import ModelSpace
-
-import numpy as np
-
 class Trainer(object):
-    def __init__(self, model_spaces, tracker=None):
-        raise NotImplementedError()
+    """Trainer is a base class for models hyperparameter optimization"""
 
-    # TODO: consider different batch_size for different models
-    def crossval_optimize_params(self, opt_metric, dataset, cv=3, 
-                                 opt_evals=50, metrics=None, batch_size=10,
-                                 verbose=False):
+    def __init__(self, model_spaces, tracker=None, **kwargs):
+        """
+        Args:
+            model_spaces (list of modelgym.models.Model or modelgym.utils.ModelSpaces): list of model spaces
+                (model classes and parameter spaces to look in). If some list item is Model, it is
+                converted in ModelSpace with default space and name equal to model class __name__
+            tracker (modelgym.trackers.Tracker, optional): tracker to save
+                (and load, if there was any) optimization progress.
+            **kwargs: additional Concrete-Trainer specific parameters
+        Raises:
+            ValueError if there are several model_spaces with similar names
+        """
+        pass
+
+    def crossval_optimize_params(self, opt_metric, dataset, cv=3, opt_evals=50, metrics=None, verbose=False, **kwargs):
+        """Find optimal hyperparameters for all models
+
+        Args:
+            opt_metric (modelgym.metrics.Metric): metric to optimize
+            dataset (modelgym.utils.XYCDataset or None): dataset
+            cv (int or list of tuples of (XYCDataset, XYCDataset)): if int, then number of cross-validation folds or
+                cross-validation folds themselves otherwise.
+            opt_evals (int): number of cross-validation evaluations
+            metrics (list of modelgym.metrics.Metric, optional): additional metrics to evaluate
+            verbose (bool): Enable verbose output.
+            **kwargs: additional Concrete-Trainer specific parameters
+        Note:
+            if cv is int, than dataset is split into cv parts for cross validation. Otherwise, cv folds are used.
+        """
         raise NotImplementedError()
 
     def get_best_results(self):
+        """When training is complete, return best parameters (and additional information) for each model space
+        Returns:
+            dicts of shape: {
+                name (str): {
+                    "result": {
+                        "loss": float,
+                        "metric_cv_results": list,
+                        "params": dict
+                    },
+                    "model_space": modelgym.utils.ModelSpace
+                }
+            }
+            where name is a name of corresponding model_space,
+            metric_cv_results contains dict's from metric names to calculated metric values for each fold in cv_fold
+            params is optimal parameters of corresponding model
+            model_space is corresponding model_space.
+
+            Also, additional elements might appear in "result" dict, depending on Concrete Trainer
+        """
         raise NotImplementedError()
-
-    @staticmethod
-    def crossval_fit_eval(model_type, params, cv, metrics, verbose):
-        metric_cv_results = []
-        losses = []
-        for dtrain, dtest in cv:
-            eval_result = \
-                eval_metrics(model_type, params, dtrain, dtest, metrics)
-            metric_cv_results.append(eval_result)
-
-            if metrics[-1].is_min_optimal:
-                loss = eval_result[metrics[-1].name]
-            else:
-                loss = -eval_result[metrics[-1].name]
-            losses.append(loss)
-
-        return {
-            "loss": np.mean(losses),
-            "metric_cv_results": metric_cv_results,
-            "params": params.copy(),
-        }
-
-def eval_metrics(model_type, params, dtrain, dtest, metrics):
-    """
-       evaluates model_type model with params on dtest dataset, evaluates
-       on dtest data and evaluates each metric from metrics
-       :param model_type (Model): class of model (e.g XGBClassifier)
-       :patam params (dict or None): model params
-       :dtrain (modelgym.utils.XYCDataset): train dataset
-       :dtest (modelgym.utils.XYCDataset): test dataset. dtest.y could be None
-       :metrics (list of modelgym.metric.Metric): metrics to evaluate
-       :return: dict metric.name -> metric result
-    """
-    
-    model = model_type(params=params)
-    model.fit(dtrain)
-    y_pred_proba = None
-    y_pred = None
-    
-    if any(map(lambda metric: metric.requires_proba, metrics)):
-        y_pred_proba = model.predict_proba(dtest)
-    if not all(map(lambda metric: metric.requires_proba, metrics)):
-        y_pred = model.predict(dtest)
-    
-    metrics_results = {}
-    for metric in metrics:
-        pred = y_pred_proba if metric.requires_proba else y_pred
-        metrics_results[metric.name] = metric.calculate(dtest.y, pred)
-
-    return metrics_results
-    

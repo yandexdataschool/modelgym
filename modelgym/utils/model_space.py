@@ -25,6 +25,7 @@ class ModelSpace(object):
         if self.name is None:
             self.name = model_class.__name__
 
+
 def process_model_spaces(model_spaces):
     """Process model spaces list (or one model space),
 
