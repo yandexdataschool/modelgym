@@ -2,6 +2,6 @@ Trackers
 ========
 
 .. automodule:: modelgym.trackers.tracker
-    :members: LocalTracker, TrackerMongo
+    :members:
     :undoc-members:
-    :show-inheritance:
+    :exclude-members: Tracker

@@ -1,21 +1,6 @@
 
-.. raw:: html
-
-   <h1>
-
-.. raw:: html
-
-   <center>
-
 Basic Tutorial
-
-.. raw:: html
-
-   </center>
-
-.. raw:: html
-
-   </h1>
+==============
 
 .. raw:: html
 
@@ -82,8 +67,12 @@ Visualizing the results.
 Define models we want to use
 ----------------------------
 
-In this tutorial, we will use 1. LightGBMClassifier 2. XGBoostClassifier
-3. RandomForestClassifier 4. CatBoostClassifier
+In this tutorial, we will use
+
+1. LightGBMClassifier
+2. XGBoostClassifier
+3. RandomForestClassifier
+4. CatBoostClassifier
 
 .. code:: ipython3
 
