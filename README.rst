@@ -10,6 +10,10 @@ Gym for predictive models
 .. image:: https://readthedocs.org/projects/modelgym/badge/?version=latest
   :target: http://modelgym.readthedocs.io/en/latest/?badge=latest
   :alt: Documentation Status
+    
+.. image:: https://travis-ci.org/yandexdataschool/modelgym.svg?branch=master
+  :target: https://travis-ci.org/yandexdataschool/modelgym
+  :alt: Build Status
 
 What is this about?
 -------------------
