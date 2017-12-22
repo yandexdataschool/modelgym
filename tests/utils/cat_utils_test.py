@@ -16,7 +16,7 @@ def test_cat_preprocess_cv():
     assert len(cv[0][0].cat_cols) == 0 and len(cv[0][1].cat_cols) == 0
 
 
-def test_model_cat_preprocess_numeric():
+def test_model_cat_preprocess():
     objects = 4
     features = 5
 
@@ -24,33 +24,26 @@ def test_model_cat_preprocess_numeric():
 
     y = np.arange(objects)
 
-    X = np.arange(objects * features).reshape((objects, features)).astype(float)
+    make_set_X = lambda: \
+        np.arange(objects * features).reshape((objects, features)).astype(float)
 
-    A = preprocess_cat_cols(X, y, one_hot_max_size=1)
+    X = make_set_X()
+    R = preprocess_cat_cols(X, y, one_hot_max_size=1)
+    # check that nothing changes
+    assert np.array_equal(R, X)
 
-    print(A)
-
-    assert np.array_equal(A, X)
-
-    X = preprocess_cat_cols(X, y, cat_cols, one_hot_max_size=1)
-
-    print(X)
+    X = make_set_X()
+    R = preprocess_cat_cols(X, y, cat_cols, one_hot_max_size=1)
     # check that one-hots aren't created
-    assert X.shape == (4, 5)
+    assert R.shape == (4, 5)
 
-    X = np.arange(objects * features).reshape((objects, features)).astype(float)
-
-    print(X)
-
-    X  = preprocess_cat_cols(X, y, cat_cols, one_hot_max_size=4)
-
-    print(X)
-
+    X = make_set_X()
+    R  = preprocess_cat_cols(X, y, cat_cols, one_hot_max_size=4)
     # check 2 columns are transformed to one-hots
-    assert X.shape == (4, 3 + 4 * 2)
+    assert R.shape == (4, 3 + 4 * 2)
 
     # check that one-hots contain only {0,1}
-    assert set(np.unique(X[:, -8:].reshape(-1))) == set([0,1])
+    assert set(np.unique(R[:, -8:].reshape(-1))) == set([0,1])
 
 
     A, B  = preprocess_cat_cols(X, y, cat_cols, X_test=X, one_hot_max_size=1)
@@ -60,23 +53,24 @@ def test_model_cat_preprocess_numeric():
     assert B.shape == X.shape
 
 
+def test_cat_preprocess_exceptions():
+    X = np.array([['0', 'a'], ['0', 'b'], ['1', 'b'], ['1', 'c']])
+    y = [0,0,1,1]
 
-def test_model_cat_preprocess_str():
+    # check that numeric strs '0'...'9' can be transformed
+    try:
+        A = preprocess_cat_cols(X, y, cat_cols=[0,1], one_hot_max_size=2)
+    except TypeError:
+        assert False
 
-    X = np.array([['a', 'b'], ['b', 'b'], ['b', 'b']])
 
-    y = [0, 0, 1]
+    # check that other strings can't be transformed
+    X = np.array([['0', 'a'], ['0', 'b'], ['1', 'b'], ['1', 'c']])
+    isExc = False
 
-    A = preprocess_cat_cols(X, y, one_hot_max_size=1)
+    try:
+        A = preprocess_cat_cols(X, y, cat_cols=[0,1], one_hot_max_size=3)
+    except TypeError:
+        isExc = True
 
-    print(A)
-
-    assert np.array_equal(A, X)
-
-    A = preprocess_cat_cols(X, y, one_hot_max_size=5)
-
-    print(A)
-
-    assert np.array_equal(A, X)
-
-    # assert False
+    assert isExc

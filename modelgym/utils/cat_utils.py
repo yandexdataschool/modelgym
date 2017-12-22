@@ -70,15 +70,22 @@ class OneHotEncoder:
         return self.__apply(X, self.__transform)
 
     def __apply(self, X, func):
+        try:
+            X = np.array(X, dtype=int)
+        except:
+            raise TypeError("categorial features for one hot" +
+                                            "must have float or int type")
+
         X_encoded = []
         for i in np.arange(X.shape[1]):
-            cur_one_hot_cols = func(np.array(X[:, i], dtype=int), i)
+            cur_one_hot_cols = func(X[:, i].reshape(-1, 1), i)
+            print(cur_one_hot_cols)
             X_encoded.append(cur_one_hot_cols)
 
         return np.concatenate(X_encoded, axis=1)
 
     def __fit(self, data, index):
-        self.enc[index] = preprocessing.LabelBinarizer()
+        self.enc[index] = preprocessing.OneHotEncoder(sparse=False)
         return self.enc[index].fit_transform(data)
 
     def __transform(self, data, index):
@@ -110,7 +117,7 @@ def cat_preprocess_cv(cv_pairs, one_hot_max_size=1,
 
 
 def preprocess_cat_cols(X_train, y_train, cat_cols=[], X_test=None,
-                        one_hot_max_size=1, learning_task=LearningTask.CLASSIFICATION):
+                one_hot_max_size=1, learning_task=LearningTask.CLASSIFICATION):
     """
         one-hot or cat-count preprocessing, depends on one_hot_max_size
         :return X_train [, X_test] - transformed data
@@ -132,13 +139,14 @@ def preprocess_cat_cols(X_train, y_train, cat_cols=[], X_test=None,
 
 
 
-def preprocess_counter_cols(X_train, y_train, cat_cols=None, X_test=None, cc=None,
-                        counters_sort_col=None,
+def preprocess_counter_cols(X_train, y_train, cat_cols=None, X_test=None,
+                        cc=None, counters_sort_col=None,
                         learning_task=LearningTask.CLASSIFICATION):
     if cat_cols is None or len(cat_cols) == 0:
         return cc
     if cc is None:
-       sort_values = None if counters_sort_col is None else X_train[:, counters_sort_col]
+       sort_values = None if counters_sort_col is None \
+                                        else X_train[:, counters_sort_col]
        cc = CatCounter(learning_task, sort_values)
        X_train[:,cat_cols] = cc.fit(X_train[:,cat_cols], y_train)
     else:
