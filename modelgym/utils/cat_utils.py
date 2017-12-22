@@ -1,12 +1,22 @@
 from modelgym.models.learning_task import LearningTask
 from collections import defaultdict
 
-from sklearn import preprocessing, pipeline
+from sklearn import preprocessing
 
 import numpy as np
 
 class CatCounter:
+    """Categorical counter transformer class which calculates
+    mean value of target for each unique label
+    on prefix of random transposition of samples (like in catboost)
+    """
     def __init__(self, learning_task, sort_values=None, seed=0):
+        """
+        Args:
+            learning_task (LearningTask): type of learning task
+            sort_values (None or numpy.ndarray): random transposition of indices
+            seed (int): random seed
+        """
         self.learning_task = learning_task
         self.sort_values = sort_values
         self.seed = seed
@@ -59,51 +69,16 @@ class CatCounter:
         return np.concatenate(results, axis=1)
 
 
-class OneHotEncoder:
-    def __init__(self):
-        self.enc = dict()
-
-    def fit(self, X):
-        return self.__apply(X, self.__fit)
-
-    def transform(self, X):
-        return self.__apply(X, self.__transform)
-
-    def __apply(self, X, func):
-        try:
-            X = np.array(X, dtype=int)
-        except:
-            raise TypeError("categorial features for one hot" +
-                                            "must have float or int type")
-
-        X_encoded = []
-        for i in np.arange(X.shape[1]):
-            cur_one_hot_cols = func(X[:, i].reshape(-1, 1), i)
-            print(cur_one_hot_cols)
-            X_encoded.append(cur_one_hot_cols)
-
-        return np.concatenate(X_encoded, axis=1)
-
-    def __fit(self, data, index):
-        self.enc[index] = preprocessing.OneHotEncoder(sparse=False)
-        return self.enc[index].fit_transform(data)
-
-    def __transform(self, data, index):
-        try:
-            return self.enc[index].transform(data)
-        except:
-            raise ValueError("Test set contains labels which" +
-                        "are not represented in train set.\n" +
-                        "You may decrease one_hot_max_size to avoid this error."
-                            )
-
-
 def cat_preprocess_cv(cv_pairs, one_hot_max_size=1,
         learning_task=LearningTask.CLASSIFICATION):
-    """default categorical features preprocessing
-    :param cv_pairs list of tuples of 2 XYCDataset's: cross validation folds
-        for preparation
-    :return list of tuples of 2 XYCDataset's: cross validation folds
+    """Default categorial columns preprocessing for each train-test split in cv
+
+    Args:
+        cv_pairs (list of tuples of XYCDataset):
+        one_hot_max_size(int): max unique labels for one-hot-encoding
+        learning_task (LearningTask): a type of learning task
+    Returns:
+        list of tuples of XYCDataset: cross validation folds
     """
     cv_prepared = []
 
@@ -118,9 +93,21 @@ def cat_preprocess_cv(cv_pairs, one_hot_max_size=1,
 
 def preprocess_cat_cols(X_train, y_train, cat_cols=[], X_test=None,
                 one_hot_max_size=1, learning_task=LearningTask.CLASSIFICATION):
-    """
-        one-hot or cat-count preprocessing, depends on one_hot_max_size
-        :return X_train [, X_test] - transformed data
+    """Preprocess categorial columns(cat_cols) in X_train
+    and X_test(if specified) with cat-counting(the same as in catboost)
+    or with one-hot-encoding,
+    depends on number of unique labels(one_hot_max_size)
+
+    Args:
+        X_train (numpy.ndarray): train dataset
+        y_train (numpy.ndarray): train labels
+        cat_cols (list of columns indices): categorical columns
+        X_test (None or numpy.ndarray): test dataset
+        one_hot_max_size(int): max unique labels for one-hot-encoding
+        learning_task (LearningTask): a type of learning task
+    Returns:
+        numpy.ndarray(, numpy.ndarray): transformed train and test datasets or
+                                    only train, depends on X_test is None or not
     """
     one_hot_cols = [col for col in cat_cols
         if len(np.unique(X_train[:, col])) <= one_hot_max_size]
@@ -142,6 +129,21 @@ def preprocess_cat_cols(X_train, y_train, cat_cols=[], X_test=None,
 def preprocess_counter_cols(X_train, y_train, cat_cols=None, X_test=None,
                         cc=None, counters_sort_col=None,
                         learning_task=LearningTask.CLASSIFICATION):
+    """Transform columns(cat_cols) in X_train
+    and X_test(if specified) with cat-counting(the same as in catboost)
+
+    Args:
+        X_train (numpy.ndarray): train dataset
+        y_train (numpy.ndarray): train labels
+        cat_cols (None or list of columns indices): categorical columns
+        X_test (None or numpy.ndarray): test dataset
+        cc (None or CatCounter): cat-counter fitted object
+        counters_sort_col (None or numpy.ndarray): a prior order for
+                                                        sorting samples
+        learning_task (LearningTask): a type of learning task
+    Returns:
+        CatCounter: cat-counter fitted object
+    """
     if cat_cols is None or len(cat_cols) == 0:
         return cc
     if cc is None:
@@ -157,14 +159,26 @@ def preprocess_counter_cols(X_train, y_train, cat_cols=None, X_test=None,
 
 
 def preprocess_one_hot_cols(X_train, cat_cols=None, X_test=None):
+    """Change columns(cat_cols) in X_train
+    and X_test(if specified) into one-hot-encoding columns
+    (always stacked to the right of the matrix).
+    Data in cat_cols must have float or int type
+
+    Args:
+        X_train (numpy.ndarray): train dataset
+        cat_cols (None or list of columns indices): categorical columns
+        X_test (None or numpy.ndarray): test dataset
+    Returns:
+        numpy.ndarray, numpy.ndarray: transformed train and test datasets
+    """
     add_one_hot = lambda X_old, X_one_hot: np.concatenate(
                             (np.delete(X_old, cat_cols, 1), X_one_hot), 1)
 
     if cat_cols is None or len(cat_cols) == 0:
         return X_train, X_test
 
-    enc = OneHotEncoder()
-    X_train = add_one_hot(X_train, enc.fit(X_train[:, cat_cols]))
+    enc = preprocessing.OneHotEncoder(sparse=False)
+    X_train = add_one_hot(X_train, enc.fit_transform(X_train[:, cat_cols]))
 
     if X_test is not None:
         X_test =  add_one_hot(X_test, enc.transform(X_test[:, cat_cols]))
