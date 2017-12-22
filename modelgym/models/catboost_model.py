@@ -21,7 +21,17 @@ class CtBClassifier(Model):
         if params is None:
             params = {}
 
-        self.params = {'logging_level': 'Silent'}
+        self.params = {
+            'logging_level': 'Silent',
+            'loss_function': 'Logloss'
+        }
+
+        classes_count = params.get('num_class', 2)
+        if classes_count > 2:
+            # change default objective
+            self.params['loss_function'] = 'MultiClass'
+            self.params['classes_count'] = classes_count
+
         self.params.update(params)
         self.model = None
 
@@ -163,8 +173,12 @@ class CtBRegressor(Model):
 
         if params is None:
             params = {}
+        self.params = {
+            'logging_level': 'Silent',
+            'loss_function': 'RMSE'
+        }
 
-        self.params = params
+        self.params.update(params)
         self.model = None
 
     def _set_model(self, model):
