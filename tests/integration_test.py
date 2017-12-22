@@ -7,7 +7,8 @@ from sklearn.datasets import make_classification, make_regression
 
 from modelgym.metrics import RocAuc, Accuracy, Mse
 from modelgym.models import XGBClassifier, RFClassifier, LGBMClassifier, CtBClassifier, \
-                            XGBRegressor, LGBMRegressor, CtBRegressor
+                            XGBRegressor, LGBMRegressor, CtBRegressor, \
+                            EnsembleClassifier, EnsembleRegressor
 from modelgym.trackers import LocalTracker
 from modelgym.trainers import TpeTrainer, RandomTrainer, RFTrainer, GPTrainer
 from modelgym.utils import XYCDataset, ModelSpace
@@ -27,7 +28,8 @@ def test_basic_pipeline_biclass(trainer_class):
                 'iterations': 10
             })
 
-    trainer = trainer_class([XGBClassifier, LGBMClassifier, RFClassifier, ctb_model_space])
+    trainer = trainer_class([XGBClassifier, LGBMClassifier, RFClassifier,
+                             ctb_model_space, EnsembleClassifier])
     dataset = XYCDataset(x, y)
     trainer.crossval_optimize_params(Accuracy(), dataset, opt_evals=3)
     trainer.get_best_results()
@@ -42,7 +44,8 @@ def test_basic_pipeline_regression(trainer_class):
                 'learning_rate': hp.loguniform('learning_rate', -5, -1),
                 'iterations': 10
             })
-    trainer = trainer_class([LGBMRegressor, xgb_model_space, ctb_model_space])
+    trainer = trainer_class([LGBMRegressor, xgb_model_space,
+                             ctb_model_space, EnsembleRegressor])
     dataset = XYCDataset(x, y)
     trainer.crossval_optimize_params(Mse(), dataset, opt_evals=3)
     results = trainer.get_best_results()
@@ -73,7 +76,8 @@ def test_advanced_pipeline_biclass(trainer_class):
                     'iterations': 10
                 })
 
-        trainer = trainer_class([XGBClassifier, LGBMClassifier, RFClassifier, ctb_model_space],
+        trainer = trainer_class([XGBClassifier, LGBMClassifier, RFClassifier,
+                                 ctb_model_space, EnsembleClassifier],
                                 tracker=tracker)
         dataset = XYCDataset(x, y)
         trainer.crossval_optimize_params(Accuracy(), dataset, opt_evals=3,
