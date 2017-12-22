@@ -16,7 +16,7 @@ def test_cat_preprocess_cv():
     assert len(cv[0][0].cat_cols) == 0 and len(cv[0][1].cat_cols) == 0
 
 
-def test_model_cat_preprocess():
+def test_model_cat_preprocess_numeric():
     objects = 4
     features = 5
 
@@ -58,3 +58,25 @@ def test_model_cat_preprocess():
     # check that two good args are returned if X_test is specified
     assert A.shape == X.shape
     assert B.shape == X.shape
+
+
+
+def test_model_cat_preprocess_str():
+
+    X = np.array([['a', 'b'], ['b', 'b'], ['b', 'b']])
+
+    y = [0, 0, 1]
+
+    A = preprocess_cat_cols(X, y, one_hot_max_size=1)
+
+    print(A)
+
+    assert np.array_equal(A, X)
+
+    A = preprocess_cat_cols(X, y, one_hot_max_size=5)
+
+    print(A)
+
+    assert np.array_equal(A, X)
+
+    # assert False

@@ -21,6 +21,7 @@ class HyperoptTrainer(Trainer):
         Raises:
             ValueError if there are several model_spaces with similar names
         """
+
         super().__init__(model_spaces, tracker)
         self.model_spaces = process_model_spaces(model_spaces)
         self.tracker = tracker
@@ -44,6 +45,7 @@ class HyperoptTrainer(Trainer):
         Note:
             if cv is int, than dataset is split into cv parts for cross validation. Otherwise, cv folds are used.
         """
+
         if metrics is None:
             metrics = []
 
@@ -126,6 +128,7 @@ class HyperoptTrainer(Trainer):
             metric_cv_results contains dict's from metric names to calculated metric values for each fold in cv_fold
             params is just a copy of input argument params
         """
+
         result = crossval_fit_eval(model_type, params, cv, metrics, verbose)
         result["status"] = STATUS_OK
         losses = [cv_result[metrics[-1].name]
@@ -136,10 +139,12 @@ class HyperoptTrainer(Trainer):
 
 
 class TpeTrainer(HyperoptTrainer):
+    """TpeTrainer is a HyperoptTrainer using Tree-structured Parzen Estimator"""
     def __init__(self, model_spaces, tracker=None):
         super().__init__(model_spaces, algo=tpe.suggest, tracker=tracker)
 
 
 class RandomTrainer(HyperoptTrainer):
+    """TpeTrainer is a HyperoptTrainer using Random search"""
     def __init__(self, model_spaces, tracker=None):
-        super().__init__(model_spaces, algo=rand.suggest, tracker=tracker)        
+        super().__init__(model_spaces, algo=rand.suggest, tracker=tracker)

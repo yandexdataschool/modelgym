@@ -3,6 +3,9 @@ from modelgym.utils.model_space import process_model_spaces
 from modelgym.utils import hyperopt2skopt_space
 from modelgym.utils.evaluation import crossval_fit_eval
 from skopt.optimizer import forest_minimize, gp_minimize
+from modelgym.utils import cat_preprocess_cv
+
+import numpy as np
 
 
 class SkoptTrainer(Trainer):
@@ -42,6 +45,7 @@ class SkoptTrainer(Trainer):
         Note:
             if cv is int, than dataset is split into cv parts for cross validation. Otherwise, cv folds are used.
         """
+
         for name, model_space in self.model_spaces.items():
             skopt_space, ind2names = hyperopt2skopt_space(model_space.space)
             model_space.space = skopt_space
