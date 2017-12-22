@@ -2,7 +2,7 @@ Installation
 ============
 To build documentation locally you need to install::
 
-    pip3 install -r requierments-dev.txt
+    pip3 install -r requirements-dev.txt
 
 To update examples in documentation with ``generate_examples_rst.sh`` you need to install `pandoc <https://pandoc.org/installing.html>`_.
 
