@@ -18,9 +18,9 @@ Installation
 Examples
 ------------------
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 1
 
-   model_search
+   basic_tutorial
    guru_example
 
 Documentaion
