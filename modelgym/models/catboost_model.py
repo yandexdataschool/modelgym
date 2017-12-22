@@ -8,9 +8,8 @@ from hyperopt.pyll.base import scope
 
 class CtBClassifier(Model):
     """
-    Wrapper for CatBoostClassifier
-
-    See https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_catboostclassifier-docpage/
+    Wrapper for `CatBoostClassifier
+    <https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_catboostclassifier-docpage/>`_
     """
     def __init__(self, params=None):
         """
@@ -59,14 +58,13 @@ class CtBClassifier(Model):
 
     def fit(self, dataset, weights=None, eval_dataset=None, **kwargs):
         """
-        Args
-            dataset: XYCDataset train
-            y: (np.array, shape (n_samples, ) or (n_samples, n_outputs)): the target data
-            weights: (np.array, shape (n_samples, ) or
-                (n_samples, n_outputs) or None): weights of the data
+        Args:
+            dataset (XYCDataset): train
+            y (np.array, shape (n_samples, ) or (n_samples, n_outputs)): the target data
+            weights (np.array, shape (n_samples, ) or (n_samples, n_outputs) or None): weights of the data
             eval_dataset: same as dataset
-            kwargs: CatBoost.Pool kwargs if eval_dataset == None or
-            {'train': train_kwargs, 'eval': eval_kwargs} otherwise
+            kwargs: CatBoost.Pool kwargs if eval_dataset is None or
+                ``{'train': train_kwargs, 'eval': eval_kwargs}`` otherwise
 
         Return:
             self
@@ -96,7 +94,7 @@ class CtBClassifier(Model):
         :snapshot serializable internal model state
         loads from serializable internal model state snapshot.
         """
-        new_model = CtBClassifier() # idk how to pass paarameters yet
+        new_model = CtBClassifier()  # idk how to pass paarameters yet
         new_model._set_model(ctb.CatBoostClassifier().load_model(filename))
         return new_model
 
@@ -159,9 +157,8 @@ class CtBClassifier(Model):
 
 class CtBRegressor(Model):
     """
-    Wrapper for CatBoostRegressor
-
-    See https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_catboostclassifier-docpage/
+    Wrapper for `CatBoostRegressor
+    <https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_catboostclassifier-docpage/>`_
     """
     def __init__(self, params=None):
         """
@@ -209,8 +206,8 @@ class CtBRegressor(Model):
             weights: (np.array, shape (n_samples, ) or
                 (n_samples, n_outputs) or None): weights of the data
             eval_dataset: same as dataset
-            kwargs: CatBoost.Pool kwargs if eval_dataset == None or
-                {'train': train_kwargs, 'eval': eval_kwargs} otherwise
+            kwargs: CatBoost.Pool kwargs if eval_dataset is None or
+                ``{'train': train_kwargs, 'eval': eval_kwargs}`` otherwise
         Return:
             self
         """
@@ -239,7 +236,7 @@ class CtBRegressor(Model):
         :snapshot serializable internal model state
         loads from serializable internal model state snapshot.
         """
-        new_model = CtBRegressor() # idk how to pass paarameters yet
+        new_model = CtBRegressor()  # idk how to pass paarameters yet
         new_model._set_model(ctb.CatBoostRegressor().load_model(filename))
         return new_model
 

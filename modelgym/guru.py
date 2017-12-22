@@ -101,7 +101,13 @@ class Guru:
         Args:
             X (array-like with shape (n_objects, n_features)): features from your dataset
         Return:
-            {'not numeric': list of feature indexes, 'not variable': list of feature indexes}
+            dict of shape::
+
+                {
+                    'not numeric': list of feature indexes,
+                    'not variable': list of feature indexes
+                }
+
         """
         to_find = Guru._CATEGORIAL
         return self._get_categorial_or_sparse(X, to_find)
@@ -163,7 +169,13 @@ class Guru:
         Args:
             y (array-like with shape (n_objects,)): target classes in your dataset
         Return:
-            {'too common': list of classes, 'too rare': list of classes}
+            dict of shape::
+
+                {
+                    'too common': list of classes,
+                    'too rare': list of classes
+                }
+
         """
         candidates = defaultdict(list)
         counter = Counter(y)

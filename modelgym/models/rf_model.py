@@ -4,7 +4,7 @@ from hyperopt import hp
 from sklearn.ensemble import RandomForestClassifier as rfc
 
 from modelgym.models import Model, LearningTask
-from modelgym.utils import XYCDataset
+from modelgym.utils.dataset import XYCDataset
 from hyperopt import hp
 
 
