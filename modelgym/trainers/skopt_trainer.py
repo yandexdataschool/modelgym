@@ -28,7 +28,7 @@ class SkoptTrainer(Trainer):
         self.best_results = {}
         self.ind2names = {}
 
-    def crossval_optimize_params(self, opt_metric, dataset, cv=3, 
+    def crossval_optimize_params(self, opt_metric, dataset, cv=3,
                                  opt_evals=50, metrics=None,
                                  verbose=False, **kwargs):
         """Find optimal hyperparameters for all models
@@ -77,24 +77,31 @@ class SkoptTrainer(Trainer):
 
     def get_best_results(self):
         """When training is complete, return best parameters (and additional information) for each model space
+
         Returns:
-            dicts of shape: {
-                name (str): {
-                    "result": {
-                        "loss": float,
-                        "metric_cv_results": list,
-                        "params": dict
-                    },
-                    "model_space": modelgym.utils.ModelSpace
+            dict of shape::
+
+                {
+                    name (str): {
+                        "result": {
+                            "loss": float,
+                            "metric_cv_results": list,
+                            "params": dict
+                        },
+                        "model_space": modelgym.utils.ModelSpace
+                    }
                 }
-            }
-            where name is a name of corresponding model_space,
-            metric_cv_results contains dict's from metric names to calculated metric values for each fold in cv_fold
-            params is optimal parameters of corresponding model
+
+            name is a name of corresponding model_space,
+
+            metric_cv_results contains dict's from metric names to calculated metric values for each fold in cv_fold,
+
+            params is optimal parameters of corresponding model,
+
             model_space is corresponding model_space.
         """
-        return {name: {"result" : result,
-                       "model_space" : self.model_spaces[name]}
+        return {name: {"result": result,
+                       "model_space": self.model_spaces[name]}
                 for (name, result) in self.best_results.items()}
 
     def _eval_fn(self, model_type, params, cv, metrics, verbose, space_name):
