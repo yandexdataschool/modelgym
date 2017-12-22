@@ -97,8 +97,3 @@ When you start a notebook server with token authentication enabled (default), a 
 Go to ``http://<your published ip>:7777/`` and paste auth token.
 
 Open ``/example/model_search.ipynb`` and try to run all cells. If there are no errors, everything is allright.
-
-For developers
---------------
-
-To update examples in documentation with ``generate_examples_rst.sh`` you need to install `pandoc <https://pandoc.org/installing.html>`_.
