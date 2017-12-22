@@ -58,3 +58,19 @@ def test_model_cat_preprocess():
     # check that two good args are returned if X_test is specified
     assert A.shape == X.shape
     assert B.shape == X.shape
+
+    X = [['a', 'b'], ['b', 'b'], ['b', 'b']]
+
+    y = [0, 0, 1]
+
+    A = preprocess_cat_cols(X, y, one_hot_max_size=1)
+
+    print(A)
+
+    assert np.array_equal(A, X)
+
+    A = preprocess_cat_cols(X, y, one_hot_max_size=2)
+
+    print(A)
+
+    assert np.array_equal(A, X)

@@ -37,7 +37,7 @@ class HyperoptTrainer(Trainer):
         else:
             cat_preprocess = np.zeros(len(self.state)) + cat_preprocess
 
-        for model_index, name, state in enumerate(self.state.items()):
+        for model_index, [name, state] in enumerate(self.state.items()):
             model_space = self.model_spaces[name]
 
             learning_task = model_space.model_class.get_learning_task()
