@@ -1,2 +1,3 @@
 sphinx
 sphinx-rtd-theme
+pytest==3.2.1
