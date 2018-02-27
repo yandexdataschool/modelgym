@@ -5,13 +5,20 @@ from pathlib import Path
 from time import sleep
 from shutil import rmtree
 from shutil import copyfile
+from os.path import dirname
 import datetime
 import random
 import string
 import json
 import grpc
-from os.path import dirname
 import os
+
+from modelgym.models import CtBClassifier
+from modelgym.trainers import TpeTrainer
+from modelgym.utils import ModelSpace
+from hyperopt import hp
+from modelgym.models import LGBMClassifier
+from modelgym.metrics import Accuracy
 
 # Server's ip
 ip = 'localhost:50051'
@@ -31,6 +38,7 @@ class Client:
         self.projectFolder = projectFolder
         self.channel = grpc.insecure_channel(ip)
         self.stub = wonderland_pb2_grpc.PipelineServiceStub(self.channel)
+        self.newExperiment()
 
 
     def newExperiment(self):
@@ -44,7 +52,7 @@ class Client:
             if not os.path.isdir(self.projectFolder+'/EXPERIMENTS/'+experimentFolder):
                 experimentFolder = time.strftime("%Y-%m-%d-%H.%M.%S")
                 break
-        os.makedirs(self.projectFolder+'/EXPERIMENTS/'+experimentFolder)
+        os.makedirs(dirname(self.projectFolder)+'/EXPERIMENTS/'+experimentFolder)
         self.experimentFolder = experimentFolder
         return experimentFolder
 
@@ -60,7 +68,7 @@ class Client:
         modelpath = self.sendModel(model_type, params, metrics)
         pipe = self.makePipe(modelpath, datasetPath)
         self.stub.LaunchPipeline(pipe)
-        output = self.getData(self.projectFolder + '/' + modelpath.split("/")[-2] + "/output.json")
+        output = self.getData(dirname(self.projectFolder) + '/' + modelpath + "/output.json")
         # results = self.stub.RetrieveResults(models_path)
         opt_metr = output["scores"][0][0]
         return opt_metr
@@ -77,15 +85,26 @@ class Client:
         return 0
 
 
-    def makePipe(self, model, data):
+    def makePipe(self, modelPath, dataPath):
+        """
+        Create message for Wonderland grpc-server.
+          Parameter `data` of wonderland_pb2.Dataset contains part of path on a remote server
+        :param model: <string>. Model's folder name.
+        :param data:  <string>. Data's folder name.
+        :return: wonderland_pb2.Pipeline
+        """
         pipe = wonderland_pb2.Pipeline(git_info=wonderland_pb2.GitUrl())
 
-        dataset_data = wonderland_pb2.Dataset(type="path", data=[dirname(data)], container_mount_endpoint="/home/data")
-        dataset_model = wonderland_pb2.Dataset(type="path", data=[dirname(model)], container_mount_endpoint="/home/model")
+        dataset_data = wonderland_pb2.Dataset(type="path",
+                                              data=[dataPath],
+                                              container_mount_endpoint="/home/data")
+        dataset_model = wonderland_pb2.Dataset(type="path",
+                                               data=[modelPath],
+                                               container_mount_endpoint="/home/model")
         func = wonderland_pb2.Function(docker_image="training-image",
                                        command_to_execute="trainer",
-                                       execution_parameters=["/home/data/" + Path(data).name,
-                                                             "/home/model/" + Path(model).name, "/home/model/output.json"],
+                                       execution_parameters=["/home/data/data.csv",
+                                                             "/home/model/model.json", "/home/model/output.json"],
                                        inputs={"data": dataset_data, "model": dataset_model}
                                        )
 
@@ -99,36 +118,44 @@ class Client:
                  "metrics": [m.name for m in metrics[1:]],
                  "return_models": False
                  }
-        folder = ''.join([random.choice(string.ascii_letters + string.digits) for n in range(8)])
-        dirpath = self.projectFolder + "/" + folder
-        while os.path.isdir(dirpath):
-            folder = ''.join([random.choice(string.ascii_letters + string.digits) for n in range(8)])
-            dirpath = self.projectFolder + "/" + folder
+        folder = 'model-' + ''.join([random.choice(string.ascii_letters + string.digits) for n in range(12)])
+        dirpath = self.projectFolder + "/EXPERIMENTS/" + self.experimentFolder + '/' + folder
+        for _ in range(3):
+            if os.path.isdir(dirpath):
+                folder = 'model-' + ''.join([random.choice(string.ascii_letters + string.digits) for n in range(12)])
+                dirpath = self.projectFolder + "/EXPERIMENTS/" + self.experimentFolder + '/' + folder
         os.makedirs(dirpath)
         with open(dirpath + "/model.json", "w") as file:
             json.dump(model, file)
 
-        return repoFolder + "/" + folder + "/model.json"
+        return Path(self.projectFolder).name+"/EXPERIMENTS/"+self.experimentFolder +'/'+folder
 
-    def sendData(self, data, tag):
+    def sendData(self, data):
+        """
+        Copy data to the local DATA directory, that must be mounted with Azure FS.
+        (can be replaced by rpc method)
+
+        :param data: <bytes> or <string>. Specify you data path by string
+        or send binary data directly.
+        :return: Folder's name.
+        """
+
         if type(data) is bytes:
-            dataPath = "/tmp/_temp_data"
+            dataPath = "/tmp/data.csv"
             with open(dataPath, 'wb') as file:
                 file.write(data)
         else:
             dataPath = data
         hash = GetDataHash(dataPath)[:10]
-        if hash in [folderName[-10:] for folderName in os.listdir(self.projectFolder+'/DATA')]:
-            print("Folder for data already exist!")
-            return 0
+        for folderName in os.listdir(self.projectFolder+'/DATA'):
+            if hash == folderName[-10:]:
+                print("Folder for data already exist!")
+                return Path(self.projectFolder).name+'/DATA/'+folderName
         time = datetime.datetime.today()
-        dataFolder = self.projectFolder+'/DATA/'+time.strftime("%Y-%m-%d-%H.%M")+'#'+hash
-        os.makedirs(dataFolder)
-        if tag is None:
-            filename = Path(dataPath).name
-        else:
-            filename = tag
-        copyfile(dataPath, dataFolder+'/'+filename)
+        dataFolder = Path(self.projectFolder).name+'/DATA/'+time.strftime("%Y-%m-%d-%H.%M")+'#'+hash
+        os.makedirs(dirname(self.projectFolder) + dataFolder)
+        copyfile(dataPath, dirname(self.projectFolder) + dataFolder+"/data.csv")
+        return dataFolder
 
     def getData(self, path):
         while not os.path.exists(path):
@@ -137,6 +164,12 @@ class Client:
         return data
 
 def GetDataHash(dataPath):
+    """
+    Calculate md5 hash of data file
+
+    :param dataPath: <string>, data's path
+    :return: <string>
+    """
     BLOCKSIZE = 65536
     hasher = md5()
     with open(dataPath, 'rb') as afile:
@@ -148,6 +181,22 @@ def GetDataHash(dataPath):
 
 if __name__ == "__main__":
     client = Client('localhost:50051', os.getenv("HOME") + "/repo-storage/test")
-    client.sendData(b"/home/igor/dfDownwloads/oleg.rar","data.csv")
     ##experimentFolder = client.newExperiment()
+    dataPath = client.sendData("/home/igor/cobrain/src/gitlab.com/cobrain-core/training-image/trainer/sample_data.csv")
+    print(dataPath)
+    ##Select models and spaces
+
+    models = ModelSpace(CtBClassifier,
+                        space={'learning_rate': hp.loguniform('learning_rate', -5, -1)},
+                        space_update=True)
+
+    trainer = TpeTrainer(models)
+
+    ##Non-cluster optimization
+    trainer.crossval_optimize_params(Accuracy(), dataPath, metrics=[Accuracy()], client=client)
+
+
+
+
+
 
