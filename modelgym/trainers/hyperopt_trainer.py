@@ -30,7 +30,10 @@ class HyperoptTrainer(Trainer):
 
     # TODO: consider different batch_size for different models
     def crossval_optimize_params(self, opt_metric, dataset, cv=3,
-                                 opt_evals=50, metrics=None, verbose=False, batch_size=10, **kwargs):
+                                 opt_evals=50, metrics=None,
+                                 verbose=False, batch_size=10,
+                                 client=None,
+                                 **kwargs):
         """Find optimal hyperparameters for all models
 
         Args:
@@ -42,6 +45,7 @@ class HyperoptTrainer(Trainer):
             metrics (list of modelgym.metrics.Metric, optional): additional metrics to evaluate
             verbose (bool): Enable verbose output.
             batch_size (int): periodicity of saving results to tracker
+            client:
             **kwargs: ignored
 
         Note:
@@ -59,7 +63,7 @@ class HyperoptTrainer(Trainer):
 
         metrics.append(opt_metric)
 
-        if isinstance(cv, int):
+        if isinstance(cv, int) and client is None:
             cv = dataset.cv_split(cv)
 
         for name, state in self.state.items():
@@ -68,11 +72,18 @@ class HyperoptTrainer(Trainer):
             if len(state) == opt_evals:
                 continue
 
-            fn = lambda params: self._eval_fn(
-                model_type=model_space.model_class,
-                params=params,
-                cv=cv, metrics=metrics, verbose=verbose
-            )
+            if client is None:
+                fn = lambda params: self._eval_fn(
+                    model_type=model_space.model_class,
+                    params=params,
+                    cv=cv, metrics=metrics, verbose=verbose
+                )
+            else:
+                fn = lambda params: client.eval(
+                    model_type=model_space.model_class,
+                    params=params,
+                    datasetPath=dataset, metrics=metrics, verbose=verbose
+                )
 
             for i in range(0, opt_evals, batch_size):
                 current_evals = min(batch_size, opt_evals - i)
