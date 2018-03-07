@@ -29,7 +29,7 @@ Install required python3 packages by running following commands.
 
 3. LightGBM. Modelgym works with LightGBM version 2.0.4::
 
-    pip3 intstall lightgbm==2.0.4
+    pip3 install lightgbm==2.0.4
 
 4. XGBoost. Modelgym works with XGBoost version 0.6::
 
