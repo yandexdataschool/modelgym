@@ -82,7 +82,7 @@ class HyperoptTrainer(Trainer):
                 fn = lambda params: client.eval(
                     model_type=model_space.model_class,
                     params=params,
-                    datasetPath=dataset, metrics=metrics, verbose=verbose
+                    data_path=dataset, cv=cv, metrics=metrics, verbose=verbose
                 )
 
             for i in range(0, opt_evals, batch_size):
