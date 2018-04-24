@@ -1,7 +1,5 @@
 import numpy as np
 from sklearn.model_selection import StratifiedKFold, KFold, train_test_split
-from skopt.space import Integer
-from skopt.space import Real
 
 # from cat_counter import CatCounter
 from modelgym.utils.compare_auc_delong_xu import delong_roc_test

@@ -47,9 +47,9 @@ class SkoptTrainer(Trainer):
         """
 
         for name, model_space in self.model_spaces.items():
-            skopt_space, ind2names = hyperopt2skopt_space(model_space.space)
-            model_space.space = skopt_space
-            self.ind2names[name] = ind2names
+            ##skopt_space, ind2names = hyperopt2skopt_space(model_space.space)
+            self.ind2names[name] = [param.name for param in model_space.space]
+
 
         if metrics is None:
             metrics = []
