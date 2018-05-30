@@ -5,6 +5,7 @@ from modelgym.utils.evaluation import crossval_fit_eval
 from hyperopt import fmin, Trials, STATUS_OK, tpe, rand
 import numpy as np
 
+import time
 
 class HyperoptTrainer(Trainer):
     """HyperoptTrainer is a class for models hyperparameter optimization, based on hyperopt library"""
@@ -148,13 +149,14 @@ class HyperoptTrainer(Trainer):
             metric_cv_results contains dict's from metric names to calculated metric values for each fold in cv_fold
             params is just a copy of input argument params
         """
-
+        print("Start learning")
+        time1 = time.time()
         result = crossval_fit_eval(model_type, params, cv, metrics, verbose)
         result["status"] = STATUS_OK
         losses = [cv_result[metrics[-1].name]
                   for cv_result in result["metric_cv_results"]]
         result["loss_variance"] = np.std(losses)
-
+        print("End after %s", time.time() - time1)
         return result
 
 
