@@ -32,6 +32,7 @@ class SkoptTrainer(Trainer):
         self.optimizer = optimizer
         self.best_results = {}
         self.ind2names = {}
+        self.logs = []
 
     def crossval_optimize_params(self, opt_metric, dataset, cv=3,
                                  opt_evals=50, metrics=None,
@@ -62,62 +63,44 @@ class SkoptTrainer(Trainer):
 
         if isinstance(cv, int) and client is None:
             cv = dataset.cv_split(cv)
-        #  Different signatures of functions
-        # if client is None:
-        #     fn = self._eval_fn
-        # else:
-        #     fn = client.eval
 
         for name, model_space in self.model_spaces.items():
 
-            '''
-            best = self.optimizer(fn, model_space.space,
-                                  n_calls=opt_evals,
-                                  n_random_starts=min(10, opt_evals))
-            '''
-
-            # Check Optimizer options
-            optimizer = Optimizer(
-                dimensions=model_space.space,
-                random_state=1,
-                acq_func="gp_hedge"
-            )
-            ioloop = asyncio.get_event_loop()
-            for i in range(opt_evals // workers):
-                #
-                x = optimizer.ask(n_points=workers)  # x is a list of n_points points
-                x_named = []
-                for params in x:
-                    x_named.append({self.ind2names[name][i]: params[i]
-                                    for i in range(len(params))})
-
-                tasks = [ioloop.create_task(client.eval_model(
+            if client is None:
+                fn = lambda params: self._eval_fn(
                     model_type=model_space.model_class,
                     params=params,
-                    data_path=dataset,
-                    cv=cv, metrics=metrics)) for params in
-                    x_named]
-                y = ioloop.run_until_complete(asyncio.gather(*tasks))
+                    cv=cv, metrics=metrics, verbose=verbose, space_name=name
+                )
 
-                """
-                if client is None:
-                    y = Parallel()(delayed(self._eval_fn)(
-                        model_type=model_space.model_class,
-                        params=params,
-                        cv=cv, metrics=metrics, verbose=verbose, space_name=name) for params in
-                                   x_named)  # evaluate points in parallel
-                else:
-                    pickle.dumps(client.eval)
+                best = self.optimizer(fn, model_space.space,
+                                  n_calls=opt_evals,
+                                  n_random_starts=min(1, opt_evals))
+            else:
+                ioloop = asyncio.get_event_loop()
+                optimizer = Optimizer(
+                    dimensions=model_space.space,
+                    random_state=1,
+                    acq_func="gp_hedge"
+                )
+                for i in range(opt_evals):
+                    x = optimizer.ask(n_points=workers)  # x is a list of n_points points
+                    x_named = []
+                    for params in x:
+                        x_named.append({self.ind2names[name][i]: params[i]
+                                        for i in range(len(params))})
 
-                    y = Parallel()(delayed(client.eval)(
+                    tasks = [ioloop.create_task(client.eval_model(
                         model_type=model_space.model_class,
                         params=params,
                         data_path=dataset,
-                        cv=cv, metrics=metrics, verbose=verbose) for params in x_named)  # evaluate points in parallel
-                """
-                best = optimizer.tell(x, y)
-                #
-            ioloop.close()
+                        cv=cv, metrics=metrics)) for params in
+                        x_named]
+                    y = ioloop.run_until_complete(asyncio.gather(*tasks))
+
+                    best = optimizer.tell(x, y)
+                ioloop.close()
+
             if not (name in self.best_results) or best.fun > self.best_results.get(name).get("loss"):
                 self.best_results[name] = client.eval_model(
                     model_space.model_class, {self.ind2names[name][i]: params[i]
@@ -167,16 +150,13 @@ class SkoptTrainer(Trainer):
         Returns:
             float: loss
         """
-        print("Start learning")
-        time1 = time.time()
-        # Do it before _eval_fn
-        # params = {self.ind2names[space_name][i]: params[i]
-        #           for i in range(len(params))}
+        params = {self.ind2names[space_name][i]: params[i]
+                   for i in range(len(params))}
         result = crossval_fit_eval(model_type, params, cv, metrics, verbose)
         best = self.best_results.get(space_name, result)
-        # if best["loss"] <= result["loss"]:
-        #     self.best_results[space_name] = result
-        print("End after %s", time.time() - time1)
+        if best["loss"] >= result["loss"]:
+             self.best_results[space_name] = result
+        self.logs.append(-result["loss"])
         return best["loss"]
 
 
