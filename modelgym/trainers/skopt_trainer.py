@@ -5,6 +5,7 @@ from modelgym.utils.evaluation import crossval_fit_eval
 from skopt.optimizer import forest_minimize, gp_minimize, Optimizer
 from sklearn.externals.joblib import Parallel, delayed
 from modelgym.utils import cat_preprocess_cv
+from modelgym.utils.util import log_progress
 
 import numpy as np
 
@@ -83,7 +84,7 @@ class SkoptTrainer(Trainer):
                     random_state=1,
                     acq_func="gp_hedge"
                 )
-                for i in range(opt_evals):
+                for i in log_progress(range(opt_evals), every=1):
                     x = optimizer.ask(n_points=workers)  # x is a list of n_points points
                     x_named = []
                     for params in x:
