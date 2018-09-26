@@ -12,6 +12,7 @@ import numpy as np
 import time
 import pickle
 import asyncio
+from pathlib import Path
 
 
 class SkoptTrainer(Trainer):
@@ -62,11 +63,15 @@ class SkoptTrainer(Trainer):
 
         metrics.append(opt_metric)
 
-        if isinstance(cv, int) and client is None:
+        data_path = ""
+        if client is None:
             cv = dataset.cv_split(cv)
+        else:
+            if Path(dataset).expanduser().exists():
+                data_path = client.send_data(dataset)
 
         for name, model_space in self.model_spaces.items():
-
+            self.best_results[name] = {"output": {"loss": 0}}
             if client is None:
                 fn = lambda params: self._eval_fn(
                     model_type=model_space.model_class,
@@ -78,7 +83,7 @@ class SkoptTrainer(Trainer):
                                   n_calls=opt_evals,
                                   n_random_starts=min(1, opt_evals))
             else:
-                ioloop = asyncio.get_event_loop()
+                # ioloop = asyncio.get_event_loop()
                 optimizer = Optimizer(
                     dimensions=model_space.space,
                     random_state=1,
@@ -91,22 +96,33 @@ class SkoptTrainer(Trainer):
                         x_named.append({self.ind2names[name][i]: params[i]
                                         for i in range(len(params))})
 
-                    tasks = [ioloop.create_task(client.eval_model(
-                        model_type=model_space.model_class,
-                        params=params,
-                        data_path=dataset,
-                        cv=cv, metrics=metrics)) for params in
-                        x_named]
-                    y = ioloop.run_until_complete(asyncio.gather(*tasks))
+                    # tasks = [ioloop.create_task(client.eval_model(
+                    #     model_type=model_space.model_class,
+                    #     params=params,
+                    #     data_path=dataset,
+                    #     cv=cv, metrics=metrics)) for params in
+                    #     x_named]
+                    job_id_list = []
+                    for model_params in x_named:
+                        model_info = {"models": [{"type": model_space.model_class.__name__,
+                                             "params": model_params}],
+                                 "metrics": [m.name for m in metrics[1:]],
+                                 "return_models": False,
+                                 "cv": cv
+                                 }
+                        job_id_list.append(client.eval_model(model_info=model_info,
+                                                        data_path=data_path))
+                    result_list = client.gather_results(job_id_list)
+                    index_map = {v: i for i, v in enumerate(job_id_list)}
+                    y = [x[1] for x in sorted(result_list.items(), key=lambda pair: index_map[pair[0]])]
 
-                    best = optimizer.tell(x, y)
-                ioloop.close()
+                    self.logs += y
+                    for res in y:
+                        if res.get("output").get("loss") < self.best_results.get(name).get("output").get("loss"):
+                            self.best_results[name] = res
+                    best = optimizer.tell(x, [res.get("output").get("loss") for res in y])
 
-            if not (name in self.best_results) or best.fun > self.best_results.get(name).get("loss"):
-                self.best_results[name] = client.eval_model(
-                    model_space.model_class, {self.ind2names[name][i]: params[i]
-                                              for i in range(len(best.x))}, dataset, cv, metrics)
-        return best
+        return self.best_results
 
     def get_best_results(self):
         """When training is complete, return best parameters (and additional information) for each model space
@@ -136,6 +152,16 @@ class SkoptTrainer(Trainer):
         return {name: {"result": result,
                        "model_space": self.model_spaces[name]}
                 for (name, result) in self.best_results.items()}
+
+    def get_best_model(self):
+        loss = 0
+        for (name, result) in self.best_results.items():
+            if result.get("output").get("loss") < loss:
+                loss = result.get("output").get("loss")
+                best_m_path = result.get("result_model_path")
+        with open(best_m_path, "rb") as f:
+            best = pickle.load(f)
+        return best
 
     def _eval_fn(self, model_type, params, cv, metrics, verbose, space_name):
         """Evaluates function to minimize and stores additional info (metrics, params) if it is current best result
