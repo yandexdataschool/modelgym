@@ -38,7 +38,8 @@ class SkoptTrainer(Trainer):
 
     def crossval_optimize_params(self, opt_metric, dataset, cv=3,
                                  opt_evals=50, metrics=None,
-                                 verbose=False, client=None, workers=1, **kwargs):
+                                 verbose=False, client=None, workers=1, timeout=100,
+                                 **kwargs):
         """Find optimal hyperparameters for all models
 
         Args:
@@ -111,17 +112,21 @@ class SkoptTrainer(Trainer):
                                  }
                         job_id_list.append(client.eval_model(model_info=model_info,
                                                         data_path=data_path))
-                    result_list = client.gather_results(job_id_list)
-                    index_map = {v: i for i, v in enumerate(job_id_list)}
-                    y = [x[1] for x in sorted(result_list.items(), key=lambda pair: index_map[pair[0]])]
-
-                    self.logs += y
-                    for res in y:
+                    result_list = client.gather_results(job_id_list, timeout=timeout)
+                    if result_list == []:
+                        continue
+                    # index_map = {v: i for i, v in enumerate(job_id_list)}
+                    # y = [x[1] for x in sorted(result_list.items(), key=lambda pair: index_map[pair[0]])]
+                    y_succeed = [result for result in result_list if not result is None]
+                    x_succeed = [x_dot for i, x_dot in enumerate(x) if not result_list[i] is None]
+                    self.logs += y_succeed
+                    for res in y_succeed:
                         if self.best_results.get(name) is None:
                             self.best_results[name] = {"output": {"loss": 0}}
                         if res.get("output").get("loss") < self.best_results.get(name).get("output").get("loss"):
                             self.best_results[name] = res
-                    best = optimizer.tell(x, [res.get("output").get("loss") for res in y])
+                    if y_succeed != []:
+                        best = optimizer.tell(x_succeed, [res.get("output").get("loss") for res in y_succeed])
 
         return self.best_results
 
