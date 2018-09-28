@@ -71,7 +71,6 @@ class SkoptTrainer(Trainer):
                 data_path = client.send_data(dataset)
 
         for name, model_space in self.model_spaces.items():
-            self.best_results[name] = {"output": {"loss": 0}}
             if client is None:
                 fn = lambda params: self._eval_fn(
                     model_type=model_space.model_class,
@@ -118,6 +117,8 @@ class SkoptTrainer(Trainer):
 
                     self.logs += y
                     for res in y:
+                        if self.best_results.get(name) is None:
+                            self.best_results[name] = {"output": {"loss": 0}}
                         if res.get("output").get("loss") < self.best_results.get(name).get("output").get("loss"):
                             self.best_results[name] = res
                     best = optimizer.tell(x, [res.get("output").get("loss") for res in y])
