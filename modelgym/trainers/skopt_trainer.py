@@ -1,17 +1,15 @@
 from modelgym.trainers.trainer import Trainer
 from modelgym.utils.model_space import process_model_spaces
-from modelgym.utils import hyperopt2skopt_space
 from modelgym.utils.evaluation import crossval_fit_eval
 from skopt.optimizer import forest_minimize, gp_minimize, Optimizer
-from sklearn.externals.joblib import Parallel, delayed
-from modelgym.utils import cat_preprocess_cv
 from modelgym.utils.util import log_progress
+from modelgym.utils.dataset import  XYCDataset
+from pandas import DataFrame
+import tempfile
+import os
+import errno
 
-import numpy as np
-
-import time
 import pickle
-import asyncio
 from pathlib import Path
 
 
@@ -56,11 +54,10 @@ class SkoptTrainer(Trainer):
         """
 
         for name, model_space in self.model_spaces.items():
-            ##skopt_space, ind2names = hyperopt2skopt_space(model_space.space)
             self.ind2names[name] = [param.name for param in model_space.space]
 
         if metrics is None:
-            metrics = []
+            metrics = [opt_metric]
 
         metrics.append(opt_metric)
 
@@ -68,8 +65,17 @@ class SkoptTrainer(Trainer):
         if client is None:
             cv = dataset.cv_split(cv)
         else:
-            if Path(dataset).expanduser().exists():
-                data_path = client.send_data(dataset)
+            if isinstance(dataset, Path) or isinstance(dataset, str):
+                if Path(dataset).expanduser().exists():
+                    data_path = client.send_data(dataset)
+                else:
+                    raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), dataset)
+            elif isinstance(dataset, DataFrame):
+                with tempfile.NamedTemporaryFile() as temp:
+                    dataset.to_csv(temp.name, sep=',')
+                    data_path = client.send_data(temp.name)
+            else:
+                raise ValueError("Dataset has a wrong type {}".format(type(dataset)))
 
         for name, model_space in self.model_spaces.items():
             if client is None:
@@ -83,25 +89,17 @@ class SkoptTrainer(Trainer):
                                   n_calls=opt_evals,
                                   n_random_starts=min(1, opt_evals))
             else:
-                # ioloop = asyncio.get_event_loop()
                 optimizer = Optimizer(
                     dimensions=model_space.space,
                     random_state=1,
                     acq_func="gp_hedge"
                 )
-                for i in log_progress(range(opt_evals), every=1):
+                for _ in log_progress(range(opt_evals), every=1):
                     x = optimizer.ask(n_points=workers)  # x is a list of n_points points
                     x_named = []
                     for params in x:
                         x_named.append({self.ind2names[name][i]: params[i]
                                         for i in range(len(params))})
-
-                    # tasks = [ioloop.create_task(client.eval_model(
-                    #     model_type=model_space.model_class,
-                    #     params=params,
-                    #     data_path=dataset,
-                    #     cv=cv, metrics=metrics)) for params in
-                    #     x_named]
                     job_id_list = []
                     for model_params in x_named:
                         model_info = {"models": [{"type": model_space.model_class.__name__,
@@ -115,8 +113,6 @@ class SkoptTrainer(Trainer):
                     result_list = client.gather_results(job_id_list, timeout=timeout)
                     if result_list == []:
                         continue
-                    # index_map = {v: i for i, v in enumerate(job_id_list)}
-                    # y = [x[1] for x in sorted(result_list.items(), key=lambda pair: index_map[pair[0]])]
                     y_succeed = [result for result in result_list if not result is None]
                     x_succeed = [x_dot for i, x_dot in enumerate(x) if not result_list[i] is None]
                     self.logs += y_succeed

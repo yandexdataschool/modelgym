@@ -46,3 +46,18 @@ class XYCDataset:
             cv_pairs.append((dtrain, dtest))
         return cv_pairs
 
+    def save(self, path_to_file):
+        """save XYCDatacet to the file
+
+        :param <string> path_to_file:
+        :return:
+        """
+        y = np.array([self.y])
+        data = np.concatenate((self.X, y.T), axis=1)
+        n_features = self.X.shape[1]
+        np.savetxt(path_to_file, data,
+                   fmt='%.5f',
+                   header=','.join([str(x) for x in range(n_features)] + ['y']),
+                   delimiter=',')
+
+
