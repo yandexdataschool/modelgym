@@ -3,11 +3,12 @@ from modelgym.utils.model_space import process_model_spaces
 from modelgym.utils.evaluation import crossval_fit_eval
 from skopt.optimizer import forest_minimize, gp_minimize, Optimizer
 from modelgym.utils.util import log_progress
-from modelgym.utils.dataset import  XYCDataset
+from modelgym.utils.dataset import  XYCDataset, cv_split
 from pandas import DataFrame
 import tempfile
 import os
 import errno
+import pandas as pd
 
 import pickle
 from pathlib import Path
@@ -61,28 +62,32 @@ class SkoptTrainer(Trainer):
 
         metrics.append(opt_metric)
 
+
+        if isinstance(dataset, Path) or isinstance(dataset,str):
+            if Path(dataset).expanduser().exists():
+                dataset = pd.read_csv(dataset)
+            else:
+                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), dataset)
+        if isinstance(dataset, DataFrame):
+            if dataset.isnull().values.any(): raise ValueError("Dataset has NA values")
+            if "y" not in list(dataset.columns): raise ValueError("Dataset doesn't have 'y' column")
+        else:
+            ValueError("Dataset should be DataFrame or path to the DataFrame")
+
         data_path = ""
         if client is None:
-            cv = dataset.cv_split(cv)
+            cv_pairs = cv_split(dataset, cv)
         else:
-            if isinstance(dataset, Path) or isinstance(dataset, str):
-                if Path(dataset).expanduser().exists():
-                    data_path = client.send_data(dataset)
-                else:
-                    raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), dataset)
-            elif isinstance(dataset, DataFrame):
-                with tempfile.NamedTemporaryFile() as temp:
-                    dataset.to_csv(temp.name, sep=',')
-                    data_path = client.send_data(temp.name)
-            else:
-                raise ValueError("Dataset has a wrong type {}".format(type(dataset)))
+            with tempfile.NamedTemporaryFile() as temp:
+                dataset.to_csv(temp.name)
+                data_path = client.send_data(temp.name)
 
         for name, model_space in self.model_spaces.items():
             if client is None:
                 fn = lambda params: self._eval_fn(
                     model_type=model_space.model_class,
                     params=params,
-                    cv=cv, metrics=metrics, verbose=verbose, space_name=name
+                    cv=cv_pairs, metrics=metrics, verbose=verbose, space_name=name
                 )
 
                 best = self.optimizer(fn, model_space.space,
@@ -157,10 +162,11 @@ class SkoptTrainer(Trainer):
 
     def get_best_model(self):
         loss = 0
+        best_m_path = ""
         for (name, result) in self.best_results.items():
             if result.get("output").get("loss") < loss:
                 loss = result.get("output").get("loss")
-                best_m_path = result.get("result_model_path")
+                best_m_path = result["result_model_path"]
         with open(best_m_path, "rb") as f:
             best = pickle.load(f)
         return best

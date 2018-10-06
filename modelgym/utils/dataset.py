@@ -60,4 +60,29 @@ class XYCDataset:
                    header=','.join([str(x) for x in range(n_features)] + ['y']),
                    delimiter=',')
 
+def cv_split(self, dataset, n_folds, random_state=None, shuffle=False):
+    """return cross validation folds of dataset into n_folds
+
+    Args:
+        dataset: DataFrame
+        n_folds: number of folds
+        random_state: random state
+        shuffle (bool): whether to shuffle the data
+            before splitting into batches.
+    Returns:
+        list of tuples of 2 XYCDataset's: cross validation folds
+    """
+    X = dataset.drop("y", axis=1)
+    y = dataset.y
+    cv = KFold(n_folds, random_state=random_state, shuffle=shuffle)
+    cv_pairs = []
+    for train_index, test_index in cv.split(self.X, self.y):
+        fold_X_train = X[train_index]
+        fold_X_test = X[test_index]
+        fold_y_train = y[train_index]
+        fold_y_test = y[test_index]
+        dtrain = XYCDataset(fold_X_train, fold_y_train, copy(self.cat_cols))
+        dtest = XYCDataset(fold_X_test, fold_y_test, copy(self.cat_cols))
+        cv_pairs.append((dtrain, dtest))
+    return cv_pairs
 
