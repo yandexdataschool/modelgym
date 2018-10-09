@@ -4,11 +4,10 @@ from modelgym.utils.evaluation import crossval_fit_eval
 from skopt.optimizer import forest_minimize, gp_minimize, Optimizer
 from modelgym.utils.util import log_progress
 from modelgym.utils.dataset import  XYCDataset, cv_split
-from pandas import DataFrame
+from pandas import DataFrame, read_csv
 import tempfile
 import os
 import errno
-import pandas as pd
 
 import pickle
 from pathlib import Path
@@ -37,7 +36,7 @@ class SkoptTrainer(Trainer):
 
     def crossval_optimize_params(self, opt_metric, dataset, cv=3,
                                  opt_evals=50, metrics=None,
-                                 verbose=False, client=None, workers=1, timeout=100,
+                                 verbose=False, client=None, workers=1, timeout=100, push_data=False,
                                  **kwargs):
         """Find optimal hyperparameters for all models
 
@@ -65,22 +64,22 @@ class SkoptTrainer(Trainer):
 
         if isinstance(dataset, Path) or isinstance(dataset,str):
             if Path(dataset).expanduser().exists():
-                dataset = pd.read_csv(dataset)
+                dataset = read_csv(dataset)
             else:
                 raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), dataset)
         if isinstance(dataset, DataFrame):
             if dataset.isnull().values.any(): raise ValueError("Dataset has NA values")
             if "y" not in list(dataset.columns): raise ValueError("Dataset doesn't have 'y' column")
         else:
-            ValueError("Dataset should be DataFrame or path to the DataFrame")
+            raise ValueError("Dataset should be DataFrame or path to the DataFrame")
 
         data_path = ""
         if client is None:
             cv_pairs = cv_split(dataset, cv)
         else:
             with tempfile.NamedTemporaryFile() as temp:
-                dataset.to_csv(temp.name)
-                data_path = client.send_data(temp.name)
+                dataset.to_csv(temp.name, index=False)
+                data_path = client.send_data(temp.name, push_data)
 
         for name, model_space in self.model_spaces.items():
             if client is None:
@@ -167,6 +166,8 @@ class SkoptTrainer(Trainer):
             if result.get("output").get("loss") < loss:
                 loss = result.get("output").get("loss")
                 best_m_path = result["result_model_path"]
+        if not Path(best_m_path).exists():
+            raise FileNotFoundError()
         with open(best_m_path, "rb") as f:
             best = pickle.load(f)
         return best

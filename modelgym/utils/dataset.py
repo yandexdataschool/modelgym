@@ -60,7 +60,7 @@ class XYCDataset:
                    header=','.join([str(x) for x in range(n_features)] + ['y']),
                    delimiter=',')
 
-def cv_split(self, dataset, n_folds, random_state=None, shuffle=False):
+def cv_split(dataset, n_folds, random_state=None, shuffle=False):
     """return cross validation folds of dataset into n_folds
 
     Args:
@@ -76,13 +76,13 @@ def cv_split(self, dataset, n_folds, random_state=None, shuffle=False):
     y = dataset.y
     cv = KFold(n_folds, random_state=random_state, shuffle=shuffle)
     cv_pairs = []
-    for train_index, test_index in cv.split(self.X, self.y):
+    for train_index, test_index in cv.split(X, y):
         fold_X_train = X[train_index]
         fold_X_test = X[test_index]
         fold_y_train = y[train_index]
         fold_y_test = y[test_index]
-        dtrain = XYCDataset(fold_X_train, fold_y_train, copy(self.cat_cols))
-        dtest = XYCDataset(fold_X_test, fold_y_test, copy(self.cat_cols))
+        dtrain = XYCDataset(fold_X_train, fold_y_train, copy(cat_cols))
+        dtest = XYCDataset(fold_X_test, fold_y_test, copy(cat_cols))
         cv_pairs.append((dtrain, dtest))
     return cv_pairs
 
