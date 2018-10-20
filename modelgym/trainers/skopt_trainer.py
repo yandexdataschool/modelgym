@@ -8,6 +8,7 @@ from pandas import DataFrame, read_csv
 import tempfile
 import os
 import errno
+import logging
 
 import pickle
 from pathlib import Path
@@ -36,7 +37,9 @@ class SkoptTrainer(Trainer):
 
     def crossval_optimize_params(self, opt_metric, dataset, cv=3,
                                  opt_evals=50, metrics=None,
-                                 verbose=False, client=None, workers=1, timeout=100, push_data=False,
+                                 verbose=False, client=None,
+                                 workers=1, timeout=100,
+                                 push_data=False, data_check=True,
                                  **kwargs):
         """Find optimal hyperparameters for all models
 
@@ -68,8 +71,10 @@ class SkoptTrainer(Trainer):
             else:
                 raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), dataset)
         if isinstance(dataset, DataFrame):
-            if dataset.isnull().values.any(): raise ValueError("Dataset has NA values")
-            if "y" not in list(dataset.columns): raise ValueError("Dataset doesn't have 'y' column")
+            if data_check:
+                if dataset.isnull().values.any(): raise ValueError("Dataset has NA values")
+                if "y" not in list(dataset.columns): raise ValueError("Dataset doesn't have 'y' column")
+                logging.info("Dataset is ok")
         else:
             raise ValueError("Dataset should be DataFrame or path to the DataFrame")
 
