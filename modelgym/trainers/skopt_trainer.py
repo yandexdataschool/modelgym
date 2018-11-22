@@ -2,9 +2,8 @@ from modelgym.trainers.trainer import Trainer
 from modelgym.utils.model_space import process_model_spaces
 from modelgym.utils.evaluation import crossval_fit_eval
 from skopt.optimizer import forest_minimize, gp_minimize, Optimizer
-from modelgym.utils.util import log_progress
-from modelgym.utils.dataset import  XYCDataset, cv_split
-from pandas import DataFrame, read_csv
+from modelgym.utils.util import log_progress, DataFrame2XYCDataset
+from modelgym.utils.dataset import XYCDataset
 import tempfile
 import os
 import errno
@@ -12,12 +11,13 @@ import logging
 
 import pickle
 from pathlib import Path
+from pandas import DataFrame
 
 
 class SkoptTrainer(Trainer):
     """SkoptTrainer is a class for models hyperparameter optimization, based on skopt library"""
 
-    def __init__(self, model_spaces, optimizer, tracker=None):
+    def __init__(self, model_spaces, optimizer=gp_minimize, tracker=None):
         """
         Args:
             model_spaces (list of modelgym.models.Model or modelgym.utils.ModelSpaces): list of model spaces
@@ -45,17 +45,17 @@ class SkoptTrainer(Trainer):
 
         Args:
             opt_metric (modelgym.metrics.Metric): metric to optimize
-            dataset (modelgym.utils.XYCDataset or None): dataset
+            dataset (pandas.DataFrame or modelgym.utils.XYCDataset or path to csv): dataset (should contain column 'y')
             cv (int or list of tuples of (XYCDataset, XYCDataset)): if int, then number of cross-validation folds or
                 cross-validation folds themselves otherwise.
             opt_evals (int): number of cross-validation evaluations
             metrics (list of modelgym.metrics.Metric, optional): additional metrics to evaluate
             verbose (bool): Enable verbose output.
             **kwargs: ignored
-        Note:
+        Notes:
             if cv is int, than dataset is split into cv parts for cross validation. Otherwise, cv folds are used.
         """
-
+        print(self.model_spaces)
         for name, model_space in self.model_spaces.items():
             self.ind2names[name] = [param.name for param in model_space.space]
 
@@ -64,23 +64,30 @@ class SkoptTrainer(Trainer):
 
         metrics.append(opt_metric)
 
-
-        if isinstance(dataset, Path) or isinstance(dataset,str):
+        # TODO: test data is not changed
+        # TODO: numpy fromfile (much faster)?
+        if isinstance(dataset, Path) or isinstance(dataset, str):
             if Path(dataset).expanduser().exists():
                 dataset = read_csv(dataset)
             else:
-                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), dataset)
+                raise FileNotFoundError(
+                    errno.ENOENT, os.strerror(errno.ENOENT), dataset)
         if isinstance(dataset, DataFrame):
             if data_check:
-                if dataset.isnull().values.any(): raise ValueError("Dataset has NA values")
-                if "y" not in list(dataset.columns): raise ValueError("Dataset doesn't have 'y' column")
+                if dataset.isnull().values.any():
+                    raise ValueError("Dataset has NA values")
+                if "y" not in list(dataset.columns):
+                    raise ValueError("Dataset doesn't have 'y' column")
                 logging.info("Dataset is ok")
-        else:
-            raise ValueError("Dataset should be DataFrame or path to the DataFrame")
+            dataset = DataFrame2XYCDataset(dataset)
+        if not isinstance(dataset, XYCDataset):
+            raise ValueError(
+                "Dataset should be pandas.DataFrame or modelgym.utils.XYCDataset or path to csv")
 
         data_path = ""
-        if client is None:
-            cv_pairs = cv_split(dataset, cv)
+
+        if isinstance(cv, int):
+            cv = dataset.cv_split(cv)
         else:
             with tempfile.NamedTemporaryFile() as temp:
                 dataset.to_csv(temp.name, index=False)
@@ -91,12 +98,16 @@ class SkoptTrainer(Trainer):
                 fn = lambda params: self._eval_fn(
                     model_type=model_space.model_class,
                     params=params,
-                    cv=cv_pairs, metrics=metrics, verbose=verbose, space_name=name
+                    cv=cv, metrics=metrics, verbose=verbose, space_name=name
                 )
 
                 best = self.optimizer(fn, model_space.space,
-                                  n_calls=opt_evals,
-                                  n_random_starts=min(1, opt_evals))
+                                      n_calls=opt_evals,
+                                      n_random_starts=min(10, opt_evals))
+
+                if best.fun > self.best_results[name]["loss"]:
+                    self.best_results[name] = crossval_fit_eval(
+                        model_space.model_class, best.x, cv, metrics, verbose)
             else:
                 optimizer = Optimizer(
                     dimensions=model_space.space,
@@ -104,7 +115,8 @@ class SkoptTrainer(Trainer):
                     acq_func="gp_hedge"
                 )
                 for _ in log_progress(range(opt_evals), every=1):
-                    x = optimizer.ask(n_points=workers)  # x is a list of n_points points
+                    # x is a list of n_points points
+                    x = optimizer.ask(n_points=workers)
                     x_named = []
                     for params in x:
                         x_named.append({self.ind2names[name][i]: params[i]
@@ -112,18 +124,21 @@ class SkoptTrainer(Trainer):
                     job_id_list = []
                     for model_params in x_named:
                         model_info = {"models": [{"type": model_space.model_class.__name__,
-                                             "params": model_params}],
-                                 "metrics": [m.name for m in metrics[1:]],
-                                 "return_models": False,
-                                 "cv": cv
-                                 }
+                                                  "params": model_params}],
+                                      "metrics": [m.name for m in metrics[1:]],
+                                      "return_models": False,
+                                      "cv": cv
+                                      }
                         job_id_list.append(client.eval_model(model_info=model_info,
-                                                        data_path=data_path))
-                    result_list = client.gather_results(job_id_list, timeout=timeout)
+                                                             data_path=data_path))
+                    result_list = client.gather_results(
+                        job_id_list, timeout=timeout)
                     if result_list == []:
                         continue
-                    y_succeed = [result for result in result_list if not result is None]
-                    x_succeed = [x_dot for i, x_dot in enumerate(x) if not result_list[i] is None]
+                    y_succeed = [
+                        result for result in result_list if not result is None]
+                    x_succeed = [x_dot for i, x_dot in enumerate(
+                        x) if not result_list[i] is None]
                     self.logs += y_succeed
                     for res in y_succeed:
                         if self.best_results.get(name) is None:
@@ -131,9 +146,12 @@ class SkoptTrainer(Trainer):
                         if res.get("output").get("loss") < self.best_results.get(name).get("output").get("loss"):
                             self.best_results[name] = res
                     if y_succeed != []:
-                        best = optimizer.tell(x_succeed, [res.get("output").get("loss") for res in y_succeed])
+                        best = optimizer.tell(
+                            x_succeed, [res.get("output").get("loss") for res in y_succeed])
 
         return self.best_results
+
+        # TODO: потестить что локальный и с клиентом работают одинаково
 
     def get_best_results(self):
         """When training is complete, return best parameters (and additional information) for each model space
@@ -192,11 +210,11 @@ class SkoptTrainer(Trainer):
             float: loss
         """
         params = {self.ind2names[space_name][i]: params[i]
-                   for i in range(len(params))}
+                  for i in range(len(params))}
         result = crossval_fit_eval(model_type, params, cv, metrics, verbose)
         best = self.best_results.get(space_name, result)
         if best["loss"] >= result["loss"]:
-             self.best_results[space_name] = result
+            self.best_results[space_name] = result
         self.logs.append(-result["loss"])
         return best["loss"]
 

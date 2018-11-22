@@ -4,12 +4,16 @@ import matplotlib.pyplot as pyplot
 import pandas as pd
 
 from modelgym.metrics import Metric
-
+from modelgym.utils.util import DataFrame2XYCDataset
 
 class Report:
     
     def __init__(self, results, test_set, metrics):
         self._results = results
+        if isinstance(self._test_set, pd.DataFrame):
+            self._test_set = DataFrame2XYCDataset(test_set)
+        else:
+            self._test_set = test_set
         self._test_set = test_set
         self._metric_results = {metric: self._parse_results(metric.name) 
                                 for metric in metrics}

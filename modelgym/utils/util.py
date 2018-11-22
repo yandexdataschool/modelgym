@@ -3,7 +3,9 @@ from sklearn.model_selection import StratifiedKFold, KFold, train_test_split
 
 # from cat_counter import CatCounter
 from modelgym.utils.compare_auc_delong_xu import delong_roc_test
+from modelgym.utils.dataset import XYCDataset
 from modelgym.metrics import Metric
+
 
 def compare_models_different(first_model, second_model, data, alpha=0.05, metric='ROC_AUC'):
     """
@@ -12,13 +14,16 @@ def compare_models_different(first_model, second_model, data, alpha=0.05, metric
     if metric == 'ROC_AUC':
         X = data.X
         y_true = data.y
-        p_value = 10 ** delong_roc_test(y_true, first_model.predict(X), second_model.predict(X))  # delong_roc_test returns log10(pvalue)
+        # delong_roc_test returns log10(pvalue)
+        p_value = 10 ** delong_roc_test(y_true,
+                                        first_model.predict(X), second_model.predict(X))
         if p_value < alpha:
             return True, p_value
         else:
             return False, p_value
     else:
         pass
+
 
 def log_progress(sequence, every=None, size=None, name='Items'):
     from ipywidgets import IntProgress, HTML, VBox
@@ -75,3 +80,42 @@ def log_progress(sequence, every=None, size=None, name='Items'):
             name=name,
             index=str(index or '?')
         )
+
+
+def DataFrame2XYCDataset(dataset):
+    """Сonverts pandas.DataFrame to modelgym.utils.XYCDataset.
+
+    Args:
+        dataset (pandas.DataFrame): dataset.
+
+    Returns:
+        result (modelgym.utils.XYCDataset): converted dataset.
+
+    """
+    if 'y' in dataset:
+        result = XYCDataset(
+            dataset.drop('y', axis=1).values,
+            dataset['y'].values, dataset.drop('y', axis=1).columns)
+    else:
+        result = XYCDataset(
+            dataset.drop('y', axis=1).values,
+            dataset['y'].values, dataset.drop('y', axis=1).columns)
+    return result
+
+
+def XYCDataset2DataFrame(dataset):
+    """Сonverts modelgym.utils.XYCDataset to pandas.DataFrame.
+
+    Args:
+        dataset (modelgym.utils.XYCDataset): dataset.
+
+    Returns:
+        result (pandas.DataFrame): converted dataset.
+
+    """
+    result = pd.DataFrame(
+        data=dataset.X,
+        columns=dataset.cat_cols if len(dataset.cat_cols) else None)
+    if dataset.y is not None:
+        result['y'] = dataset.y
+    return result
