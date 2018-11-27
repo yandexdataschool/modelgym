@@ -1,5 +1,4 @@
 import pytest
-import warnings
 
 from collections import OrderedDict
 from skopt.space import Integer
@@ -31,13 +30,22 @@ basic_X, basic_y = make_classification(
 basic_XYCDataset = XYCDataset(basic_X, basic_y)
 basic_DataFrame = DataFrame(data=basic_X)
 basic_DataFrame['y'] = basic_y
-basic_path = 'basic_dataset.csv'
+path = 'basic_dataset.csv'
 
 
 @pytest.fixture(scope='session')
-def basic_dataset(tmpdir_factory):
-    tmpdir_factory.mktemp(basic_path)
-    basic_DataFrame.to_csv(basic_path)
+def basic_dataset_path(tmpdir_factory):
+    filename = str(tmpdir_factory.mktemp('data').join(path))
+    basic_DataFrame.to_csv(filename)
+    return filename
+
+
+def models(classifier):
+    return ModelSpace(
+        classifier,
+        space=[Integer(low=10, high=11, name='iterations')],
+        space_update=False,
+    )
 
 
 dataset = load_breast_cancer()
@@ -61,13 +69,6 @@ TEST_CASES = OrderedDict([
         )
     ),
     (
-        "basic_case_path",
-        Case(
-            dataset=basic_path,
-            expected_accuracy=0.8,
-        )
-    ),
-    (
         "test_XYCDataset",
         Case(
             dataset=test_XYCDataset,
@@ -78,21 +79,16 @@ TEST_CASES = OrderedDict([
 
 
 @pytest.mark.parametrize("classifier", CLASSIFIERS)
-@pytest.mark.parametrize('test_case', [TEST_CASES['basic_case_XYCDataset']])
-def test_basic_pipeline_biclass(classifier, test_case):
-    models = ModelSpace(
-        classifier,
-        space=[Integer(low=10, high=11, name='iterations')],
-        space_update=False,
-    )
-    trainer = SkoptTrainer(models)
+def test_basic_pipeline_biclass(classifier):
+    test_case = TEST_CASES['basic_case_XYCDataset']
+    trainer = SkoptTrainer(models(classifier))
     trainer.crossval_optimize_params(
         Accuracy(), test_case.dataset, metrics=[Accuracy(), RocAuc()])
     trainer.get_best_results()
     results = trainer.get_best_results()[CLASSIFIERS_NAMES[classifier]][
         'result']['metric_cv_results']
     accuracy = sum([metric['accuracy'] for metric in results]) / len(results)
-    assert pytest.approx(accuracy, 0.2) == test_case.expected_accuracy
+    assert pytest.approx(accuracy, abs=0.2) == test_case.expected_accuracy
 
 
 @pytest.mark.parametrize(
@@ -101,12 +97,20 @@ def test_basic_pipeline_biclass(classifier, test_case):
     ids=list(TEST_CASES.keys())
 )
 def test_basic_pipeline_data_type(test_case):
-    models = ModelSpace(
-        CLASSIFIERS[0],
-        space=[Integer(low=10, high=11, name='iterations')],
-        space_update=False,
-    )
-    trainer = SkoptTrainer(models)
+    classifier = CLASSIFIERS[0]
+    trainer = SkoptTrainer(models(classifier))
     trainer.crossval_optimize_params(
         Accuracy(), test_case.dataset, metrics=[Accuracy(), RocAuc()])
+    trainer.get_best_results()
+    results = trainer.get_best_results()[CLASSIFIERS_NAMES[classifier]][
+        'result']['metric_cv_results']
+    accuracy = sum([metric['accuracy'] for metric in results]) / len(results)
+    assert pytest.approx(accuracy, abs=0.2) == test_case.expected_accuracy
+
+
+def test_basic_pipeline_path_to_csv(basic_dataset_path):
+    classifier = CLASSIFIERS[0]
+    trainer = SkoptTrainer(models(classifier))
+    trainer.crossval_optimize_params(
+        Accuracy(), basic_dataset_path, metrics=[Accuracy(), RocAuc()])
     trainer.get_best_results()
