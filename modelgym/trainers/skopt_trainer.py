@@ -11,7 +11,7 @@ import logging
 
 import pickle
 from pathlib import Path
-from pandas import DataFrame
+from pandas import DataFrame, read_csv
 
 
 class SkoptTrainer(Trainer):
@@ -55,7 +55,6 @@ class SkoptTrainer(Trainer):
         Notes:
             if cv is int, than dataset is split into cv parts for cross validation. Otherwise, cv folds are used.
         """
-        print(self.model_spaces)
         for name, model_space in self.model_spaces.items():
             self.ind2names[name] = [param.name for param in model_space.space]
 
@@ -66,6 +65,7 @@ class SkoptTrainer(Trainer):
 
         # TODO: test data is not changed
         # TODO: numpy fromfile (much faster)?
+        # TODO: move data preparation to utils
         if isinstance(dataset, Path) or isinstance(dataset, str):
             if Path(dataset).expanduser().exists():
                 dataset = read_csv(dataset)
