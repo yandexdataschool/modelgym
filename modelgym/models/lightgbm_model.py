@@ -7,6 +7,7 @@ from hyperopt.pyll.base import scope
 
 
 class LGBMClassifier(Model):
+
     def __init__(self, params=None):
         """
         Args:
@@ -27,6 +28,7 @@ class LGBMClassifier(Model):
 
         self.params = {'objective': objective, 'metric': metric}
         self.params.update(params)
+        self.fix_int_params(self.params)
         self.n_estimators = self.params.pop('n_estimators', 1)
         self.model = None
 
@@ -115,14 +117,14 @@ class LGBMClassifier(Model):
             dict of DistributionWrappers
         """
         return {
-          'learning_rate':           hp.loguniform('learning_rate', -7, 0),
-          'num_leaves':              scope.int(hp.qloguniform('num_leaves', 1, 7, 1)),
-          'feature_fraction':        hp.uniform('feature_fraction', 0.5, 1),
-          'bagging_fraction':        hp.uniform('bagging_fraction', 0.5, 1),
-          'min_data_in_leaf':        scope.int(hp.qloguniform('min_data_in_leaf', 0, 6, 1)),
-          'min_sum_hessian_in_leaf': hp.loguniform('min_sum_hessian_in_leaf', -16, 5),
-          'lambda_l1':               hp.loguniform('lambda_l1', -16, 2),
-          'lambda_l2':               hp.loguniform('lambda_l2', -16, 2),
+            'learning_rate':           hp.loguniform('learning_rate', -7, 0),
+            'num_leaves':              scope.int(hp.qloguniform('num_leaves', 1, 7, 1)),
+            'feature_fraction':        hp.uniform('feature_fraction', 0.5, 1),
+            'bagging_fraction':        hp.uniform('bagging_fraction', 0.5, 1),
+            'min_data_in_leaf':        scope.int(hp.qloguniform('min_data_in_leaf', 0, 6, 1)),
+            'min_sum_hessian_in_leaf': hp.loguniform('min_sum_hessian_in_leaf', -16, 5),
+            'lambda_l1':               hp.loguniform('lambda_l1', -16, 2),
+            'lambda_l2':               hp.loguniform('lambda_l2', -16, 2),
         }
 
     @staticmethod
@@ -131,6 +133,7 @@ class LGBMClassifier(Model):
 
 
 class LGBMRegressor(Model):
+
     def __init__(self, params=None):
         """
         Args:
@@ -144,6 +147,7 @@ class LGBMRegressor(Model):
 
         self.params = {'objective': 'mean_squared_error', 'metric': 'l2'}
         self.params.update(params)
+        self.fix_int_params(self.params)
         self.n_estimators = self.params.pop('n_estimators', 1)
         self.model = None
 
@@ -170,7 +174,8 @@ class LGBMRegressor(Model):
             self
         """
         dtrain = self._convert_to_dataset(dataset)
-        self.model = lgb.train(self.params, dtrain, num_boost_round=self.n_estimators, verbose_eval=False)
+        self.model = lgb.train(
+            self.params, dtrain, num_boost_round=self.n_estimators, verbose_eval=False)
         return self
 
     def save_snapshot(self, filename):
@@ -225,15 +230,15 @@ class LGBMRegressor(Model):
         """
 
         return {
-          'n_estimators':            scope.int(hp.quniform('n_estimators', 5, 10, 5)),
-          'learning_rate':           hp.loguniform('learning_rate', -7, 0),
-          'num_leaves':              scope.int(hp.qloguniform('num_leaves', 1, 7, 1)),
-          'feature_fraction':        hp.uniform('feature_fraction', 0.5, 1),
-          'bagging_fraction':        hp.uniform('bagging_fraction', 0.5, 1),
-          'min_data_in_leaf':        scope.int(hp.qloguniform('min_data_in_leaf', 0, 6, 1)),
-          'min_sum_hessian_in_leaf': hp.loguniform('min_sum_hessian_in_leaf', -16, 5),
-          'lambda_l1':               hp.loguniform('lambda_l1', -16, 2),
-          'lambda_l2':               hp.loguniform('lambda_l2', -16, 2),
+            'n_estimators':            scope.int(hp.quniform('n_estimators', 5, 10, 5)),
+            'learning_rate':           hp.loguniform('learning_rate', -7, 0),
+            'num_leaves':              scope.int(hp.qloguniform('num_leaves', 1, 7, 1)),
+            'feature_fraction':        hp.uniform('feature_fraction', 0.5, 1),
+            'bagging_fraction':        hp.uniform('bagging_fraction', 0.5, 1),
+            'min_data_in_leaf':        scope.int(hp.qloguniform('min_data_in_leaf', 0, 6, 1)),
+            'min_sum_hessian_in_leaf': hp.loguniform('min_sum_hessian_in_leaf', -16, 5),
+            'lambda_l1':               hp.loguniform('lambda_l1', -16, 2),
+            'lambda_l2':               hp.loguniform('lambda_l2', -16, 2),
         }
 
     @staticmethod

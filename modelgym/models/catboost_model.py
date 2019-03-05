@@ -11,6 +11,7 @@ class CtBClassifier(Model):
     Wrapper for `CatBoostClassifier
     <https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_catboostclassifier-docpage/>`_
     """
+
     def __init__(self, params=None):
         """
         Args:
@@ -32,6 +33,7 @@ class CtBClassifier(Model):
             self.params['classes_count'] = classes_count
 
         self.params.update(params)
+        self.fix_int_params(self.params)
         self.model = None
 
     def _set_model(self, model):
@@ -75,9 +77,12 @@ class CtBClassifier(Model):
             dtrain = self._convert_to_dataset(dataset.X, dataset.y, **params)
             self.model = ctb.CatBoostClassifier(**self.params).fit(dtrain)
         else:
-            dtrain = self._convert_to_dataset(dataset.X, dataset.y, **params['train_kwargs'])
-            deval = self._convert_to_dataset(eval_dataset.X, eval_dataset.y, **params['eval_kwargs'])
-            self.model = ctb.CatBoostClassifier(**self.params).fit(dtrain, eval_set=deval)
+            dtrain = self._convert_to_dataset(
+                dataset.X, dataset.y, **params['train_kwargs'])
+            deval = self._convert_to_dataset(
+                eval_dataset.X, eval_dataset.y, **params['eval_kwargs'])
+            self.model = ctb.CatBoostClassifier(
+                **self.params).fit(dtrain, eval_set=deval)
         return self
 
     def save_snapshot(self, filename):
@@ -125,7 +130,8 @@ class CtBClassifier(Model):
         Return:
             np.array, shape (n_samples, n_classes)
         """
-        params = kwargs if kwargs else self.params.get('predict_proba_kwargs', {})
+        params = kwargs if kwargs else self.params.get(
+            'predict_proba_kwargs', {})
 
         ctb_dataset = ctb.Pool(dataset.X, **params)
         assert self.is_possible_predict_proba(), "Model cannot predict probability distribution"
@@ -160,6 +166,7 @@ class CtBRegressor(Model):
     Wrapper for `CatBoostRegressor
     <https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_catboostclassifier-docpage/>`_
     """
+
     def __init__(self, params=None):
         """
         Args:
@@ -176,6 +183,7 @@ class CtBRegressor(Model):
         }
 
         self.params.update(params)
+        self.fix_int_params(self.params)
         self.model = None
 
     def _set_model(self, model):
@@ -216,9 +224,12 @@ class CtBRegressor(Model):
             dtrain = self._convert_to_dataset(dataset.X, dataset.y, **params)
             self.model = ctb.CatBoostRegressor(**self.params).fit(dtrain)
         else:
-            dtrain = self._convert_to_dataset(dataset.X, dataset.y, **params['train_kwargs'])
-            deval = self._convert_to_dataset(eval_dataset.X, eval_dataset.y, **params['test_kwargs'])
-            self.model = ctb.CatBoostRegressor(**self.params).fit(dtrain, eval_set=deval)
+            dtrain = self._convert_to_dataset(
+                dataset.X, dataset.y, **params['train_kwargs'])
+            deval = self._convert_to_dataset(
+                eval_dataset.X, eval_dataset.y, **params['test_kwargs'])
+            self.model = ctb.CatBoostRegressor(
+                **self.params).fit(dtrain, eval_set=deval)
         return self
 
     def save_snapshot(self, filename):

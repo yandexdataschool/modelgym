@@ -9,6 +9,7 @@ from hyperopt import hp
 
 
 class RFClassifier(Model):
+
     def __init__(self, params=None):
         """
         Args:
@@ -33,7 +34,7 @@ class RFClassifier(Model):
         }
         if params:
             self.params.update(params)
-
+        self.fix_int_params(self.params)
         self.n_estimators = self.params.pop('n_estimators', 1)
         self.model = None
 
@@ -59,7 +60,8 @@ class RFClassifier(Model):
         """
         dtrain = self._convert_to_dataset(dataset.X, dataset.y)
         self.model = rfc(n_estimators=self.n_estimators, max_depth=self.params['max_depth'],
-                         criterion=self.params['criterion'], max_features=self.params['max_features'],
+                         criterion=self.params[
+                             'criterion'], max_features=self.params['max_features'],
                          verbose=self.params['verbose']).fit(dtrain.X, dtrain.y)
         return self
 

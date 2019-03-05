@@ -56,7 +56,10 @@ class SkoptTrainer(Trainer):
             if cv is int, than dataset is split into cv parts for cross validation. Otherwise, cv folds are used.
         """
         for name, model_space in self.model_spaces.items():
+            # if skopt spaces
             self.ind2names[name] = [param.name for param in model_space.space]
+            # TODO: if hyperopt spaces, transform to skopt
+            #(from modelgym.utils import hyperopt2skopt_space)
 
         if metrics is None:
             metrics = [opt_metric]
