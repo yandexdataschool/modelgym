@@ -91,3 +91,14 @@ class Model(object):
             modelgym.models.LearningTask: task
         """
         raise NotImplementedError("Pure virtual class.")
+
+    def fix_int_params(self, params):
+        """Fixes integer parameters.
+        Args:
+            params (dict): parameters for model.
+        """
+        default_params = self.get_default_parameter_space()
+        for param, value in default_params.items():
+            is_int = value.__str__().find('int') == 2
+            if is_int and param in params:
+                params[param] = int(params[param])
