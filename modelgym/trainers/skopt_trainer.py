@@ -1,6 +1,7 @@
 from modelgym.trainers.trainer import Trainer
 from modelgym.utils.model_space import process_model_spaces
 from modelgym.utils.evaluation import crossval_fit_eval
+from modelgym.utils import hyperopt2skopt_space
 from skopt.optimizer import forest_minimize, gp_minimize, Optimizer
 from modelgym.utils.util import log_progress, DataFrame2XYCDataset
 from modelgym.utils.dataset import XYCDataset
@@ -57,9 +58,18 @@ class SkoptTrainer(Trainer):
         """
         for name, model_space in self.model_spaces.items():
             # if skopt spaces
-            self.ind2names[name] = [param.name for param in model_space.space]
-            # TODO: if hyperopt spaces, transform to skopt
-            #(from modelgym.utils import hyperopt2skopt_space)
+            if isinstance(model_space.space, list):
+                self.ind2names[name] = [
+                    param.name for param in model_space.space]
+            # if hyperopt space
+            elif isinstance(model_space.space, dict):
+                skopt_space, ind2names = hyperopt2skopt_space(
+                    model_space.space)
+                model_space.space = skopt_space
+                self.ind2names[name] = ind2names
+            else:
+                raise ValueError(
+                    "model_space.space should be dict of hyperopt spaces or list with skopt spaces")
 
         if metrics is None:
             metrics = [opt_metric]
