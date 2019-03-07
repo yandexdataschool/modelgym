@@ -8,11 +8,12 @@ import copy
 import os
 
 from modelgym.models import XGBClassifier, LGBMClassifier, \
-                            XGBRegressor, LGBMRegressor
+    XGBRegressor, LGBMRegressor
 from modelgym.utils import XYCDataset
 
 
 class EnsembleClassifier(Model):
+
     def __init__(self, params=None):
         """
         Args:
@@ -23,6 +24,7 @@ class EnsembleClassifier(Model):
             params = {}
 
         self.params = params
+        self.fix_int_params(self.params)
         if 'models' not in params:
             raise ValueError('no models given')
         self.models = list(self.params['models'])
@@ -82,7 +84,8 @@ class EnsembleClassifier(Model):
 
         loaded_models = []
         for i, model in enumerate(models):
-            loaded_models.append(model.load_from_snapshot(filename + '_{}'.format(i)))
+            loaded_models.append(model.load_from_snapshot(
+                filename + '_{}'.format(i)))
         params['models'] = loaded_models
         return EnsembleClassifier(params)
 
@@ -125,7 +128,8 @@ class EnsembleClassifier(Model):
             np.array, shape (n_samples, n_classes)
         """
         assert self.is_possible_predict_proba(), "Model cannot predict probability distribution"
-        params = kwargs if kwargs else self.params.get('predict_proba_kwargs', {})
+        params = kwargs if kwargs else self.params.get(
+            'predict_proba_kwargs', {})
         num_classes = self.params.get('num_class', 2)
 
         pred = np.zeros((dataset.X.shape[0], num_classes))
@@ -136,7 +140,8 @@ class EnsembleClassifier(Model):
                     num_classes
                 )
             else:
-                pred += self.weights[i] * model.predict_proba(dataset, **params)
+                pred += self.weights[i] * \
+                    model.predict_proba(dataset, **params)
 
         if num_classes == 2:
             return pred[:, 1]
@@ -160,6 +165,7 @@ class EnsembleClassifier(Model):
 
 
 class EnsembleRegressor(Model):
+
     def __init__(self, params=None):
         """
         Args:
@@ -170,6 +176,7 @@ class EnsembleRegressor(Model):
             params = {}
 
         self.params = params
+        self.fix_int_params(self.params)
         if 'models' not in params:
             raise ValueError('no models given')
         self.models = list(self.params['models'])
@@ -229,7 +236,8 @@ class EnsembleRegressor(Model):
 
         loaded_models = []
         for i, model in enumerate(models):
-            loaded_models.append(model.load_from_snapshot(filename + '_{}'.format(i)))
+            loaded_models.append(model.load_from_snapshot(
+                filename + '_{}'.format(i)))
         params['models'] = loaded_models
         return EnsembleRegressor(params)
 

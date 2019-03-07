@@ -11,9 +11,10 @@ setup(name="modelgym",
       url='https://github.com/yandexdataschool/modelgym/',
       license='BSD',
       author='The modelgym contributors',
-      packages=["modelgym", "modelgym.utils", "modelgym.trainers", "modelgym.trackers", "modelgym.models"],
+      packages=["modelgym", "modelgym.utils", "modelgym.trainers",
+                "modelgym.trackers", "modelgym.models"],
       install_requires=["numpy", "scipy", "scikit-learn>=0.18", "matplotlib",
                         "pandas", "seaborn", "networkx==1.11", "hyperopt==0.1",
-                        "pymongo==3.4.0", "pyyaml==3.12",
-                        "scikit-optimize==0.4", "catboost==0.5"]
+                        "pymongo==3.4.0", "pyyaml==3.12", "scikit-optimize==0.5",
+                        "catboost==0.5", "lightgbm==2.2.1", "xgboost==0.80"]
       )

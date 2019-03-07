@@ -7,6 +7,7 @@ from hyperopt.pyll.base import scope
 
 
 class XGBClassifier(Model):
+
     def __init__(self, params=None):
         """
         Args:
@@ -27,6 +28,7 @@ class XGBClassifier(Model):
                        'silent': 1}
 
         self.params.update(params)
+        self.fix_int_params(self.params)
         self.n_estimators = self.params.pop('n_estimators', 1)
         self.model = None
 
@@ -51,7 +53,8 @@ class XGBClassifier(Model):
             self
         """
         dtrain = self._convert_to_dataset(dataset.X, dataset.y)
-        self.model = xgb.train(self.params, dtrain, num_boost_round=self.n_estimators, verbose_eval=False)
+        self.model = xgb.train(
+            self.params, dtrain, num_boost_round=self.n_estimators, verbose_eval=False)
         return self
 
     def save_snapshot(self, filename):
@@ -136,6 +139,7 @@ class XGBClassifier(Model):
 
 
 class XGBRegressor(Model):
+
     def __init__(self, params=None):
         """
         Args:
@@ -150,6 +154,7 @@ class XGBRegressor(Model):
         self.params = {'objective': 'reg:linear', 'eval_metric': 'rmse',
                        'silent': 1}
         self.params.update(params)
+        self.fix_int_params(self.params)
         self.n_estimators = self.params.pop('n_estimators', 1)
         self.model = None
 
@@ -173,8 +178,10 @@ class XGBRegressor(Model):
         Return:
             self
         """
-        dtrain = self._convert_to_dataset(dataset.X, dataset.y, cat_cols=dataset.cat_cols)
-        self.model = xgb.train(self.params, dtrain, num_boost_round=self.n_estimators, verbose_eval=False)
+        dtrain = self._convert_to_dataset(
+            dataset.X, dataset.y, cat_cols=dataset.cat_cols)
+        self.model = xgb.train(
+            self.params, dtrain, num_boost_round=self.n_estimators, verbose_eval=False)
         return self
 
     def save_snapshot(self, filename):
@@ -230,7 +237,6 @@ class XGBRegressor(Model):
         Return:
             dict of DistributionWrappers
         """
-
         return {
             'n_estimators':      scope.int(hp.quniform('n_estimators', 5, 10, 5)),
             'eta':               hp.loguniform('eta', -7, 0),

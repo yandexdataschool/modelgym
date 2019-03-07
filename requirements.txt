@@ -9,7 +9,7 @@ networkx==1.11
 hyperopt==0.1
 pymongo==3.4.0
 pyyaml==3.12
-scikit-optimize==0.4
+scikit-optimize==0.5
 lightgbm==2.0.4
 xgboost==0.4a30
 catboost==0.5

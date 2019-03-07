@@ -5,6 +5,7 @@ from modelgym.utils.evaluation import crossval_fit_eval
 from hyperopt import fmin, Trials, STATUS_OK, tpe, rand
 import numpy as np
 
+import time
 
 class HyperoptTrainer(Trainer):
     """HyperoptTrainer is a class for models hyperparameter optimization, based on hyperopt library"""
@@ -27,6 +28,7 @@ class HyperoptTrainer(Trainer):
         self.tracker = tracker
         self.state = None
         self.algo = algo
+        self.logs = []
 
     # TODO: consider different batch_size for different models
     def crossval_optimize_params(self, opt_metric, dataset, cv=3,
@@ -76,7 +78,7 @@ class HyperoptTrainer(Trainer):
                 fn = lambda params: self._eval_fn(
                     model_type=model_space.model_class,
                     params=params,
-                    cv=cv, metrics=metrics, verbose=verbose
+                    cv=cv, metrics=metrics, verbose=self.logs
                 )
             else:
                 fn = lambda params: client.eval(
@@ -148,13 +150,16 @@ class HyperoptTrainer(Trainer):
             metric_cv_results contains dict's from metric names to calculated metric values for each fold in cv_fold
             params is just a copy of input argument params
         """
-
-        result = crossval_fit_eval(model_type, params, cv, metrics, verbose)
+        print("Start learning")
+        time1 = time.time()
+        result = crossval_fit_eval(model_type, params, cv, metrics, verbose=None)
         result["status"] = STATUS_OK
+        print("GOT NEW!")
+        verbose.append(-result["loss"])
         losses = [cv_result[metrics[-1].name]
                   for cv_result in result["metric_cv_results"]]
         result["loss_variance"] = np.std(losses)
-
+        print("End after %s", time.time() - time1)
         return result
 
 
